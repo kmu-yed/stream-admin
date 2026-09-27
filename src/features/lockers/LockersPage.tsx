@@ -20,13 +20,13 @@ function LockersPage() {
           <TabListItem value="applicants">신청 현황</TabListItem>
         </TabList>
 
-        <TabPanel value="layout">
+        <TabPanel value="layout" style={{ width: '100%', minWidth: 0 }}>
           <LockerLayoutPanel />
         </TabPanel>
-        <TabPanel value="schedule">
+        <TabPanel value="schedule" style={{ width: '100%', minWidth: 0 }}>
           <LockerSchedulePanel />
         </TabPanel>
-        <TabPanel value="applicants">
+        <TabPanel value="applicants" style={{ width: '100%', minWidth: 0 }}>
           <LockerApplicantsPanel />
         </TabPanel>
       </Tab>

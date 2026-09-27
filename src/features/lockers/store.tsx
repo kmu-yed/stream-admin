@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import { LOCKER_ZONES, type Locker, type LockerApplication, type LockerSemester } from './types'
+import { LOCKER_ZONE_RANGES, LOCKER_ZONES, type Locker, type LockerApplication, type LockerSemester } from './types'
 
 function addDays(days: number) {
   const d = new Date()
@@ -11,16 +11,15 @@ function makeId(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`
 }
 
-const LOCKERS_PER_ZONE = 8
-
 function buildInitialLockers(): Locker[] {
   const lockers: Locker[] = []
   for (const zone of LOCKER_ZONES) {
-    for (let seq = 1; seq <= LOCKERS_PER_ZONE; seq++) {
+    const { start, end } = LOCKER_ZONE_RANGES[zone]
+    for (let lockerNumber = start; lockerNumber <= end; lockerNumber++) {
       lockers.push({
-        id: `lk_${zone}_${seq}`,
+        id: `lk_${zone}_${lockerNumber}`,
         zone,
-        number: `${zone}-${String(seq).padStart(2, '0')}`,
+        number: `${zone}-${lockerNumber}`,
         status: 'available',
       })
     }
@@ -74,6 +73,7 @@ type LockersContextValue = {
   applications: LockerApplication[]
   semesters: LockerSemester[]
   toggleLockerStatus: (id: string) => void
+  updateLockerStatuses: (ids: string[], status: Locker['status']) => void
   changeLockerAssignment: (applicationId: string, lockerId: string) => void
   cancelApplication: (applicationId: string) => void
   addSemester: (input: LockerSemesterInput) => void
@@ -100,6 +100,12 @@ export function LockersProvider({ children }: { children: ReactNode }) {
               ? { ...locker, status: locker.status === 'available' ? 'disabled' : 'available' }
               : locker,
           ),
+        )
+      },
+      updateLockerStatuses: (ids, status) => {
+        const targetIds = new Set(ids)
+        setLockers((prev) =>
+          prev.map((locker) => (targetIds.has(locker.id) && !locker.assignedTo ? { ...locker, status } : locker)),
         )
       },
       changeLockerAssignment: (applicationId, lockerId) => {

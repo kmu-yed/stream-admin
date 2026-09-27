@@ -133,6 +133,32 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
                   + 선택지 추가
                 </TextButton>
               </FlexBox>
+              <FlexBox alignItems="center" style={{ gap: 8, marginTop: 4 }}>
+                <Switch
+                  checked={Boolean(field.allowOther)}
+                  onCheckedChange={(checked) => updateField(field.id, { allowOther: checked })}
+                  size="small"
+                />
+                <FlexBox flexDirection="column" style={{ gap: 2 }}>
+                  <Typography variant="label2" color="semantic.label.normal">
+                    기타 선택지 사용
+                  </Typography>
+                  <Typography variant="caption1" color="semantic.label.alternative">
+                    신청자가 기타를 선택하면 단답식으로 내용을 입력할 수 있어요.
+                  </Typography>
+                </FlexBox>
+              </FlexBox>
+              {field.allowOther && (
+                <FlexBox flexDirection="column" style={{ gap: 6, marginTop: 4 }}>
+                  <Typography variant="caption1" color="semantic.label.alternative">
+                    신청자 화면 미리보기
+                  </Typography>
+                  <FlexBox alignItems="center" style={{ gap: 8 }}>
+                    <Typography variant="body2">□ 기타</Typography>
+                    <TextField disabled placeholder="기타 내용을 입력해 주세요." style={{ flex: 1 }} />
+                  </FlexBox>
+                </FlexBox>
+              )}
             </FlexBox>
           )}
 

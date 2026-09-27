@@ -71,7 +71,7 @@ function ArchiveFormPage() {
         description="학생회 활동 기록을 아카이빙해요."
       />
 
-      <FlexBox flexDirection="column" style={{ gap: 32, maxWidth: 640 }}>
+      <FlexBox flexDirection="column" style={{ gap: 24, maxWidth: 640, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
         <FormItem label="제목" required error={errors.title}>
           <TextField
             placeholder="게시물 제목을 입력하세요"

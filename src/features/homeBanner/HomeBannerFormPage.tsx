@@ -7,6 +7,7 @@ import {
   RadioGroup,
   RadioGroupItem,
   Select,
+  TextArea,
   TextField,
   Typography,
   useToast,
@@ -14,17 +15,22 @@ import {
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import ImageUploadField from '../../components/common/ImageUploadField'
-import StatusBadge from '../../components/common/StatusBadge'
 import { useHomeBanner } from './store'
 import { useBoards } from '../boards/store'
-import { getBannerBadge, type BannerCategory, type BannerInput, type LandingType } from './types'
+import { type BannerInput, type LandingType } from './types'
 
-const categories: BannerCategory[] = ['제휴', '슬랑제', '간식행사', '체육대회', '해오름제', '사물함', '동문패널톡', '기타']
+const bannerImagePresets = [
+  { id: 'notice', label: '일반 공지', src: '/banner-notice.png' },
+  { id: 'event', label: '행사', src: '/banner-event.png' },
+  { id: 'partnership', label: '제휴', src: '/banner-partnership.png' },
+  { id: 'locker', label: '사물함', src: '/banner-locker.png' },
+]
 
 function makeEmptyForm(noticeId?: string): BannerInput {
   return {
     category: '기타',
     title: '',
+    subtitle: '',
     imageUrl: undefined,
     logoUrl: undefined,
     landingType: noticeId ? 'notice' : 'external',
@@ -53,6 +59,7 @@ function HomeBannerFormPage() {
       ? {
           category: existing.category,
           title: existing.title,
+          subtitle: existing.subtitle,
           imageUrl: existing.imageUrl,
           logoUrl: existing.logoUrl,
           landingType: existing.landingType,
@@ -63,17 +70,19 @@ function HomeBannerFormPage() {
         }
       : {
           ...makeEmptyForm(fromNoticeId),
-          category: fromNotice?.category === '제휴' ? '제휴' : '기타',
+          category: '기타',
           title: fromNotice ? fromNotice.title : '',
         },
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [imageSource, setImageSource] = useState<'preset' | 'upload'>(() => bannerImagePresets.some((preset) => preset.src === existing?.imageUrl) ? 'preset' : 'upload')
 
   const goToList = () => navigate('/home-banner')
 
   const handleSubmit = () => {
     const nextErrors: Record<string, string> = {}
     if (!form.title.trim()) nextErrors.title = '배너 제목을 입력해주세요.'
+    if (!form.subtitle.trim()) nextErrors.subtitle = '부제목을 입력해주세요.'
     if (!form.startDate || !form.endDate) nextErrors.period = '노출 시작일과 종료일을 모두 입력해주세요.'
     else if (form.startDate > form.endDate) nextErrors.period = '종료일은 시작일 이후여야 해요.'
     if (form.landingType === 'notice' && !form.noticeId) nextErrors.landing = '연결할 공지를 선택해주세요.'
@@ -102,64 +111,35 @@ function HomeBannerFormPage() {
         }
       />
 
-      <FlexBox flexDirection="column" style={{ gap: 32, maxWidth: 640 }}>
-        <FlexBox style={{ gap: 16 }}>
-          <FlexBox style={{ width: 200 }}>
-            <FormItem label="카테고리" required>
-              <Select
-                value={form.category}
-                onChange={(v) => setForm({ ...form, category: v as BannerCategory })}
-              >
-                {categories.map((category) => (
-                  <Option key={category} value={category}>
-                    {category}
-                  </Option>
-                ))}
-              </Select>
-            </FormItem>
-          </FlexBox>
-          <FlexBox flexDirection="column" style={{ gap: 6, justifyContent: 'flex-end' }}>
-            <Typography variant="label2" color="semantic.label.alternative">
-              뱃지 표시
-            </Typography>
-            <StatusBadge label={getBannerBadge(form.category)} tone={form.category === '제휴' ? 'info' : 'neutral'} />
-          </FlexBox>
-        </FlexBox>
-
+      <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
+        <FlexBox flexDirection="column" style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
         <FormItem label="배너 제목" required error={errors.title}>
-          <TextField
+          <TextArea
             placeholder="배너에 노출될 제목을 입력하세요"
             value={form.title}
+            minRows={2}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
         </FormItem>
+        <FormItem label="부제목" required error={errors.subtitle}><TextField placeholder="배너에 노출될 부제목을 입력하세요" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} /></FormItem>
+        <FlexBox flexDirection="column" style={{ gap: 6, padding: 20, borderRadius: 16, background: 'var(--semantic-primary-normal)', color: '#fff' }}><Typography variant="title2" weight="bold" style={{ whiteSpace: 'pre-line' }}>{form.title || '일반공지 제목이\n들어가는 자리입니다'}</Typography><Typography variant="body2" style={{ opacity: .78 }}>{form.subtitle || '여긴 부제목이 들어가요'}</Typography></FlexBox>
+        </FlexBox>
 
-        <FormItem label="배너 이미지 (선택)">
-          <ImageUploadField
-            value={form.imageUrl ? [form.imageUrl] : []}
-            onChange={(urls) => setForm({ ...form, imageUrl: urls[0] })}
-            multiple={false}
-            maxCount={1}
-          />
-        </FormItem>
+        <FlexBox flexDirection="column" style={{ gap: 16, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
+          <FlexBox flexDirection="column" style={{ gap: 4 }}><Typography variant="label1" weight="bold">배너 이미지</Typography><Typography variant="caption1" color="semantic.label.alternative">선택 · PNG 355 × 261px</Typography></FlexBox>
+          <FlexBox style={{ gap: 10, flexWrap: 'wrap' }}>
+            {bannerImagePresets.map((preset) => {
+              const selected = imageSource === 'preset' && form.imageUrl === preset.src
+              return <button className="app-hoverable" key={preset.id} type="button" onClick={() => { setImageSource('preset'); setForm({ ...form, imageUrl: preset.src }) }} style={{ width: 132, padding: 0, overflow: 'hidden', borderRadius: 10, cursor: 'pointer', border: selected ? '2px solid var(--semantic-primary-normal)' : '1px solid var(--semantic-line-normal-normal)', background: 'var(--semantic-background-normal-normal)' }}><img src={preset.src} alt={`${preset.label} 배너 이미지`} style={{ display: 'block', width: '100%', height: 92, objectFit: 'cover' }} /><span style={{ display: 'block', padding: '8px 6px', fontSize: 13, color: 'var(--semantic-label-normal)' }}>{preset.label}</span></button>
+            })}
+            <button className="app-hoverable" type="button" onClick={() => setImageSource('upload')} style={{ width: 132, padding: 0, borderRadius: 10, cursor: 'pointer', border: imageSource === 'upload' ? '2px solid var(--semantic-primary-normal)' : '1px solid var(--semantic-line-normal-normal)', background: 'var(--semantic-background-normal-normal)', color: 'var(--semantic-label-alternative)' }}><FlexBox flexDirection="column" alignItems="center" justifyContent="center" style={{ height: 92, fontSize: 22 }}>+</FlexBox><span style={{ display: 'block', padding: '8px 6px', fontSize: 13 }}>직접 업로드</span></button>
+          </FlexBox>
+          {imageSource === 'upload' && <ImageUploadField value={form.imageUrl ? [form.imageUrl] : []} onChange={(urls) => setForm({ ...form, imageUrl: urls[0] })} multiple={false} maxCount={1} accept="image/png" previewSize={160} />}
+        </FlexBox>
 
-        {form.category === '제휴' && (
-          <FormItem label="기업 로고 (등록 시 배너가 자동 완성돼요)">
-            <ImageUploadField
-              value={form.logoUrl ? [form.logoUrl] : []}
-              onChange={(urls) => setForm({ ...form, logoUrl: urls[0] })}
-              multiple={false}
-              maxCount={1}
-            />
-          </FormItem>
-        )}
-
-        <FlexBox flexDirection="column" style={{ gap: 8 }}>
+        <FlexBox flexDirection="column" style={{ gap: 16, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
           <Typography variant="label1" weight="bold">
             노출 기간
-          </Typography>
-          <Typography variant="caption1" color="semantic.label.alternative">
-            종료일이 지나면 자동으로 비노출 처리돼요.
           </Typography>
           <FlexBox style={{ gap: 16 }}>
             <FlexBox style={{ flex: 1 }}>

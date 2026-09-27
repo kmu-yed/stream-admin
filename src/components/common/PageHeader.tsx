@@ -10,6 +10,7 @@ type PageHeaderProps = {
 function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
     <FlexBox
+      className="page-header"
       justifyContent="space-between"
       alignItems="flex-start"
       style={{ marginBottom: 24, gap: 16 }}

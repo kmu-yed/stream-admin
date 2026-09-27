@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, FlexBox, TextArea, TextField, useToast } from '@wanteddev/wds'
+import { Button, FlexBox, TextArea, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import { useChatbot } from './store'
@@ -26,7 +26,6 @@ function FaqFormPage() {
   const handleSubmit = () => {
     const nextErrors: Record<string, string> = {}
     if (!form.question.trim()) nextErrors.question = '질문을 입력해주세요.'
-    if (!form.answer.trim()) nextErrors.answer = '답변을 입력해주세요.'
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
@@ -42,24 +41,17 @@ function FaqFormPage() {
 
   return (
     <>
-      <PageHeader title={isEdit ? 'FAQ 수정' : '새 FAQ 등록'} description="자주 묻는 질문과 답변을 등록해요." />
+      <PageHeader title={isEdit ? 'FAQ 수정' : 'FAQ 추가'} description="챗봇에 노출할 질문을 등록해요." />
 
       <FlexBox flexDirection="column" style={{ gap: 32, maxWidth: 640 }}>
         <FormItem label="질문" required error={errors.question}>
-          <TextField
+          <TextArea
             placeholder="자주 묻는 질문을 입력하세요"
             value={form.question}
-            onChange={(e) => setForm({ ...form, question: e.target.value })}
-          />
-        </FormItem>
-
-        <FormItem label="답변" required error={errors.answer}>
-          <TextArea
-            placeholder="답변을 입력하세요"
-            value={form.answer}
             width="100%"
-            minRows={4}
-            onChange={(e) => setForm({ ...form, answer: e.target.value })}
+            minRows={1}
+            maxRows={4}
+            onChange={(e) => setForm({ ...form, question: e.target.value })}
           />
         </FormItem>
 

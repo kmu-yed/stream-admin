@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import type { FeedbackAnswer, FeedbackQuestion, FeedbackRound, Notice, NoticeInput } from './types'
+import type { FeedbackAnswer, FeedbackPeriod, FeedbackQuestion, FeedbackRound, Notice, NoticeInput } from './types'
 
 function addDays(days: number) {
   const d = new Date()
@@ -52,22 +52,30 @@ const initialFeedbackRounds: FeedbackRound[] = [
     roundNumber: 1,
     createdAt: addDays(-5),
     answers: [
-      { questionId: 'q_1', category: '시설', answerText: '학생회관 1층 안내데스크로 신고해주시면 **당일 내 조치**됩니다.' },
-      { questionId: 'q_2', category: '학사', answerText: '중간고사 기간 도서관은 **자정까지 연장 운영**됩니다.' },
+      { questionId: 'q_1', answerText: '학생회관 1층 안내데스크로 신고해주시면 **당일 내 조치**됩니다.' },
+      { questionId: 'q_2', answerText: '중간고사 기간 도서관은 **자정까지 연장 운영**됩니다.' },
     ],
   },
+]
+
+const initialFeedbackPeriods: FeedbackPeriod[] = [
+  { id: 'period_1', openDate: addDays(-72), closeDate: addDays(-58), createdAt: addDays(-80) },
+  { id: 'period_2', openDate: addDays(-1), closeDate: addDays(13), createdAt: addDays(-7) },
+  { id: 'period_3', openDate: addDays(48), closeDate: addDays(62), createdAt: addDays(-2) },
 ]
 
 type BoardsContextValue = {
   notices: Notice[]
   questions: FeedbackQuestion[]
   feedbackRounds: FeedbackRound[]
+  feedbackPeriods: FeedbackPeriod[]
   addNotice: (input: NoticeInput) => Notice
   updateNotice: (id: string, input: NoticeInput) => void
   deleteNotice: (id: string) => void
   addFeedbackRound: (answers: FeedbackAnswer[]) => void
   updateFeedbackRound: (id: string, answers: FeedbackAnswer[]) => void
   deleteFeedbackRound: (id: string) => void
+  updateFeedbackPeriod: (id: string, period: Pick<FeedbackPeriod, 'openDate' | 'closeDate'>) => void
 }
 
 const BoardsContext = createContext<BoardsContextValue | null>(null)
@@ -76,12 +84,14 @@ export function BoardsProvider({ children }: { children: ReactNode }) {
   const [notices, setNotices] = useState<Notice[]>(initialNotices)
   const [questions, setQuestions] = useState<FeedbackQuestion[]>(initialQuestions)
   const [feedbackRounds, setFeedbackRounds] = useState<FeedbackRound[]>(initialFeedbackRounds)
+  const [feedbackPeriods, setFeedbackPeriods] = useState<FeedbackPeriod[]>(initialFeedbackPeriods)
 
   const value = useMemo<BoardsContextValue>(
     () => ({
       notices,
       questions,
       feedbackRounds,
+      feedbackPeriods,
       addNotice: (input) => {
         const notice: Notice = { ...input, id: makeId('ntc'), createdAt: new Date().toISOString().slice(0, 10) }
         setNotices((prev) => [notice, ...prev])
@@ -114,8 +124,11 @@ export function BoardsProvider({ children }: { children: ReactNode }) {
       deleteFeedbackRound: (id) => {
         setFeedbackRounds((prev) => prev.filter((round) => round.id !== id))
       },
+      updateFeedbackPeriod: (id, period) => {
+        setFeedbackPeriods((prev) => prev.map((item) => (item.id === id ? { ...item, ...period } : item)))
+      },
     }),
-    [notices, questions, feedbackRounds],
+    [notices, questions, feedbackRounds, feedbackPeriods],
   )
 
   return <BoardsContext.Provider value={value}>{children}</BoardsContext.Provider>

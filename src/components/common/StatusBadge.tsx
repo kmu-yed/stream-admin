@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Chip } from '@wanteddev/wds'
 
 export type BadgeTone = 'neutral' | 'info' | 'positive' | 'negative' | 'cautionary'
@@ -5,6 +6,8 @@ export type BadgeTone = 'neutral' | 'info' | 'positive' | 'negative' | 'cautiona
 type StatusBadgeProps = {
   label: string
   tone?: BadgeTone
+  size?: 'xsmall' | 'small' | 'medium' | 'large'
+  trailingContent?: ReactNode
 }
 
 const toneStyle: Record<BadgeTone, { background: string; color: string }> = {
@@ -30,12 +33,13 @@ const toneStyle: Record<BadgeTone, { background: string; color: string }> = {
   },
 }
 
-function StatusBadge({ label, tone = 'neutral' }: StatusBadgeProps) {
+function StatusBadge({ label, tone = 'neutral', size = 'small', trailingContent }: StatusBadgeProps) {
   const { background, color } = toneStyle[tone]
   return (
     <Chip
-      size="small"
+      size={size}
       disableInteraction
+      trailingContent={trailingContent}
       style={{ background, color, border: 'none' }}
     >
       {label}

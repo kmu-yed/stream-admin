@@ -20,7 +20,7 @@ import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
-import RowActionButton from '../../components/common/RowActionButton'
+import RowMoreMenu from '../../components/common/RowMoreMenu'
 import { useHomeBanner } from './store'
 import { getBannerBadge, getBannerExposureStatus, type Banner, type BannerExposureStatus } from './types'
 
@@ -79,16 +79,9 @@ function HomeBannerListPage() {
     {
       key: 'actions',
       header: '',
-      width: 140,
+      width: 56,
       align: 'right',
-      render: (row) => (
-        <FlexBox alignItems="center" justifyContent="flex-end" style={{ gap: 16 }}>
-          <RowActionButton onClick={() => navigate(`/home-banner/${row.id}/edit`)}>수정</RowActionButton>
-          <RowActionButton danger onClick={() => setDeleteTarget(row)}>
-            삭제
-          </RowActionButton>
-        </FlexBox>
-      ),
+      render: (row) => <RowMoreMenu label={row.title} onEdit={() => navigate(`/home-banner/${row.id}/edit`)} onDelete={() => setDeleteTarget(row)} />,
     },
   ]
 
@@ -102,15 +95,7 @@ function HomeBannerListPage() {
 
   return (
     <>
-      <PageHeader
-        title="홈 공지 배너 관리"
-        description="홈 화면에 노출되는 공지 배너를 등록하고 순서를 관리해요. 손잡이 아이콘을 드래그해 순서를 바꿀 수 있어요."
-        action={
-          <Button variant="solid" color="primary" onClick={() => navigate('/home-banner/new')}>
-            + 새 배너 등록
-          </Button>
-        }
-      />
+      <PageHeader title="홈 배너 관리" description="홈 화면에 노출되는 공지 배너를 등록하고 순서를 관리해요. 손잡이 아이콘을 드래그해 순서를 바꿀 수 있어요." />
 
       <Tab value={tab} onValueChange={(value) => setSearchParams({ tab: value })}>
         <TabList size="medium" style={{ marginBottom: 20 }}>
@@ -118,8 +103,12 @@ function HomeBannerListPage() {
           <TabListItem value="past">지난 배너</TabListItem>
         </TabList>
 
+        <FlexBox justifyContent="flex-end" style={{ marginBottom: 16 }}>
+          <Button variant="solid" color="primary" onClick={() => navigate('/home-banner/new')}>+ 새 배너 등록</Button>
+        </FlexBox>
+
         <TabPanel value="active">
-      <Table>
+      <Table className="data-table">
         <TableHead>
           <TableRow>
             <TableHeadCell style={{ width: 40 }} />
@@ -128,7 +117,7 @@ function HomeBannerListPage() {
             <TableHeadCell>제목</TableHeadCell>
             <TableHeadCell style={{ width: 220 }}>노출 기간</TableHeadCell>
             <TableHeadCell style={{ width: 100 }}>상태</TableHeadCell>
-            <TableHeadCell style={{ width: 140 }} align="right" />
+            <TableHeadCell style={{ width: 56 }} align="right" />
           </TableRow>
         </TableHead>
         <TableBody>
@@ -204,14 +193,7 @@ function HomeBannerListPage() {
                     <StatusBadge label={status} tone={exposureTone[status]} />
                   </TableCell>
                   <TableCell align="right">
-                    <FlexBox alignItems="center" justifyContent="flex-end" style={{ gap: 16 }}>
-                      <RowActionButton onClick={() => navigate(`/home-banner/${banner.id}/edit`)}>
-                        수정
-                      </RowActionButton>
-                      <RowActionButton danger onClick={() => setDeleteTarget(banner)}>
-                        삭제
-                      </RowActionButton>
-                    </FlexBox>
+                    <RowMoreMenu label={banner.title} onEdit={() => navigate(`/home-banner/${banner.id}/edit`)} onDelete={() => setDeleteTarget(banner)} />
                   </TableCell>
                 </TableRow>
               )

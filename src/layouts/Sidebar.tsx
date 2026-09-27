@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@wanteddev/wds";
 import { IconSidebarCollapse, IconSidebarExpand } from "../components/icons/SidebarToggleIcons";
+import { IconClose } from "@wanteddev/wds-icon";
 import { navGroups } from "../nav/navConfig";
 
 const SIDEBAR_WIDTH = 248;
@@ -20,15 +21,18 @@ const SIDEBAR_COLLAPSED_WIDTH = 72;
 type SidebarProps = {
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
 };
 
-function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
+function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobile }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
   return (
     <FlexBox
       as="nav"
+      className={`admin-sidebar${mobileOpen ? " mobile-open" : ""}`}
       flexDirection="column"
       style={{
         width: collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH,
@@ -47,16 +51,25 @@ function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
         style={{ height: 64, padding: collapsed ? "0 12px" : "0 12px 0 24px", flexShrink: 0 }}
       >
         {!collapsed && (
-          <Typography variant="heading2" weight="bold" style={{ whiteSpace: "nowrap" }}>
-            Stream 관리자
-          </Typography>
+          <FlexBox alignItems="center" style={{ gap: 5, minWidth: 0 }}>
+            <img src="/brand/favicon.png" alt="Stream" style={{ width: 22, height: 22, flexShrink: 0, objectFit: 'contain' }} />
+            <img src="/brand/stream-watermark.svg" alt="Stream" style={{ width: 75, height: 16.2, flexShrink: 0, objectFit: 'contain' }} />
+            <FlexBox alignItems="center" style={{ height: 32 }}>
+              <Typography variant="label2" weight="medium" color="semantic.label.alternative" style={{ whiteSpace: "nowrap", transform: 'translateY(2px)' }}>
+                관리자
+              </Typography>
+            </FlexBox>
+          </FlexBox>
         )}
-        <IconButton variant="normal" size="small" onClick={onToggleCollapsed}>
+        <IconButton className="desktop-sidebar-toggle" variant="normal" size="small" onClick={onToggleCollapsed}>
           {collapsed ? (
             <IconSidebarExpand style={{ width: 20, height: 20, color: "var(--semantic-label-assistive)" }} />
           ) : (
             <IconSidebarCollapse style={{ width: 20, height: 20, color: "var(--semantic-label-assistive)" }} />
           )}
+        </IconButton>
+        <IconButton className="mobile-sidebar-close" variant="normal" size="medium" aria-label="메뉴 닫기" onClick={onCloseMobile}>
+          <IconClose width={24} height={24} />
         </IconButton>
       </FlexBox>
 
@@ -87,7 +100,7 @@ function Sidebar({ collapsed, onToggleCollapsed }: SidebarProps) {
                     selected={selected}
                     verticalPadding="small"
                     alignItems="center"
-                    onClick={() => navigate(item.path)}
+                    onClick={() => { navigate(item.path); onCloseMobile() }}
                     textProps={{ variant: "body2" }}
                     style={{
                       height: 40,

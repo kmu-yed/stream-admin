@@ -7,7 +7,7 @@ import DataTable, { type DataTableColumn } from '../../components/common/DataTab
 import SearchField from '../../components/common/SearchField'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
-import RowActionButton from '../../components/common/RowActionButton'
+import RowMoreMenu from '../../components/common/RowMoreMenu'
 import { useBoards } from './store'
 import type { Notice, NoticeCategory } from './types'
 
@@ -54,33 +54,19 @@ function NoticesPage() {
     {
       key: 'actions',
       header: '',
-      width: 140,
+      width: 56,
       align: 'right',
-      render: (row) => (
-        <FlexBox alignItems="center" justifyContent="flex-end" style={{ gap: 16 }}>
-          <RowActionButton onClick={() => navigate(`/notices/${row.id}/edit`)}>수정</RowActionButton>
-          <RowActionButton danger onClick={() => setDeleteTarget(row)}>
-            삭제
-          </RowActionButton>
-        </FlexBox>
-      ),
+      render: (row) => <RowMoreMenu label={row.title} onEdit={() => navigate(`/notices/${row.id}/edit`)} onDelete={() => setDeleteTarget(row)} />,
     },
   ]
 
   return (
     <>
-      <PageHeader
-        title="공지 관리"
-        description="게시판에 노출되는 공지를 관리해요."
-        action={
-          <Button variant="solid" color="primary" onClick={() => navigate('/notices/new')}>
-            + 새 공지 등록
-          </Button>
-        }
-      />
+      <PageHeader title="공지 관리" description="게시판에 노출되는 공지를 관리해요." />
 
-      <FlexBox justifyContent="flex-end" style={{ marginBottom: 16 }}>
+      <FlexBox justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
         <SearchField value={search} onChange={setSearch} placeholder="제목 검색" />
+        <Button variant="solid" color="primary" onClick={() => navigate('/notices/new')}>+ 새 공지 등록</Button>
       </FlexBox>
 
       <DataTable

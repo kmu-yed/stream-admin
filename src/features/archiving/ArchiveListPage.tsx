@@ -5,7 +5,7 @@ import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
 import ConfirmModal from '../../components/common/ConfirmModal'
-import RowActionButton from '../../components/common/RowActionButton'
+import RowMoreMenu from '../../components/common/RowMoreMenu'
 import { useArchiving } from './store'
 import type { ArchivePost } from './types'
 
@@ -56,33 +56,19 @@ function ArchiveListPage() {
     {
       key: 'actions',
       header: '',
-      width: 140,
+      width: 56,
       align: 'right',
-      render: (row) => (
-        <FlexBox alignItems="center" justifyContent="flex-end" style={{ gap: 16 }}>
-          <RowActionButton onClick={() => navigate(`/archiving/${row.id}/edit`)}>수정</RowActionButton>
-          <RowActionButton danger onClick={() => setDeleteTarget(row)}>
-            삭제
-          </RowActionButton>
-        </FlexBox>
-      ),
+      render: (row) => <RowMoreMenu label={row.title} onEdit={() => navigate(`/archiving/${row.id}/edit`)} onDelete={() => setDeleteTarget(row)} />,
     },
   ]
 
   return (
     <>
-      <PageHeader
-        title="아카이빙 게시물 관리"
-        description="노출 순서는 등록일 기준 최신순으로 고정돼요."
-        action={
-          <Button variant="solid" color="primary" onClick={() => navigate('/archiving/new')}>
-            + 새 게시물 등록
-          </Button>
-        }
-      />
+      <PageHeader title="아카이빙 관리" description="노출 순서는 등록일 기준 최신순으로 고정돼요." />
 
-      <FlexBox justifyContent="flex-end" style={{ marginBottom: 16 }}>
+      <FlexBox justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
         <SearchField value={search} onChange={setSearch} placeholder="제목 검색" />
+        <Button variant="solid" color="primary" onClick={() => navigate('/archiving/new')}>+ 새 게시물 등록</Button>
       </FlexBox>
 
       <DataTable

@@ -1,0 +1,52 @@
+import { useState } from 'react'
+import { Button, FlexBox, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, TextField, Typography, useToast } from '@wanteddev/wds'
+import FormItem from '../../../components/common/FormItem'
+
+function RentalSettingsPanel() {
+  const toast = useToast()
+  const [examPeriod, setExamPeriod] = useState({ start: '2026-10-19', end: '2026-10-30' })
+  const [editing, setEditing] = useState<'exam' | null>(null)
+  const [examDraft, setExamDraft] = useState(examPeriod)
+
+  const openExamEdit = () => {
+    setExamDraft(examPeriod)
+    setEditing('exam')
+  }
+
+  const saveExam = () => {
+    if (!examDraft.start || !examDraft.end || examDraft.start > examDraft.end) return
+    setExamPeriod(examDraft)
+    setEditing(null)
+    toast({ content: '시험기간 설정을 변경했어요.', variant: 'positive' })
+  }
+
+  return (
+    <>
+      <FlexBox flexDirection="column" style={{ gap: 16, maxWidth: 760 }}>
+        <FlexBox justifyContent="space-between" alignItems="center" style={{ gap: 24, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 14 }}>
+          <FlexBox flexDirection="column" style={{ gap: 6 }}>
+            <Typography variant="body1" weight="bold">시험기간 설정</Typography>
+            <Typography variant="body2" color="semantic.label.alternative">시험기간 동안 빌릴게 이용이 제한돼요.</Typography>
+            <Typography variant="caption1" color="semantic.label.alternative" style={{ marginTop: 6 }}>{examPeriod.start} ~ {examPeriod.end}</Typography>
+          </FlexBox>
+          <Button variant="outlined" color="primary" onClick={openExamEdit}>수정</Button>
+        </FlexBox>
+
+      </FlexBox>
+
+      <Modal open={editing === 'exam'} onOpenChange={(open) => !open && setEditing(null)}>
+        <ModalContainer size="small"><ModalContent>
+          <ModalContentItem><ModalHeading>시험기간 설정 수정</ModalHeading></ModalContentItem>
+          <ModalContentItem style={{ gap: 20 }}>
+            <FormItem label="시작일"><TextField type="date" value={examDraft.start} onChange={(event) => setExamDraft({ ...examDraft, start: event.target.value })} /></FormItem>
+            <FormItem label="종료일"><TextField type="date" value={examDraft.end} onChange={(event) => setExamDraft({ ...examDraft, end: event.target.value })} /></FormItem>
+          </ModalContentItem>
+          <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => setEditing(null)}>취소</Button><Button variant="solid" color="primary" onClick={saveExam}>저장</Button></ModalContentItem>
+        </ModalContent></ModalContainer>
+      </Modal>
+
+    </>
+  )
+}
+
+export default RentalSettingsPanel

@@ -6,9 +6,11 @@ type ImageUploadFieldProps = {
   onChange: (urls: string[]) => void
   multiple?: boolean
   maxCount?: number
+  previewSize?: number
+  accept?: string
 }
 
-function ImageUploadField({ value, onChange, multiple = false, maxCount }: ImageUploadFieldProps) {
+function ImageUploadField({ value, onChange, multiple = false, maxCount, previewSize = 96, accept = 'image/*' }: ImageUploadFieldProps) {
   const canAddMore = maxCount === undefined || value.length < maxCount
 
   const handleFiles = (files: FileList | null) => {
@@ -25,17 +27,20 @@ function ImageUploadField({ value, onChange, multiple = false, maxCount }: Image
     <FlexBox style={{ gap: 12, flexWrap: 'wrap' }}>
       {value.map((url, index) => (
         <FlexBox key={url} style={{ position: 'relative' }}>
-          <Thumbnail src={url} alt="" ratio="1:1" width={96} border radius />
+          <Thumbnail src={url} alt="업로드한 이미지 미리보기" ratio="1:1" width={previewSize} border radius />
           <IconButton
-            variant="solid"
+            variant="normal"
             size="small"
             onClick={() => removeAt(index)}
             style={{
               position: 'absolute',
-              top: -8,
-              right: -8,
-              background: 'var(--semantic-background-elevated-normal)',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+              top: 8,
+              right: 8,
+              zIndex: 1,
+              background: '#fff',
+              color: '#171717',
+              border: '1px solid var(--semantic-line-normal-normal)',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.16)',
             }}
           >
             <IconClose width={14} height={14} />
@@ -46,12 +51,13 @@ function ImageUploadField({ value, onChange, multiple = false, maxCount }: Image
       {canAddMore && (
         <FlexBox
           as="label"
+          className="app-hoverable"
           alignItems="center"
           justifyContent="center"
           flexDirection="column"
           style={{
-            width: 96,
-            height: 96,
+            width: previewSize,
+            height: previewSize,
             borderRadius: 12,
             border: '1px dashed var(--semantic-line-normal-normal)',
             cursor: 'pointer',
@@ -64,7 +70,7 @@ function ImageUploadField({ value, onChange, multiple = false, maxCount }: Image
           </Typography>
           <input
             type="file"
-            accept="image/*"
+            accept={accept}
             multiple={multiple}
             style={{ display: 'none' }}
             onChange={(e) => {

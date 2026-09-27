@@ -1,17 +1,20 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { FormControl, FormErrorMessage, FormField, FormLabel } from '@wanteddev/wds'
 
 type FormItemProps = {
   label: string
   required?: boolean
   error?: string
+  labelVariant?: 'label1' | 'body1'
+  labelWeight?: 'regular' | 'medium' | 'bold'
+  style?: CSSProperties
   children: ReactNode
 }
 
-function FormItem({ label, required, error, children }: FormItemProps) {
+function FormItem({ label, error, labelVariant = 'label1', labelWeight = 'medium', style, children }: FormItemProps) {
   return (
-    <FormField>
-      <FormLabel required={required} variant="label1" weight="medium">
+    <FormField style={style}>
+      <FormLabel variant={labelVariant} weight={labelWeight}>
         {label}
       </FormLabel>
       <FormControl>{children}</FormControl>

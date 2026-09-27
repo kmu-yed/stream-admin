@@ -22,6 +22,7 @@ import HomeBannerFormPage from './features/homeBanner/HomeBannerFormPage'
 import { RentalsProvider } from './features/rentals/store'
 import RentalsPage from './features/rentals/RentalsPage'
 import RentalItemFormPage from './features/rentals/RentalItemFormPage'
+import RentalRecordFormPage from './features/rentals/RentalRecordFormPage'
 import { StudentCouncilProvider } from './features/studentCouncil/store'
 import StudentCouncilPage from './features/studentCouncil/StudentCouncilPage'
 import { ChatbotProvider } from './features/chatbot/store'
@@ -29,7 +30,9 @@ import ChatbotPage from './features/chatbot/ChatbotPage'
 import FaqFormPage from './features/chatbot/FaqFormPage'
 import { PoliciesProvider } from './features/policies/store'
 import PoliciesPage from './features/policies/PoliciesPage'
-import SlangjePage from './features/slangje/SlangjePage'
+import AdminManagementPage from './features/adminManagement/AdminManagementPage'
+import { AdminManagementProvider } from './features/adminManagement/store'
+import DisplayManagementPage from './features/display/DisplayManagementPage'
 
 function EventsRoutes() {
   return (
@@ -100,6 +103,7 @@ function RentalsRoutes() {
   return (
     <Routes>
       <Route index element={<RentalsPage />} />
+      <Route path="records/new" element={<RentalRecordFormPage />} />
       <Route path="items/new" element={<RentalItemFormPage />} />
       <Route path="items/:id/edit" element={<RentalItemFormPage />} />
     </Routes>
@@ -122,6 +126,7 @@ function App() {
       <LockersProvider>
         <RentalsProvider>
           <StudentCouncilProvider>
+            <AdminManagementProvider>
             <ChatbotProvider>
               <BoardsProvider>
                 <Routes>
@@ -135,6 +140,8 @@ function App() {
                     <Route path="/archiving/*" element={<ArchivingRoutes />} />
                     <Route path="/rentals/*" element={<RentalsRoutes />} />
                     <Route path="/student-council" element={<StudentCouncilPage />} />
+                    <Route path="/admins" element={<AdminManagementPage />} />
+                    <Route path="/display" element={<DisplayManagementPage />} />
                     <Route path="/chatbot/*" element={<ChatbotRoutes />} />
                     <Route
                       path="/policies"
@@ -144,11 +151,11 @@ function App() {
                         </PoliciesProvider>
                       }
                     />
-                    <Route path="/slangje" element={<SlangjePage />} />
                   </Route>
                 </Routes>
               </BoardsProvider>
             </ChatbotProvider>
+            </AdminManagementProvider>
           </StudentCouncilProvider>
         </RentalsProvider>
       </LockersProvider>

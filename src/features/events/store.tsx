@@ -15,6 +15,7 @@ const initialEvents: EventRecord[] = [
   {
     id: 'evt_1',
     title: '2026학년도 새내기 배움터',
+    isPublic: true,
     openDate: addDays(-10),
     deadline: addDays(5),
     capacity: 200,
@@ -33,6 +34,7 @@ const initialEvents: EventRecord[] = [
   {
     id: 'evt_2',
     title: '체육대회',
+    isPublic: true,
     openDate: addDays(3),
     deadline: addDays(14),
     capacity: null,
@@ -55,6 +57,7 @@ const initialEvents: EventRecord[] = [
   {
     id: 'evt_3',
     title: '해오름제 부스 신청',
+    isPublic: true,
     openDate: addDays(-30),
     deadline: addDays(-15),
     capacity: 40,
@@ -107,6 +110,7 @@ type EventsContextValue = {
   getApplicants: (eventId: string) => Applicant[]
   createEvent: (input: EventFormInput) => EventRecord
   updateEvent: (id: string, input: EventFormInput) => void
+  toggleEventVisibility: (id: string) => void
   deleteEvent: (id: string) => void
   cancelApplicant: (applicantId: string) => void
 }
@@ -124,12 +128,20 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       getEvent: (id) => events.find((event) => event.id === id),
       getApplicants: (eventId) => applicants.filter((applicant) => applicant.eventId === eventId),
       createEvent: (input) => {
-        const event: EventRecord = { ...input, id: makeId('evt'), createdAt: new Date().toISOString().slice(0, 10) }
+        const event: EventRecord = {
+          ...input,
+          id: makeId('evt'),
+          isPublic: true,
+          createdAt: new Date().toISOString().slice(0, 10),
+        }
         setEvents((prev) => [event, ...prev])
         return event
       },
       updateEvent: (id, input) => {
         setEvents((prev) => prev.map((event) => (event.id === id ? { ...event, ...input } : event)))
+      },
+      toggleEventVisibility: (id) => {
+        setEvents((prev) => prev.map((event) => (event.id === id ? { ...event, isPublic: !event.isPublic } : event)))
       },
       deleteEvent: (id) => {
         setEvents((prev) => prev.filter((event) => event.id !== id))

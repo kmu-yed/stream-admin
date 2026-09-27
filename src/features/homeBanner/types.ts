@@ -20,6 +20,7 @@ export type Banner = {
   id: string
   category: BannerCategory
   title: string
+  subtitle: string
   imageUrl?: string
   logoUrl?: string
   landingType: LandingType

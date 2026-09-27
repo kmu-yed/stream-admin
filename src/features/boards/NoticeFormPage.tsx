@@ -72,7 +72,7 @@ function NoticeFormPage() {
     <>
       <PageHeader title={isEdit ? '공지 수정' : '새 공지 등록'} description="게시판에 노출될 공지를 작성해요." />
 
-      <FlexBox flexDirection="column" style={{ gap: 32, maxWidth: 640 }}>
+      <FlexBox flexDirection="column" style={{ gap: 24, maxWidth: 640, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
         <FlexBox style={{ gap: 16 }}>
           <FlexBox style={{ width: 200 }}>
             <FormItem label="카테고리" required>

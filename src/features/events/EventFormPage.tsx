@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, FlexBox, TextArea, TextField, Typography, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
@@ -23,6 +24,18 @@ const emptyForm: EventFormInput = {
   ],
   description: '',
   formFields: [],
+}
+
+function FormSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <FlexBox
+      flexDirection="column"
+      style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 14 }}
+    >
+      <Typography variant="label1" weight="bold">{title}</Typography>
+      {children}
+    </FlexBox>
+  )
 }
 
 function EventFormPage() {
@@ -83,76 +96,64 @@ function EventFormPage() {
     <>
       <PageHeader title={title} description="행사 정보와 신청 폼을 설정해요." />
 
-      <FlexBox flexDirection="column" style={{ gap: 32, maxWidth: 720 }}>
-        <FormItem label="행사 제목" required error={errors.title}>
-          <TextField
-            placeholder="예: 2026학년도 새내기 배움터"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-          />
-        </FormItem>
+      <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 720 }}>
+        <FormSection title="기본 정보">
+          <FormItem label="행사 제목" required error={errors.title}>
+            <TextField
+              placeholder="예: 2026학년도 새내기 배움터"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+          </FormItem>
+          <FormItem label="행사 소개글">
+            <TextArea
+              placeholder="행사에 대한 소개글을 입력하세요."
+              value={form.description}
+              width="100%"
+              minRows={4}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </FormItem>
+        </FormSection>
 
-        <FlexBox style={{ gap: 16 }}>
-          <FlexBox style={{ flex: 1 }}>
-            <FormItem label="신청 오픈일" required error={errors.openDate}>
-              <TextField
-                type="date"
-                value={form.openDate}
-                onChange={(e) => setForm({ ...form, openDate: e.target.value })}
-              />
-            </FormItem>
+        <FormSection title="신청 설정">
+          <FlexBox style={{ gap: 16 }}>
+            <FlexBox style={{ flex: 1 }}>
+              <FormItem label="신청 오픈일" required error={errors.openDate}>
+                <TextField type="date" value={form.openDate} onChange={(e) => setForm({ ...form, openDate: e.target.value })} />
+              </FormItem>
+            </FlexBox>
+            <FlexBox style={{ flex: 1 }}>
+              <FormItem label="모집 마감일" required error={errors.deadline}>
+                <TextField type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
+              </FormItem>
+            </FlexBox>
           </FlexBox>
-          <FlexBox style={{ flex: 1 }}>
-            <FormItem label="모집 마감일" required error={errors.deadline}>
-              <TextField
-                type="date"
-                value={form.deadline}
-                onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-              />
-            </FormItem>
-          </FlexBox>
-        </FlexBox>
+          <FormItem label="신청 인원 제한">
+            <TextField
+              type="number"
+              placeholder="비워두면 인원 제한 없음"
+              value={form.capacity === null ? '' : String(form.capacity)}
+              onChange={(e) => setForm({ ...form, capacity: e.target.value === '' ? null : Number(e.target.value) })}
+              style={{ width: 200 }}
+            />
+          </FormItem>
+        </FormSection>
 
-        <FormItem label="신청 인원 제한">
-          <TextField
-            type="number"
-            placeholder="비워두면 인원 제한 없음"
-            value={form.capacity === null ? '' : String(form.capacity)}
-            onChange={(e) =>
-              setForm({ ...form, capacity: e.target.value === '' ? null : Number(e.target.value) })
-            }
-            style={{ width: 200 }}
-          />
-        </FormItem>
+        <FormSection title="행사 정보">
+          <FormItem label="행사 정보 라벨" required error={errors.infoLabels}>
+            <InfoLabelsEditor value={form.infoLabels} onChange={(infoLabels) => setForm({ ...form, infoLabels })} />
+          </FormItem>
+        </FormSection>
 
-        <FormItem label="행사 정보 라벨" required error={errors.infoLabels}>
-          <InfoLabelsEditor
-            value={form.infoLabels}
-            onChange={(infoLabels) => setForm({ ...form, infoLabels })}
-          />
-        </FormItem>
-
-        <FormItem label="행사 소개글">
-          <TextArea
-            placeholder="행사에 대한 소개글을 입력하세요."
-            value={form.description}
-            width="100%"
-            minRows={4}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-        </FormItem>
-
-        <FormItem label="행사 신청 폼">
+        <FormSection title="신청 폼">
           <FlexBox flexDirection="column" style={{ gap: 12 }}>
             <Typography variant="caption1" color="semantic.label.alternative">
               신청 시 사용자의 이름, 학번, 학생회비 납부 여부, 연락처는 자동으로 저장돼요.
             </Typography>
-            <ApplicationFormBuilder
-              value={form.formFields}
-              onChange={(formFields) => setForm({ ...form, formFields })}
-            />
+            <ApplicationFormBuilder value={form.formFields} onChange={(formFields) => setForm({ ...form, formFields })} />
           </FlexBox>
-        </FormItem>
+        </FormSection>
 
         <FlexBox justifyContent="flex-end" style={{ gap: 8, marginTop: 8 }}>
           <Button variant="solid" color="primary" onClick={handleSubmit}>

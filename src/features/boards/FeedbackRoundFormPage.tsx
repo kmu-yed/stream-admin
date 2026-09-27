@@ -1,15 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Checkbox, FlexBox, Option, Select, TextArea, Typography, useToast } from '@wanteddev/wds'
+import { Button, Checkbox, FlexBox, TextArea, Typography, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import BoldMarkupText from '../../components/common/BoldMarkupText'
 import { useBoards } from './store'
-import type { FeedbackAnswer, FeedbackCategory } from './types'
-
-const feedbackCategories: FeedbackCategory[] = ['학사', '제휴', '시설', '행사', '기타']
+import type { FeedbackAnswer } from './types'
 
 type AnswerDraft = {
-  category: FeedbackCategory
   answerText: string
 }
 
@@ -24,18 +21,18 @@ function FeedbackRoundFormPage() {
   const [answers, setAnswers] = useState<Record<string, AnswerDraft>>(() => {
     const initial: Record<string, AnswerDraft> = {}
     existing?.answers.forEach((answer) => {
-      initial[answer.questionId] = { category: answer.category, answerText: answer.answerText }
+      initial[answer.questionId] = { answerText: answer.answerText }
     })
     return initial
   })
   const [error, setError] = useState<string>()
 
-  const goToList = () => navigate('/feedback?tab=rounds')
+  const goToList = () => navigate('/feedback?tab=questions')
 
   const toggleQuestion = (questionId: string, checked: boolean) => {
     setAnswers((prev) => {
       const next = { ...prev }
-      if (checked) next[questionId] = next[questionId] ?? { category: feedbackCategories[0], answerText: '' }
+      if (checked) next[questionId] = next[questionId] ?? { answerText: '' }
       else delete next[questionId]
       return next
     })
@@ -59,7 +56,6 @@ function FeedbackRoundFormPage() {
 
     const payload: FeedbackAnswer[] = entries.map(([questionId, draft]) => ({
       questionId,
-      category: draft.category,
       answerText: draft.answerText,
     }))
 
@@ -76,8 +72,8 @@ function FeedbackRoundFormPage() {
   return (
     <>
       <PageHeader
-        title={isEdit ? '피드백 회차 수정' : 'N차 피드백 모아보기 등록'}
-        description="사용자 질문 목록에서 답변할 질문을 선택하고 카테고리와 답변을 작성하세요. **텍스트**로 감싸면 굵게 표시돼요."
+        title={isEdit ? '피드백 회차 수정' : 'N차 피드백 등록'}
+        description="사용자 질문 목록에서 답변할 질문을 선택하고 답변을 작성하세요. **텍스트**로 감싸면 굵게 표시돼요."
       />
 
       {error && (
@@ -119,18 +115,6 @@ function FeedbackRoundFormPage() {
 
               {checked && draft && (
                 <FlexBox flexDirection="column" style={{ gap: 10, paddingLeft: 28 }}>
-                  <FlexBox style={{ width: 160 }}>
-                    <Select
-                      value={draft.category}
-                      onChange={(v) => updateAnswer(question.id, { category: v as FeedbackCategory })}
-                    >
-                      {feedbackCategories.map((category) => (
-                        <Option key={category} value={category}>
-                          {category}
-                        </Option>
-                      ))}
-                    </Select>
-                  </FlexBox>
                   <TextArea
                     placeholder="답변을 입력하세요. **굵게** 표시 가능"
                     value={draft.answerText}

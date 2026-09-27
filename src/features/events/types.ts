@@ -6,6 +6,7 @@ export type ApplicationFormField = {
   required: boolean
   type: ApplicationFieldType
   options: string[]
+  allowOther?: boolean
   maxLength?: number
 }
 
@@ -19,6 +20,7 @@ export type EventInfoLabel = {
 export type EventRecord = {
   id: string
   title: string
+  isPublic: boolean
   openDate: string
   deadline: string
   capacity: number | null
@@ -28,7 +30,7 @@ export type EventRecord = {
   createdAt: string
 }
 
-export type EventFormInput = Omit<EventRecord, 'id' | 'createdAt'>
+export type EventFormInput = Omit<EventRecord, 'id' | 'createdAt' | 'isPublic'>
 
 export type ApplicantStatus = '신청완료' | '취소'
 

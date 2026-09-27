@@ -1,44 +1,30 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button, FlexBox, Typography } from '@wanteddev/wds'
+import { Button, FlexBox, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, TextArea, Typography, useToast } from '@wanteddev/wds'
 import DataTable, { type DataTableColumn } from '../../../components/common/DataTable'
 import ConfirmModal from '../../../components/common/ConfirmModal'
-import RowActionButton from '../../../components/common/RowActionButton'
+import RowMoreMenu from '../../../components/common/RowMoreMenu'
+import FormItem from '../../../components/common/FormItem'
 import { useChatbot } from '../store'
 import { MAX_FAQ_COUNT, type FaqItem } from '../types'
 
 function FaqPanel() {
-  const navigate = useNavigate()
-  const { faqs, deleteFaq } = useChatbot()
+  const { faqs, addFaq, updateFaq, deleteFaq } = useChatbot()
+  const toast = useToast()
   const [deleteTarget, setDeleteTarget] = useState<FaqItem | null>(null)
+  const [editingFaq, setEditingFaq] = useState<FaqItem | null | undefined>(undefined)
+  const [question, setQuestion] = useState('')
+  const [error, setError] = useState('')
 
   const sorted = [...faqs].sort((a, b) => a.order - b.order)
 
   const columns: DataTableColumn<FaqItem>[] = [
-    { key: 'order', header: '', width: 40, render: (row) => sorted.findIndex((f) => f.id === row.id) + 1 },
     { key: 'question', header: '질문', render: (row) => row.question },
-    {
-      key: 'answer',
-      header: '답변',
-      render: (row) => (
-        <Typography variant="body2" color="semantic.label.alternative">
-          {row.answer}
-        </Typography>
-      ),
-    },
     {
       key: 'actions',
       header: '',
-      width: 140,
+      width: 56,
       align: 'right',
-      render: (row) => (
-        <FlexBox alignItems="center" justifyContent="flex-end" style={{ gap: 16 }}>
-          <RowActionButton onClick={() => navigate(`/chatbot/faq/${row.id}/edit`)}>수정</RowActionButton>
-          <RowActionButton danger onClick={() => setDeleteTarget(row)}>
-            삭제
-          </RowActionButton>
-        </FlexBox>
-      ),
+      render: (row) => <RowMoreMenu label={row.question} onEdit={() => { setEditingFaq(row); setQuestion(row.question); setError('') }} onDelete={() => setDeleteTarget(row)} />,
     },
   ]
 
@@ -52,7 +38,7 @@ function FaqPanel() {
           variant="solid"
           color="primary"
           disabled={faqs.length >= MAX_FAQ_COUNT}
-          onClick={() => navigate('/chatbot/faq/new')}
+          onClick={() => { setEditingFaq(null); setQuestion(''); setError('') }}
         >
           + FAQ 추가
         </Button>
@@ -71,6 +57,13 @@ function FaqPanel() {
           if (deleteTarget) deleteFaq(deleteTarget.id)
         }}
       />
+      <Modal open={editingFaq !== undefined} onOpenChange={(open) => !open && setEditingFaq(undefined)}>
+        <ModalContainer size="small"><ModalContent>
+          <ModalContentItem><ModalHeading>{editingFaq ? 'FAQ 수정' : 'FAQ 추가'}</ModalHeading></ModalContentItem>
+          <ModalContentItem><FormItem label="질문" error={error}><TextArea value={question} width="100%" minRows={1} maxRows={4} placeholder="자주 묻는 질문을 입력하세요" onChange={(event) => setQuestion(event.target.value)} /></FormItem></ModalContentItem>
+          <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => setEditingFaq(undefined)}>취소</Button><Button variant="solid" color="primary" onClick={() => { if (!question.trim()) { setError('질문을 입력해주세요.'); return } if (editingFaq) updateFaq(editingFaq.id, { question: question.trim(), answer: editingFaq.answer }); else addFaq({ question: question.trim(), answer: '' }); toast({ content: editingFaq ? 'FAQ를 수정했어요.' : 'FAQ를 추가했어요.', variant: 'positive' }); setEditingFaq(undefined) }}>저장</Button></ModalContentItem>
+        </ModalContent></ModalContainer>
+      </Modal>
     </>
   )
 }

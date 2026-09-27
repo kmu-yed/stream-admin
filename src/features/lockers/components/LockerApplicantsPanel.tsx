@@ -1,17 +1,8 @@
 import { useState } from 'react'
 import {
-  Button,
   FlexBox,
-  Modal,
-  ModalContainer,
-  ModalContent,
-  ModalContentItem,
-  ModalHeading,
-  Option,
   SegmentedControl,
   SegmentedControlItem,
-  Select,
-  TextButton,
   Typography,
   useToast,
 } from '@wanteddev/wds'
@@ -19,42 +10,20 @@ import DataTable, { type DataTableColumn } from '../../../components/common/Data
 import SearchField from '../../../components/common/SearchField'
 import StatusBadge from '../../../components/common/StatusBadge'
 import ConfirmModal from '../../../components/common/ConfirmModal'
+import RowMoreMenu from '../../../components/common/RowMoreMenu'
 import { useLockers } from '../store'
-import { LOCKER_ZONES, type Locker, type LockerApplication, type LockerZone } from '../types'
+import { type LockerApplication } from '../types'
 
 type StatusFilter = 'all' | '신청완료' | '취소'
 
 function LockerApplicantsPanel() {
-  const { lockers, applications, changeLockerAssignment, cancelApplication } = useLockers()
+  const { lockers, applications, cancelApplication } = useLockers()
   const toast = useToast()
   const [filter, setFilter] = useState<StatusFilter>('all')
-  const [changeTarget, setChangeTarget] = useState<LockerApplication | null>(null)
-  const [selectedZone, setSelectedZone] = useState<LockerZone | ''>('')
-  const [selectedLockerId, setSelectedLockerId] = useState('')
   const [cancelTarget, setCancelTarget] = useState<LockerApplication | null>(null)
   const [search, setSearch] = useState('')
 
-  const lockerNumber = (lockerId?: string) => lockers.find((locker) => locker.id === lockerId)?.number
-
-  const openChangeModal = (application: LockerApplication) => {
-    const currentLocker = lockers.find((locker) => locker.id === application.lockerId)
-    setChangeTarget(application)
-    setSelectedZone(currentLocker?.zone ?? '')
-    setSelectedLockerId(application.lockerId ?? '')
-  }
-
-  const availableLockersFor = (application: LockerApplication) =>
-    lockers.filter((locker) => locker.status === 'available' && (!locker.assignedTo || locker.assignedTo === application.id))
-
-  const availableLockersInZone = (application: LockerApplication, zone: LockerZone | ''): Locker[] =>
-    zone ? availableLockersFor(application).filter((locker) => locker.zone === zone) : []
-
-  const handleConfirmChange = () => {
-    if (!changeTarget || !selectedLockerId) return
-    changeLockerAssignment(changeTarget.id, selectedLockerId)
-    toast({ content: `${changeTarget.name}님의 배정 사물함을 변경했어요.`, variant: 'positive' })
-    setChangeTarget(null)
-  }
+  const lockerNumber = (lockerId?: string) => lockers.find((locker) => locker.id === lockerId)?.zone
 
   const filtered = applications.filter((a) => {
     if (filter !== 'all' && a.status !== filter) return false
@@ -92,17 +61,11 @@ function LockerApplicantsPanel() {
     {
       key: 'actions',
       header: '',
+      width: 56,
       align: 'right',
       render: (row) =>
         row.status === '신청완료' ? (
-          <FlexBox justifyContent="flex-end" style={{ gap: 16 }}>
-            <TextButton size="small" onClick={() => openChangeModal(row)}>
-              배정 변경
-            </TextButton>
-            <TextButton size="small" color="assistive" onClick={() => setCancelTarget(row)}>
-              취소 처리
-            </TextButton>
-          </FlexBox>
+          <RowMoreMenu label={`${row.name} 신청`} onDelete={() => setCancelTarget(row)} deleteLabel="취소 처리" />
         ) : (
           <Typography variant="label2" color="semantic.label.alternative">
             -
@@ -137,70 +100,8 @@ function LockerApplicantsPanel() {
         rows={filtered}
         rowKey={(row) => row.id}
         emptyMessage="신청자가 없어요."
+        style={{ width: '100%', tableLayout: 'fixed' }}
       />
-
-      <Modal open={Boolean(changeTarget)} onOpenChange={(open) => !open && setChangeTarget(null)}>
-        <ModalContainer size="small">
-          <ModalContent>
-            <ModalContentItem>
-              <ModalHeading>배정 사물함 변경</ModalHeading>
-              <Typography variant="body2" color="semantic.label.alternative">
-                {changeTarget?.name}({changeTarget?.studentId})님의 사물함을 변경해요. 현재 배정:{' '}
-                {lockerNumber(changeTarget?.lockerId) ?? '-'}
-              </Typography>
-            </ModalContentItem>
-            <ModalContentItem style={{ flexDirection: 'row', gap: 12 }}>
-              <FlexBox style={{ flex: 1 }}>
-                <Select
-                  value={selectedZone}
-                  onChange={(v) => {
-                    setSelectedZone(v as LockerZone)
-                    setSelectedLockerId('')
-                  }}
-                  placeholder="구역 선택"
-                  width="100%"
-                >
-                  {LOCKER_ZONES.map((zone) => (
-                    <Option key={zone} value={zone}>
-                      {zone} 구역
-                    </Option>
-                  ))}
-                </Select>
-              </FlexBox>
-              <FlexBox style={{ flex: 1 }}>
-                <Select
-                  value={selectedLockerId}
-                  onChange={setSelectedLockerId}
-                  placeholder="사물함 선택"
-                  disabled={!selectedZone}
-                  width="100%"
-                >
-                  {changeTarget &&
-                    availableLockersInZone(changeTarget, selectedZone).map((locker) => (
-                      <Option key={locker.id} value={locker.id}>
-                        {locker.number}
-                        {locker.id === changeTarget.lockerId ? ' (현재 배정)' : ''}
-                      </Option>
-                    ))}
-                </Select>
-              </FlexBox>
-            </ModalContentItem>
-            <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
-              <Button variant="outlined" color="assistive" onClick={() => setChangeTarget(null)}>
-                취소
-              </Button>
-              <Button
-                variant="solid"
-                color="primary"
-                disabled={!selectedLockerId || selectedLockerId === changeTarget?.lockerId}
-                onClick={handleConfirmChange}
-              >
-                변경하기
-              </Button>
-            </ModalContentItem>
-          </ModalContent>
-        </ModalContainer>
-      </Modal>
 
       <ConfirmModal
         open={Boolean(cancelTarget)}

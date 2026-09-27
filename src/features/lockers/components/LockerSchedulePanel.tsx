@@ -5,7 +5,7 @@ import { IconCalendar, IconClock } from '@wanteddev/wds-icon'
 import DataTable, { type DataTableColumn } from '../../../components/common/DataTable'
 import StatusBadge, { type BadgeTone } from '../../../components/common/StatusBadge'
 import ConfirmModal from '../../../components/common/ConfirmModal'
-import RowActionButton from '../../../components/common/RowActionButton'
+import RowMoreMenu from '../../../components/common/RowMoreMenu'
 import { useLockers } from '../store'
 import {
   formatSemesterLabel,
@@ -58,16 +58,12 @@ function LockerSchedulePanel() {
     {
       key: 'actions',
       header: '',
-      width: 140,
+      width: 56,
       align: 'right',
-      render: (row) => (
-        <FlexBox alignItems="center" justifyContent="flex-end" style={{ gap: 16 }}>
-          <RowActionButton onClick={() => navigate(`/lockers/schedule/${row.id}/edit`)}>수정</RowActionButton>
-          <RowActionButton danger onClick={() => setDeleteTarget(row)}>
-            삭제
-          </RowActionButton>
-        </FlexBox>
-      ),
+      render: (row) => {
+        const isEnded = getSemesterStatus(row) === '종료'
+        return <RowMoreMenu label={`${formatSemesterLabel(row)} 신청 일정`} onEdit={isEnded ? undefined : () => navigate(`/lockers/schedule/${row.id}/edit`)} onDelete={() => setDeleteTarget(row)} />
+      },
     },
   ]
 
