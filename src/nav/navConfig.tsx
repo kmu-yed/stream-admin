@@ -57,7 +57,7 @@ export const navGroups: NavGroup[] = [
       { label: "학생회비 관리", path: "/student-council", icon: IconPersons },
       { label: "관리자 관리", path: "/admins", icon: IconPerson },
       { label: "디스플레이 관리", path: "/display", icon: IconDesktop },
-      { label: "약관/정책 관리", path: "/policies", icon: IconDocumentText },
+      { label: "개인정보 처리방침 관리", path: "/policies", icon: IconDocumentText },
     ],
   },
 ];

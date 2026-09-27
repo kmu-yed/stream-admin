@@ -1,4 +1,4 @@
-export type PolicyDocId = 'privacy' | 'terms'
+export type PolicyDocId = 'privacy'
 
 export type PolicyDocument = {
   id: PolicyDocId

@@ -15,13 +15,6 @@ const initialDocuments: PolicyDocument[] = [
       'Stream(이하 "서비스")은 학생회 서비스 운영을 위해 최소한의 개인정보만을 수집하며, 관련 법령에 따라 안전하게 관리합니다.\n\n1. 수집 항목: 이름, 학번, 학과\n2. 수집 목적: 행사 신청, 사물함 배정, 학생회비 납부 확인\n3. 보유 기간: 수집일로부터 1년 또는 목적 달성 시까지',
     updatedAt: addDays(-30),
   },
-  {
-    id: 'terms',
-    title: '서비스 이용약관',
-    content:
-      '제1조 (목적)\n이 약관은 Stream이 제공하는 학생회 서비스 이용과 관련하여 서비스와 이용자의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.\n\n제2조 (이용자의 의무)\n이용자는 신청 절차에서 허위 정보를 입력해서는 안 됩니다.',
-    updatedAt: addDays(-30),
-  },
 ]
 
 type PoliciesContextValue = {

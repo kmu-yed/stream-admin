@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { Button, FlexBox, Tab, TabList, TabListItem, TabPanel, TextArea, Typography, useToast } from '@wanteddev/wds'
+import { Button, FlexBox, TextArea, Typography, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -72,26 +71,10 @@ function DocumentEditor({ docId }: { docId: PolicyDocId }) {
 }
 
 function PoliciesPage() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const tab = searchParams.get('tab') ?? 'privacy'
-
   return (
     <>
-      <PageHeader title="약관/정책 관리" description="개인정보 처리방침과 서비스 이용약관을 수정해요." />
-
-      <Tab value={tab} onValueChange={(value) => setSearchParams({ tab: value })}>
-        <TabList size="medium" style={{ marginBottom: 20 }}>
-          <TabListItem value="privacy">개인정보 처리방침</TabListItem>
-          <TabListItem value="terms">서비스 이용약관</TabListItem>
-        </TabList>
-
-        <TabPanel value="privacy">
-          <DocumentEditor docId="privacy" />
-        </TabPanel>
-        <TabPanel value="terms">
-          <DocumentEditor docId="terms" />
-        </TabPanel>
-      </Tab>
+      <PageHeader title="개인정보 처리방침 관리" description="개인정보 처리방침 내용을 수정해요." />
+      <DocumentEditor docId="privacy" />
     </>
   )
 }

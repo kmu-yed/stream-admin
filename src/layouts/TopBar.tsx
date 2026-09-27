@@ -43,9 +43,19 @@ function TopBar({ onOpenMobileSidebar, compact }: { onOpenMobileSidebar: () => v
             <Avatar variant="person" size="small" />
             </FlexBox>
           </MenuTrigger>
-          <MenuContent position="bottom-end" offset={8} style={{ zIndex: 200 }}>
-            <FlexBox style={{ padding: 8 }}>
+          <MenuContent position="bottom-end" offset={8} className="topbar-account-menu" style={{ zIndex: 200 }}>
+            <FlexBox flexDirection="column">
+              <FlexBox className="mobile-account-menu-profile" flexDirection="column">
+                <Typography variant="label1" weight="medium">
+                  학생회 관리자
+                </Typography>
+                <Typography variant="caption1" color="semantic.label.alternative">
+                  admin@stream.ac.kr
+                </Typography>
+              </FlexBox>
+              <FlexBox style={{ padding: 8 }}>
               <Button variant="outlined" color="assistive" leadingContent={<IconLogout width={18} height={18} />} style={{ width: '100%' }} onClick={() => { setLogoutMenuOpen(false); setLogoutConfirmOpen(true) }}>로그아웃</Button>
+              </FlexBox>
             </FlexBox>
           </MenuContent>
         </Menu>

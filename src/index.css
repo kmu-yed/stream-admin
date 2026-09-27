@@ -132,7 +132,8 @@ body {
 
 .mobile-topbar-brand,
 .mobile-sidebar-close,
-.mobile-sidebar-backdrop {
+.mobile-sidebar-backdrop,
+.mobile-account-menu-profile {
   display: none !important;
 }
 
@@ -208,6 +209,23 @@ body {
     display: flex !important;
     flex-shrink: 0;
     margin-left: auto !important;
+  }
+
+  /* 모바일에서는 프로필 아이콘만 노출하고, 계정 정보는 메뉴 안에서만 보여준다. */
+  .topbar-account-copy {
+    display: none !important;
+  }
+
+  .topbar-account-trigger {
+    gap: 0 !important;
+  }
+
+  .mobile-account-menu-profile {
+    display: flex !important;
+    gap: 4px;
+    min-width: 208px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--semantic-line-normal-normal);
   }
 
   .admin-topbar.mobile-header-compact {
