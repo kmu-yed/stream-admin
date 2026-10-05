@@ -1,9 +1,13 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Avatar, Button, FlexBox, IconButton, Menu, MenuContent, MenuTrigger, Typography } from '@wanteddev/wds'
 import { IconLogout, IconMenu } from '@wanteddev/wds-icon'
 import ConfirmModal from '../components/common/ConfirmModal'
+import { useAuth } from '../features/auth/store'
 
 function TopBar({ onOpenMobileSidebar, compact }: { onOpenMobileSidebar: () => void; compact: boolean }) {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
   const [logoutMenuOpen, setLogoutMenuOpen] = useState(false)
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
 
@@ -67,7 +71,10 @@ function TopBar({ onOpenMobileSidebar, compact }: { onOpenMobileSidebar: () => v
         description="현재 관리자 계정에서 로그아웃해요."
         confirmLabel="로그아웃"
         tone="negative"
-        onConfirm={() => undefined}
+        onConfirm={() => {
+          logout()
+          navigate('/login', { replace: true })
+        }}
       />
     </FlexBox>
   )

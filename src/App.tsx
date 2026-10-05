@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import AdminLayout from './layouts/AdminLayout'
 import DashboardPage from './features/dashboard/DashboardPage'
 import { EventsProvider } from './features/events/store'
@@ -34,6 +34,14 @@ import AdminManagementPage from './features/adminManagement/AdminManagementPage'
 import { AdminManagementProvider } from './features/adminManagement/store'
 import DisplayManagementPage from './features/display/DisplayManagementPage'
 import SettingsPage from './features/settings/SettingsPage'
+import { AuthProvider, useAuth } from './features/auth/store'
+import LoginPage from './features/auth/LoginPage'
+
+function RequireAuth() {
+  const { isAuthenticated } = useAuth()
+  const location = useLocation()
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace state={{ from: location }} />
+}
 
 function EventsRoutes() {
   return (
@@ -123,15 +131,18 @@ function ChatbotRoutes() {
 
 function App() {
   return (
-    <EventsProvider>
-      <LockersProvider>
-        <RentalsProvider>
-          <StudentCouncilProvider>
-            <AdminManagementProvider>
-            <ChatbotProvider>
-              <BoardsProvider>
-                <Routes>
-                  <Route element={<AdminLayout />}>
+    <AuthProvider>
+      <EventsProvider>
+        <LockersProvider>
+          <RentalsProvider>
+            <StudentCouncilProvider>
+              <AdminManagementProvider>
+                <ChatbotProvider>
+                  <BoardsProvider>
+                    <Routes>
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route element={<RequireAuth />}>
+                        <Route element={<AdminLayout />}>
                     <Route path="/" element={<DashboardPage />} />
                     <Route path="/events/*" element={<EventsRoutes />} />
                     <Route path="/lockers/*" element={<LockersRoutes />} />
@@ -153,15 +164,17 @@ function App() {
                         </PoliciesProvider>
                       }
                     />
-                  </Route>
-                </Routes>
-              </BoardsProvider>
-            </ChatbotProvider>
-            </AdminManagementProvider>
-          </StudentCouncilProvider>
-        </RentalsProvider>
-      </LockersProvider>
-    </EventsProvider>
+                        </Route>
+                      </Route>
+                    </Routes>
+                  </BoardsProvider>
+                </ChatbotProvider>
+              </AdminManagementProvider>
+            </StudentCouncilProvider>
+          </RentalsProvider>
+        </LockersProvider>
+      </EventsProvider>
+    </AuthProvider>
   )
 }
 
