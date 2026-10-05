@@ -3,7 +3,6 @@ import { Tab, TabList, TabListItem, TabPanel } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import RentalItemsPanel from './components/RentalItemsPanel'
 import RentalRecordsPanel from './components/RentalRecordsPanel'
-import RentalSettingsPanel from './components/RentalSettingsPanel'
 
 function RentalsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -17,7 +16,6 @@ function RentalsPage() {
         <TabList size="medium" style={{ marginBottom: 20 }}>
           <TabListItem value="records">대여/반납 현황</TabListItem>
           <TabListItem value="items">물품 관리</TabListItem>
-          <TabListItem value="settings">설정 관리</TabListItem>
         </TabList>
 
         <TabPanel value="records">
@@ -25,9 +23,6 @@ function RentalsPage() {
         </TabPanel>
         <TabPanel value="items">
           <RentalItemsPanel />
-        </TabPanel>
-        <TabPanel value="settings">
-          <RentalSettingsPanel />
         </TabPanel>
       </Tab>
     </>

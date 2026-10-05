@@ -13,6 +13,7 @@ import {
   IconDocumentText,
   IconPerson,
   IconDesktop,
+  IconSetting,
 } from "@wanteddev/wds-icon";
 
 export type NavIcon = ComponentType<SVGProps<SVGSVGElement>>;
@@ -47,17 +48,18 @@ export const navGroups: NavGroup[] = [
       { label: "공지 관리", path: "/notices", icon: IconMessage },
       { label: "열린피드백 관리", path: "/feedback", icon: IconCircleQuestion },
       { label: "아카이빙 관리", path: "/archiving", icon: IconFolder },
-      { label: "홈 배너 관리", path: "/home-banner", icon: IconMegaphone },
+      { label: "홈 화면 관리", path: "/home-banner", icon: IconMegaphone },
     ],
   },
   {
     label: "기타 관리",
     items: [
-      { label: "챗봇 관리", path: "/chatbot", icon: IconBubble },
+      { label: "챗봇 FAQ 관리", path: "/chatbot", icon: IconBubble },
       { label: "학생회비 관리", path: "/student-council", icon: IconPersons },
       { label: "관리자 관리", path: "/admins", icon: IconPerson },
       { label: "디스플레이 관리", path: "/display", icon: IconDesktop },
       { label: "개인정보 처리방침 관리", path: "/policies", icon: IconDocumentText },
+      { label: "설정 관리", path: "/settings", icon: IconSetting },
     ],
   },
 ];

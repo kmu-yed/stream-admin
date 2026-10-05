@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, FlexBox, Menu, MenuContent, MenuTrigger, SegmentedControl, SegmentedControlItem, Typography } from '@wanteddev/wds'
-import { IconChevronDownSmall } from '@wanteddev/wds-icon'
+import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Typography, useToast } from '@wanteddev/wds'
+import { IconChevronDown, IconChevronDownSmall } from '@wanteddev/wds-icon'
 import DataTable, { type DataTableColumn } from '../../../components/common/DataTable'
 import SearchField from '../../../components/common/SearchField'
 import StatusBadge, { type BadgeTone } from '../../../components/common/StatusBadge'
@@ -32,16 +32,24 @@ function overdueDays(dueDate: string) {
 function RentalRecordsPanel() {
   const navigate = useNavigate()
   const { records, updateRentalRecordStatus } = useRentals()
-  const [filter, setFilter] = useState<Filter>('all')
+  const toast = useToast()
+  const [filters, setFilters] = useState<Filter[]>(['all'])
   const [search, setSearch] = useState('')
   const [openStatusId, setOpenStatusId] = useState<string | null>(null)
 
   const filtered = records.filter((r) => {
-    if (filter !== 'all' && getRentalRecordStatus(r) !== filter) return false
+    if (!filters.includes('all') && !filters.includes(getRentalRecordStatus(r))) return false
     const keyword = search.trim()
     if (!keyword) return true
     return r.borrowerName.includes(keyword) || r.borrowerStudentId.includes(keyword)
   })
+  const changeStatus = (record: RentalRecord, status: RentalRecordStatus) => {
+    if (getRentalRecordStatus(record) !== status) {
+      updateRentalRecordStatus(record.id, status)
+      toast({ content: `대여 상태를 ${status}(으)로 변경했어요.`, variant: 'positive' })
+    }
+    setOpenStatusId(null)
+  }
 
   const columns: DataTableColumn<RentalRecord>[] = [
     { key: 'itemName', header: '물품명', width: 150, render: (row) => row.itemName },
@@ -70,7 +78,7 @@ function RentalRecordsPanel() {
     },
     {
       key: 'status',
-      header: '상태',
+      header: <Menu value={filters} onValueChange={(value) => { if (!Array.isArray(value)) return; if (value.length === 0) { setFilters(['all']); return }; if (value.includes('all')) { setFilters(filters.includes('all') ? value.filter((item) => item !== 'all') as Filter[] : ['all']); return }; setFilters(value as Filter[]) }}><FlexBox alignItems="center" style={{ gap: 4 }}><span>상태</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="대여 상태 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체 상태</MenuItem>{RENTAL_RECORD_STATUSES.map((status) => <MenuItem key={status} variant="checkbox" value={status}>{status}</MenuItem>)}</MenuList></MenuContent></Menu>,
       width: 180,
       render: (row) => {
         const status = getRentalRecordStatus(row)
@@ -96,7 +104,7 @@ function RentalRecordsPanel() {
                 <div className="rental-status-menu-list">
                   {RENTAL_RECORD_STATUSES.map((option) => {
                     const tone = statusTone[option]
-                    return <div key={option} className="rental-status-option" role="menuitem" tabIndex={0} onClick={() => { updateRentalRecordStatus(row.id, option); setOpenStatusId(null) }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); updateRentalRecordStatus(row.id, option); setOpenStatusId(null) } }}><StatusBadge label={option} tone={tone} size="medium" /></div>
+                    return <div key={option} className="rental-status-option" role="menuitem" tabIndex={0} onClick={() => changeStatus(row, option)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); changeStatus(row, option) } }}><StatusBadge label={option} tone={tone} size="medium" /></div>
                   })}
                 </div>
               </FlexBox>
@@ -109,12 +117,7 @@ function RentalRecordsPanel() {
 
   return (
     <>
-      <FlexBox justifyContent="space-between" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
-        <SegmentedControl value={filter} onValueChange={(v) => setFilter(v as Filter)} size="small" style={{ width: 320 }}>
-          <SegmentedControlItem value="all">전체</SegmentedControlItem>
-          <SegmentedControlItem value="대여중">대여중</SegmentedControlItem>
-          <SegmentedControlItem value="반납완료">반납완료</SegmentedControlItem>
-        </SegmentedControl>
+      <FlexBox justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
         <FlexBox style={{ gap: 12 }}>
           <SearchField value={search} onChange={setSearch} placeholder="대여자 이름 또는 학번 검색" height={40} />
           <Button variant="solid" color="primary" size="medium" onClick={() => navigate('/rentals/records/new')}>+ 대여 추가하기</Button>

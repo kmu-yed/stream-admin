@@ -3,10 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Button,
   FlexBox,
-  Tab,
-  TabList,
-  TabListItem,
-  TabPanel,
+  SegmentedControl,
+  SegmentedControlItem,
   Table,
   TableBody,
   TableCell,
@@ -16,7 +14,6 @@ import {
   Typography,
 } from '@wanteddev/wds'
 import { IconMenu } from '@wanteddev/wds-icon'
-import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -95,19 +92,16 @@ function HomeBannerListPage() {
 
   return (
     <>
-      <PageHeader title="홈 배너 관리" description="홈 화면에 노출되는 공지 배너를 등록하고 순서를 관리해요. 손잡이 아이콘을 드래그해 순서를 바꿀 수 있어요." />
+      <SegmentedControl value={tab} onValueChange={(value) => setSearchParams({ tab: value })} size="medium" style={{ width: 220, marginBottom: 20 }}>
+        <SegmentedControlItem value="active">노출 중</SegmentedControlItem>
+        <SegmentedControlItem value="past">지난 배너</SegmentedControlItem>
+      </SegmentedControl>
 
-      <Tab value={tab} onValueChange={(value) => setSearchParams({ tab: value })}>
-        <TabList size="medium" style={{ marginBottom: 20 }}>
-          <TabListItem value="active">노출 중</TabListItem>
-          <TabListItem value="past">지난 배너</TabListItem>
-        </TabList>
-
-        <FlexBox justifyContent="flex-end" style={{ marginBottom: 16 }}>
+      <FlexBox justifyContent="flex-end" style={{ marginBottom: 16 }}>
           <Button variant="solid" color="primary" onClick={() => navigate('/home-banner/new')}>+ 새 배너 등록</Button>
-        </FlexBox>
+      </FlexBox>
 
-        <TabPanel value="active">
+      {tab === 'active' && (
       <Table className="data-table">
         <TableHead>
           <TableRow>
@@ -201,17 +195,16 @@ function HomeBannerListPage() {
           )}
         </TableBody>
       </Table>
-        </TabPanel>
+      )}
 
-        <TabPanel value="past">
+      {tab === 'past' && (
           <DataTable
             columns={pastColumns}
             rows={pastBanners}
             rowKey={(row) => row.id}
             emptyMessage="노출이 종료된 배너가 없어요."
           />
-        </TabPanel>
-      </Tab>
+      )}
 
       <ConfirmModal
         open={Boolean(deleteTarget)}

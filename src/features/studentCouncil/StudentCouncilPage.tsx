@@ -158,13 +158,6 @@ function AccountManagement() {
   const current = accounts[0]
   const [form, setForm] = useState<AccountForm>({ year: current.year, bank: current.bank, accountNumber: current.accountNumber, accountHolder: current.accountHolder, feePerSemester: current.feePerSemester })
   const [editing, setEditing] = useState(false)
-  const historyColumns: DataTableColumn<StudentCouncilFeeAccount>[] = [
-    { key: 'year', header: '적용 연도', width: 120, render: (row) => `${row.year}학년도` },
-    { key: 'bank', header: '은행', width: 140, render: (row) => row.bank },
-    { key: 'accountNumber', header: '계좌번호', width: 220, render: (row) => row.accountNumber },
-    { key: 'accountHolder', header: '예금주', width: 160, render: (row) => row.accountHolder },
-    { key: 'feePerSemester', header: '학기당 회비', width: 140, render: (row) => `${row.feePerSemester.toLocaleString()}원` },
-  ]
   const save = () => {
     if (!form.accountNumber.trim() || !form.accountHolder.trim() || form.feePerSemester < 1) return
     saveAccount({ ...form, accountNumber: form.accountNumber.trim(), accountHolder: form.accountHolder.trim() })
@@ -185,7 +178,6 @@ function AccountManagement() {
           {[['은행', form.bank], ['계좌번호', form.accountNumber], ['예금주', form.accountHolder], ['학기당 학생회비', `${form.feePerSemester.toLocaleString()}원`]].map(([label, value]) => <FlexBox key={label} justifyContent="space-between" alignItems="center"><Typography variant="body2" color="semantic.label.alternative">{label}</Typography><Typography variant="body1" weight="medium">{value}</Typography></FlexBox>)}
         </FlexBox>}
       </FlexBox>
-      <FlexBox flexDirection="column" style={{ gap: 12 }}><Typography variant="body1" weight="bold">저장된 납부계좌 이력</Typography><DataTable columns={historyColumns} rows={accounts} rowKey={(row) => row.id} emptyMessage="저장된 납부계좌가 없어요." /></FlexBox>
     </FlexBox>
   )
 }

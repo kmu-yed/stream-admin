@@ -67,6 +67,7 @@ const initialSemesters: LockerSemester[] = [
 ]
 
 type LockerSemesterInput = Omit<LockerSemester, 'id'>
+type ManualAssignmentInput = Pick<LockerApplication, 'name' | 'studentId' | 'grade'> & { lockerId: string }
 
 type LockersContextValue = {
   lockers: Locker[]
@@ -75,6 +76,7 @@ type LockersContextValue = {
   toggleLockerStatus: (id: string) => void
   updateLockerStatuses: (ids: string[], status: Locker['status']) => void
   changeLockerAssignment: (applicationId: string, lockerId: string) => void
+  addManualAssignment: (input: ManualAssignmentInput) => void
   cancelApplication: (applicationId: string) => void
   addSemester: (input: LockerSemesterInput) => void
   updateSemester: (id: string, input: LockerSemesterInput) => void
@@ -120,6 +122,16 @@ export function LockersProvider({ children }: { children: ReactNode }) {
             if (locker.id === previousLockerId) return { ...locker, assignedTo: undefined }
             return locker
           }),
+        )
+      },
+      addManualAssignment: ({ name, studentId, grade, lockerId }) => {
+        const applicationId = makeId('lapp')
+        setApplications((prev) => [
+          ...prev,
+          { id: applicationId, name, studentId, grade, appliedAt: new Date().toISOString().slice(0, 10), status: '신청완료', lockerId },
+        ])
+        setLockers((prev) =>
+          prev.map((locker) => (locker.id === lockerId ? { ...locker, assignedTo: applicationId } : locker)),
         )
       },
       cancelApplication: (applicationId) => {

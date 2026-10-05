@@ -4,8 +4,9 @@ import { IconChevronLeft, IconChevronRight, IconImage, IconTrash } from '@wanted
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import ImageUploadField from '../../components/common/ImageUploadField'
+import ConfirmModal from '../../components/common/ConfirmModal'
 
-type CalendarEvent = { id: string; date: string; title: string }
+type CalendarEvent = { id: string; startDate: string; endDate: string; title: string }
 type Poster = { id: string; title: string; image: string }
 
 const weekDays = ['일', '월', '화', '수', '목', '금', '토']
@@ -17,16 +18,24 @@ function DisplayManagementPage() {
   const [tab, setTab] = useState('calendar')
   const [month, setMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [events, setEvents] = useState<CalendarEvent[]>([
-    { id: 'cal_1', date: '2026-09-10', title: '26-2 개강파티' },
-    ...[15, 16, 17, 18, 19].map((day) => ({ id: `sports_${day}`, date: `2026-09-${day}`, title: '체육대회 신청기간' })),
+    { id: 'cal_1', startDate: '2026-09-10', endDate: '2026-09-10', title: '26-2 개강파티' },
+    { id: 'sports', startDate: '2026-09-15', endDate: '2026-09-19', title: '체육대회 신청기간' },
+    { id: 'cal_2', startDate: '2026-10-05', endDate: '2026-10-05', title: '중간고사 시작' },
+    { id: 'cal_3', startDate: '2026-10-05', endDate: '2026-10-07', title: '학생회 간담회' },
+    { id: 'cal_4', startDate: '2026-10-12', endDate: '2026-10-16', title: '수강신청 변경 기간' },
   ])
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [eventTitle, setEventTitle] = useState('')
+  const [eventStartDate, setEventStartDate] = useState('')
+  const [eventEndDate, setEventEndDate] = useState('')
   const [editingEventId, setEditingEventId] = useState<string | null>(null)
+  const [eventFormOpen, setEventFormOpen] = useState(false)
   const [posters, setPosters] = useState<Poster[]>([])
   const [posterModalOpen, setPosterModalOpen] = useState(false)
   const [posterTitle, setPosterTitle] = useState('')
   const [posterImage, setPosterImage] = useState<string[]>([])
+  const [editingPoster, setEditingPoster] = useState<Poster | null>(null)
+  const [deletePosterTarget, setDeletePosterTarget] = useState<Poster | null>(null)
 
   const year = month.getFullYear()
   const monthIndex = month.getMonth()
@@ -42,16 +51,17 @@ function DisplayManagementPage() {
 
   const openDate = (day: number) => {
     const date = isoDate(year, monthIndex, day)
-    const existing = events.find((event) => event.date === date)
     setSelectedDate(date)
-    setEditingEventId(existing?.id ?? null)
-    setEventTitle(existing?.title ?? '')
+    setEditingEventId(null); setEventTitle(''); setEventStartDate(date); setEventEndDate(date); setEventFormOpen(false)
   }
   const saveEvent = () => {
-    if (!selectedDate || !eventTitle.trim()) return
-    if (editingEventId) setEvents((prev) => prev.map((event) => event.id === editingEventId ? { ...event, title: eventTitle.trim() } : event))
-    else setEvents((prev) => [...prev, { id: `cal_${Date.now()}`, date: selectedDate, title: eventTitle.trim() }])
+    if (!selectedDate || !eventTitle.trim() || !eventStartDate || !eventEndDate || eventEndDate < eventStartDate) return
+    const dailyCount = events.filter((event) => event.startDate <= selectedDate && event.endDate >= selectedDate && event.id !== editingEventId).length
+    if (!editingEventId && dailyCount >= 4) { toast({ content: '하루에는 최대 4개의 일정만 등록할 수 있어요.', variant: 'negative' }); return }
+    if (editingEventId) setEvents((prev) => prev.map((event) => event.id === editingEventId ? { ...event, title: eventTitle.trim(), startDate: eventStartDate, endDate: eventEndDate } : event))
+    else setEvents((prev) => [...prev, { id: `cal_${Date.now()}`, startDate: eventStartDate, endDate: eventEndDate, title: eventTitle.trim() }])
     setSelectedDate(null)
+    setEventFormOpen(false)
     toast({ content: '일정을 저장했어요.', variant: 'positive' })
   }
   const deleteEvent = () => {
@@ -62,10 +72,11 @@ function DisplayManagementPage() {
   }
   const savePoster = () => {
     if (!posterTitle.trim() || !posterImage[0]) return
-    setPosters((prev) => [...prev, { id: `poster_${Date.now()}`, title: posterTitle.trim(), image: posterImage[0] }])
+    setPosters((prev) => editingPoster ? prev.map((poster) => poster.id === editingPoster.id ? { ...poster, title: posterTitle.trim(), image: posterImage[0] } : poster) : [...prev, { id: `poster_${Date.now()}`, title: posterTitle.trim(), image: posterImage[0] }])
     setPosterModalOpen(false)
     setPosterTitle('')
     setPosterImage([])
+    setEditingPoster(null)
     toast({ content: '행사 포스터를 추가했어요.', variant: 'positive' })
   }
 
@@ -93,9 +104,8 @@ function DisplayManagementPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
               {cells.map((day, index) => {
                 const date = day ? isoDate(year, monthIndex, day) : ''
-                const dateEvents = events.filter((event) => event.date === date)
-                const previousDate = cells[index - 1] ? isoDate(year, monthIndex, cells[index - 1]!) : ''
-                const continuesFromPrevious = (event: CalendarEvent) => events.some((item) => item.date === previousDate && item.title === event.title)
+                const dateEvents = events.filter((event) => event.startDate <= date && event.endDate >= date)
+                const continuesFromPrevious = (event: CalendarEvent) => event.startDate < date && index % 7 !== 0
                 const spanLength = (event: CalendarEvent) => {
                   let length = 1
                   let cursor = index
@@ -103,7 +113,7 @@ function DisplayManagementPage() {
                     const followingDay = cells[cursor + 1]
                     if (!followingDay) break
                     const followingDate = isoDate(year, monthIndex, followingDay)
-                    if (!events.some((item) => item.date === followingDate && item.title === event.title)) break
+                    if (event.endDate < followingDate) break
                     length += 1
                     cursor += 1
                   }
@@ -114,7 +124,7 @@ function DisplayManagementPage() {
                   {day && <>
                     <Typography variant="body1" weight="medium" style={{ position: 'absolute', top: 14, left: 14, display: 'block', textAlign: 'left', zIndex: 1 }}>{day}</Typography>
                     <FlexBox flexDirection="column" style={{ position: 'absolute', zIndex: 3, top: 52, left: 8, right: 8, gap: 6, pointerEvents: 'none' }}>
-                      {dateEvents.map((event) => {
+                      {dateEvents.slice(0, 4).map((event) => {
                         if (continuesFromPrevious(event)) return null
                         const length = spanLength(event)
                         return <span key={event.id} style={{ position: 'relative', zIndex: 3, display: 'block', width: `calc(${length * 100}% + ${(length - 1) * 16}px)`, minHeight: 30, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRadius: 6, padding: '6px 10px', background: 'var(--semantic-primary-normal)', color: '#fff', fontSize: 14, textAlign: 'center' }}>{event.title}</span>
@@ -129,23 +139,24 @@ function DisplayManagementPage() {
         <TabPanel value="poster">
           <FlexBox justifyContent="space-between" alignItems="center" style={{ marginBottom: 28 }}>
             <Typography variant="body1" color="semantic.label.alternative">총 {posters.length}개 / 활성화 {posters.length}개</Typography>
-            <Button variant="solid" color="primary" onClick={() => setPosterModalOpen(true)}>+ 포스터 추가하기</Button>
+            <Button variant="solid" color="primary" onClick={() => { setEditingPoster(null); setPosterTitle(''); setPosterImage([]); setPosterModalOpen(true) }}>+ 포스터 추가하기</Button>
           </FlexBox>
           {posters.length === 0 ? (
-            <FlexBox flexDirection="column" alignItems="center" justifyContent="center" style={{ minHeight: 400, gap: 16, border: '1px dashed var(--semantic-line-normal-normal)', borderRadius: 16 }}><IconImage width={56} height={56} style={{ color: 'var(--semantic-label-alternative)' }} /><Typography variant="title3" color="semantic.label.alternative">등록된 포스터가 없습니다.</Typography></FlexBox>
-          ) : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>{posters.map((poster) => <FlexBox key={poster.id} flexDirection="column" style={{ gap: 8 }}><img src={poster.image} alt={poster.title} style={{ width: '100%', aspectRatio: '3 / 4', objectFit: 'cover', borderRadius: 12 }} /><Typography variant="body1" weight="medium">{poster.title}</Typography></FlexBox>)}</div>}
+            <FlexBox flexDirection="column" alignItems="center" justifyContent="center" style={{ minHeight: 400, gap: 12, border: '1px dashed var(--semantic-line-normal-normal)', borderRadius: 16 }}><IconImage width={40} height={40} style={{ color: 'var(--semantic-label-alternative)' }} /><Typography variant="body1" color="semantic.label.alternative">등록된 포스터가 없습니다.</Typography></FlexBox>
+          ) : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>{posters.map((poster) => <FlexBox key={poster.id} flexDirection="column" style={{ gap: 8 }}><img src={poster.image} alt={poster.title} style={{ width: '100%', aspectRatio: '3 / 4', objectFit: 'cover', borderRadius: 12 }} /><FlexBox justifyContent="space-between" alignItems="center"><Typography variant="body1" weight="medium">{poster.title}</Typography><FlexBox style={{ gap: 6 }}><Button size="small" variant="outlined" color="assistive" onClick={() => { setEditingPoster(poster); setPosterTitle(poster.title); setPosterImage([poster.image]); setPosterModalOpen(true) }}>수정</Button><Button size="small" variant="outlined" color="assistive" onClick={() => setDeletePosterTarget(poster)}>삭제</Button></FlexBox></FlexBox></FlexBox>)}</div>}
         </TabPanel>
       </Tab>
       <Modal open={Boolean(selectedDate)} onOpenChange={(open) => !open && setSelectedDate(null)}>
         <ModalContainer size="small"><ModalContent>
-          <ModalContentItem><ModalHeading>{selectedDate?.replaceAll('-', '. ')} 일정 {editingEventId ? '수정' : '추가'}</ModalHeading></ModalContentItem>
-          <ModalContentItem><FormItem label="일정명"><TextField value={eventTitle} placeholder="일정을 입력해주세요" onChange={(event) => setEventTitle(event.target.value)} /></FormItem></ModalContentItem>
-          <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}><Button variant="outlined" color="assistive" style={{ visibility: editingEventId ? 'visible' : 'hidden', color: 'var(--semantic-status-negative)' }} onClick={deleteEvent}><IconTrash width={16} height={16} />삭제</Button><FlexBox style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => setSelectedDate(null)}>취소</Button><Button variant="solid" color="primary" onClick={saveEvent}>저장</Button></FlexBox></ModalContentItem>
+          <ModalContentItem><ModalHeading>{selectedDate?.replaceAll('-', '. ')} 일정 편집</ModalHeading></ModalContentItem>
+          <ModalContentItem style={{ gap: 14 }}>{!eventFormOpen ? <><Button variant="outlined" color="primary" disabled={(events.filter((event) => event.startDate <= (selectedDate ?? '') && event.endDate >= (selectedDate ?? '')).length >= 4)} onClick={() => { setEditingEventId(null); setEventTitle(''); setEventStartDate(selectedDate ?? ''); setEventEndDate(selectedDate ?? ''); setEventFormOpen(true) }}>＋ 일정 추가 ({events.filter((event) => event.startDate <= (selectedDate ?? '') && event.endDate >= (selectedDate ?? '')).length}/4)</Button>{events.filter((event) => event.startDate <= (selectedDate ?? '') && event.endDate >= (selectedDate ?? '')).map((event) => <button key={event.id} type="button" onClick={() => { setEditingEventId(event.id); setEventTitle(event.title); setEventStartDate(event.startDate); setEventEndDate(event.endDate); setEventFormOpen(true) }} style={{ border: 0, background: 'var(--semantic-fill-normal)', borderRadius: 8, padding: 12, textAlign: 'left', cursor: 'pointer' }}>{event.title}</button>)}</> : <><FormItem label="일정명"><TextField value={eventTitle} placeholder="일정을 입력해주세요" onChange={(event) => setEventTitle(event.target.value)} /></FormItem><FormItem label="시작일"><TextField type="date" value={eventStartDate} onChange={(event) => setEventStartDate(event.target.value)} /></FormItem><FormItem label="종료일"><TextField type="date" value={eventEndDate} onChange={(event) => setEventEndDate(event.target.value)} /></FormItem></>}</ModalContentItem>
+          <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}><Button variant="outlined" color="assistive" style={{ visibility: eventFormOpen && editingEventId ? 'visible' : 'hidden', color: 'var(--semantic-status-negative)' }} onClick={deleteEvent}><IconTrash width={16} height={16} />삭제</Button><FlexBox style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => setSelectedDate(null)}>취소</Button><Button variant="solid" color="primary" disabled={!eventFormOpen} onClick={saveEvent}>저장</Button></FlexBox></ModalContentItem>
         </ModalContent></ModalContainer>
       </Modal>
+      <ConfirmModal open={Boolean(deletePosterTarget)} onOpenChange={(open) => !open && setDeletePosterTarget(null)} title="포스터를 삭제할까요?" description={deletePosterTarget ? `\"${deletePosterTarget.title}\" 포스터를 삭제해요.` : undefined} confirmLabel="삭제" tone="negative" onConfirm={() => { if (!deletePosterTarget) return; setPosters((prev) => prev.filter((poster) => poster.id !== deletePosterTarget.id)); setDeletePosterTarget(null); toast({ content: '포스터를 삭제했어요.', variant: 'positive' }) }} />
       <Modal open={posterModalOpen} onOpenChange={setPosterModalOpen}>
         <ModalContainer size="small"><ModalContent>
-          <ModalContentItem><ModalHeading>행사 포스터 추가</ModalHeading></ModalContentItem>
+          <ModalContentItem><ModalHeading>행사 포스터 {editingPoster ? '수정' : '추가'}</ModalHeading></ModalContentItem>
           <ModalContentItem style={{ gap: 20 }}><FormItem label="포스터"><ImageUploadField value={posterImage} onChange={setPosterImage} maxCount={1} previewSize={160} /></FormItem><FormItem label="포스터명"><TextField value={posterTitle} onChange={(event) => setPosterTitle(event.target.value)} /></FormItem></ModalContentItem>
           <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => setPosterModalOpen(false)}>취소</Button><Button variant="solid" color="primary" onClick={savePoster}>추가하기</Button></ModalContentItem>
         </ModalContent></ModalContainer>

@@ -17,7 +17,7 @@ import { ArchivingProvider } from './features/archiving/store'
 import ArchiveListPage from './features/archiving/ArchiveListPage'
 import ArchiveFormPage from './features/archiving/ArchiveFormPage'
 import { HomeBannerProvider } from './features/homeBanner/store'
-import HomeBannerListPage from './features/homeBanner/HomeBannerListPage'
+import HomeManagementPage from './features/homeBanner/HomeManagementPage'
 import HomeBannerFormPage from './features/homeBanner/HomeBannerFormPage'
 import { RentalsProvider } from './features/rentals/store'
 import RentalsPage from './features/rentals/RentalsPage'
@@ -33,6 +33,7 @@ import PoliciesPage from './features/policies/PoliciesPage'
 import AdminManagementPage from './features/adminManagement/AdminManagementPage'
 import { AdminManagementProvider } from './features/adminManagement/store'
 import DisplayManagementPage from './features/display/DisplayManagementPage'
+import SettingsPage from './features/settings/SettingsPage'
 
 function EventsRoutes() {
   return (
@@ -91,7 +92,7 @@ function HomeBannerRoutes() {
   return (
     <HomeBannerProvider>
       <Routes>
-        <Route index element={<HomeBannerListPage />} />
+        <Route index element={<HomeManagementPage />} />
         <Route path="new" element={<HomeBannerFormPage />} />
         <Route path=":id/edit" element={<HomeBannerFormPage />} />
       </Routes>
@@ -142,6 +143,7 @@ function App() {
                     <Route path="/student-council" element={<StudentCouncilPage />} />
                     <Route path="/admins" element={<AdminManagementPage />} />
                     <Route path="/display" element={<DisplayManagementPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
                     <Route path="/chatbot/*" element={<ChatbotRoutes />} />
                     <Route
                       path="/policies"

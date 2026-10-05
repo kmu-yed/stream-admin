@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Button, FlexBox, Tooltip, TooltipContent, TooltipTrigger, Typography, useToast } from '@wanteddev/wds'
 import StatusBadge from '../../../components/common/StatusBadge'
+import ImageUploadField from '../../../components/common/ImageUploadField'
 import { useLockers } from '../store'
 import { LOCKER_PHYSICAL_LAYOUTS, LOCKER_ZONES, getLockerDisplayStatus, type Locker, type LockerDisplayStatus, type LockerZone } from '../types'
 
@@ -70,6 +71,15 @@ function LockerLayoutPanel() {
   const [selectedZone, setSelectedZone] = useState<LockerZone>('A-1')
   const [editing, setEditing] = useState(false)
   const [selectedLockerIds, setSelectedLockerIds] = useState<string[]>([])
+  const [photosByZone, setPhotosByZone] = useState<Record<string, string[]>>({
+    'A-1': [encodeURI('/locker-photos/A-1구역.png')],
+    'A-2': [encodeURI('/locker-photos/A-2구역 실제사진.png')],
+    'A-4': [encodeURI('/locker-photos/A-4구역 실제사진.png')],
+    'B-1': [encodeURI('/locker-photos/B-1구역 실제사진.png')],
+    'B-2': [encodeURI('/locker-photos/B-2구역 실제사진.png')],
+    C: [encodeURI('/locker-photos/C구역 실제사진 1.png'), encodeURI('/locker-photos/C구역 실제사진 2.png')],
+    D: [encodeURI('/locker-photos/D구역 실제사진.png')],
+  })
   const applicantNameById = new Map(applications.map((application) => [application.id, application.name]))
   const zoneLockers = useMemo(() => lockers.filter((locker) => locker.zone === selectedZone), [lockers, selectedZone])
   const lockersByNumber = new Map(zoneLockers.map((locker) => [Number(locker.number.split('-').at(-1)), locker]))
@@ -152,6 +162,10 @@ function LockerLayoutPanel() {
             ))}
           </FlexBox>
         </div>
+        <FlexBox flexDirection="column" style={{ gap: 10, marginTop: 20, paddingTop: 28, borderTop: '1px solid var(--semantic-line-normal-normal)' }}>
+          <FlexBox flexDirection="column" style={{ gap: 2 }}><Typography variant="body1" weight="bold">{selectedZone} 구역 실제 사진</Typography><Typography variant="caption1" color="semantic.label.alternative">등록된 사진은 수정(새 이미지 업로드)하거나 삭제할 수 있어요.</Typography></FlexBox>
+          <ImageUploadField value={photosByZone[selectedZone] ?? []} onChange={(urls) => setPhotosByZone((prev) => ({ ...prev, [selectedZone]: urls }))} multiple maxCount={4} previewSize={144} />
+        </FlexBox>
       </FlexBox>
     </FlexBox>
   )

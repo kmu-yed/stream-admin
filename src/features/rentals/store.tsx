@@ -70,6 +70,9 @@ const initialRecords: RentalRecord[] = [
     returnedAt: addDays(-3),
     status: '반납완료',
   },
+  { id: 'rec_4', itemId: 'item_6', itemName: '고데기', borrowerName: '최학번', borrowerStudentId: '20211122', borrowedAt: addDays(-9), dueDate: addDays(-4), status: '대여중' },
+  { id: 'rec_5', itemId: 'item_10', itemName: '노트북 충전기', borrowerName: '정학생', borrowerStudentId: '20230789', borrowedAt: addDays(-7), dueDate: addDays(-2), status: '대여중' },
+  { id: 'rec_6', itemId: 'item_13', itemName: '8핀 충전기', borrowerName: '윤학생', borrowerStudentId: '20240888', borrowedAt: addDays(-6), dueDate: addDays(-1), status: '대여중' },
 ]
 
 type RentalsContextValue = {

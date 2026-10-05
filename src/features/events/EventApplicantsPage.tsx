@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Button,
   FlexBox,
-  SegmentedControl,
-  SegmentedControlItem,
+  IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger,
   TextButton,
+  Tooltip, TooltipContent, TooltipTrigger,
   Typography,
   useToast,
 } from '@wanteddev/wds'
+import { IconChevronDown, IconDownload } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
@@ -38,12 +38,12 @@ function EventApplicantsPage() {
 
   const event = id ? getEvent(id) : undefined
   const applicants = id ? getApplicants(id) : []
-  const [filter, setFilter] = useState<StatusFilter>('all')
+  const [filters, setFilters] = useState<StatusFilter[]>(['all'])
   const [cancelTarget, setCancelTarget] = useState<Applicant | null>(null)
   const [search, setSearch] = useState('')
 
   const filtered = applicants.filter((a) => {
-    if (filter !== 'all' && a.status !== filter) return false
+    if (!filters.includes('all') && !filters.includes(a.status)) return false
     const keyword = search.trim()
     if (!keyword) return true
     return a.name.includes(keyword) || a.studentId.includes(keyword)
@@ -80,7 +80,7 @@ function EventApplicantsPage() {
     })),
     {
       key: 'status',
-      header: '상태',
+      header: <Menu value={filters} onValueChange={(value) => { if (!Array.isArray(value)) return; if (value.length === 0) { setFilters(['all']); return }; if (value.includes('all')) { setFilters(filters.includes('all') ? value.filter((item) => item !== 'all') as StatusFilter[] : ['all']); return }; setFilters(value as StatusFilter[]) }}><FlexBox alignItems="center" style={{ gap: 4 }}><span>상태</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="행사 신청 상태 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체 상태</MenuItem><MenuItem variant="checkbox" value="신청완료">신청완료</MenuItem><MenuItem variant="checkbox" value="취소">취소</MenuItem></MenuList></MenuContent></Menu>,
       width: 100,
       render: (row) => <StatusBadge label={row.status} tone={row.status === '취소' ? 'negative' : 'positive'} />,
     },
@@ -120,25 +120,18 @@ function EventApplicantsPage() {
       <PageHeader
         title={`${event.title} - 신청 현황`}
         description={`총 ${applicants.length}명 신청 (신청완료 ${applicants.filter((a) => a.status === '신청완료').length}명)`}
-        action={
-          <Button variant="outlined" color="primary" onClick={handleExport}>
-            엑셀 내보내기
-          </Button>
-        }
       />
 
-      <FlexBox justifyContent="space-between" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
-        <SegmentedControl
-          value={filter}
-          onValueChange={(v) => setFilter(v as StatusFilter)}
-          size="small"
-          style={{ width: 300 }}
-        >
-          <SegmentedControlItem value="all">전체</SegmentedControlItem>
-          <SegmentedControlItem value="신청완료">신청완료</SegmentedControlItem>
-          <SegmentedControlItem value="취소">취소</SegmentedControlItem>
-        </SegmentedControl>
+      <FlexBox justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
         <SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" />
+        <Tooltip mode="hover">
+          <TooltipTrigger>
+            <IconButton variant="outlined" color="semantic.label.assistive" size="medium" onClick={handleExport} aria-label="엑셀 내보내기">
+              <IconDownload />
+            </IconButton>
+          </TooltipTrigger>
+          <TooltipContent>엑셀 내보내기</TooltipContent>
+        </Tooltip>
       </FlexBox>
 
       <DataTable

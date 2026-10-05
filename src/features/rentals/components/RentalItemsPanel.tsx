@@ -6,7 +6,7 @@ import DataTable, { type DataTableColumn } from '../../../components/common/Data
 import ConfirmModal from '../../../components/common/ConfirmModal'
 import { useRentals } from '../store'
 import StatusBadge from '../../../components/common/StatusBadge'
-import { getAvailableQuantity, type RentalItem } from '../types'
+import { type RentalItem } from '../types'
 
 function RentalItemsPanel() {
   const navigate = useNavigate()
@@ -41,11 +41,11 @@ function RentalItemsPanel() {
     },
     {
       key: 'quantity',
-      header: '수량 (대여가능/전체)',
+      header: '수량',
       width: 180,
       render: (row) => (
         <Typography variant="body2">
-          {getAvailableQuantity(row, records)} / {row.totalQuantity}
+          {row.totalQuantity}
         </Typography>
       ),
     },

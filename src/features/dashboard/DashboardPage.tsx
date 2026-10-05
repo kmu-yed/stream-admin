@@ -25,6 +25,8 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
     <FlexBox
       flexDirection="column"
       style={{
+        height: '100%',
+        boxSizing: 'border-box',
         gap: 12,
         padding: 20,
         borderRadius: 12,
@@ -82,6 +84,7 @@ function DashboardPage() {
     .filter((record) => getRentalRecordStatus(record) === '대여중' && !record.returnedAt && today > record.dueDate.slice(0, 10))
     .map((record) => ({ record, overdueDays: diffDays(today, record.dueDate) }))
     .sort((a, b) => b.overdueDays - a.overdueDays)
+  const visibleOverdueRecords = overdueRecords.slice(0, 3)
 
   const openEvents = events
     .filter((event) => getEventStatus(event) === '모집중')
@@ -148,10 +151,8 @@ function DashboardPage() {
 
       <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.45fr) minmax(360px, 1fr)', gap: 20, marginBottom: 20 }}>
         <SectionCard title="빠른 메뉴">
-          <FlexBox style={{ gap: 10 }}>
-            <Button variant="solid" color="assistive" leadingContent={<IconCalendarFill width={18} height={18} />} style={{ flex: 1, padding: '13px 24px' }} onClick={() => navigate('/events/new')}>행사 등록</Button>
-            <Button variant="solid" color="assistive" leadingContent={<IconMegaphoneFill width={18} height={18} />} style={{ flex: 1, padding: '13px 24px' }} onClick={() => navigate('/notices/new')}>공지 등록</Button>
-            <Button variant="solid" color="assistive" leadingContent={<IconClockFill width={18} height={18} />} style={{ flex: 1, padding: '13px 24px' }} onClick={() => navigate('/display')}>일정 등록</Button>
+          <FlexBox style={{ flex: 1, gap: 10 }}>
+            {[[IconCalendarFill, '행사 등록', '/events/new'], [IconMegaphoneFill, '공지 등록', '/notices/new'], [IconClockFill, '일정 등록', '/display']].map(([Icon, label, path]) => { const MenuIcon = Icon as typeof IconCalendarFill; return <button key={label as string} type="button" onClick={() => navigate(path as string)} style={{ flex: 1, minHeight: 116, border: 0, borderRadius: 12, background: 'var(--semantic-fill-normal)', color: 'var(--semantic-label-normal)', cursor: 'pointer' }}><FlexBox flexDirection="column" alignItems="center" justifyContent="center" style={{ height: '100%', gap: 12 }}><MenuIcon width={30} height={30} /><Typography variant="body1" weight="medium">{label as string}</Typography></FlexBox></button> })}
           </FlexBox>
         </SectionCard>
 
@@ -162,7 +163,7 @@ function DashboardPage() {
             </Typography>
           ) : (
             <FlexBox flexDirection="column" style={{ gap: 8 }}>
-              {overdueRecords.map(({ record, overdueDays }) => (
+              {visibleOverdueRecords.map(({ record, overdueDays }) => (
                 <FlexBox
                   key={record.id}
                   className="app-hoverable"
@@ -177,7 +178,7 @@ function DashboardPage() {
                   }}
                 >
                   <FlexBox alignItems="center" style={{ gap: 10 }}>
-                    <StatusBadge label={`D+${overdueDays}`} tone="negative" />
+                    <StatusBadge label={`D+${overdueDays}`} tone="negative" size="xsmall" />
                     <Typography variant="body1" weight="medium">
                       {record.itemName}
                     </Typography>
@@ -185,11 +186,9 @@ function DashboardPage() {
                       {record.borrowerName} ({record.borrowerStudentId})
                     </Typography>
                   </FlexBox>
-                  <Typography variant="caption1" color="semantic.label.alternative">
-                    반납예정일 {record.dueDate}
-                  </Typography>
                 </FlexBox>
               ))}
+              {overdueRecords.length > 3 && <Button variant="outlined" color="assistive" size="small" onClick={() => navigate('/rentals?tab=records')}>더보기 ({overdueRecords.length - 3})</Button>}
             </FlexBox>
           )}
         </SectionCard>

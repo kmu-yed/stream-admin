@@ -52,8 +52,8 @@ function DocumentEditor({ docId }: { docId: PolicyDocId }) {
             </Button>
           </>
         ) : (
-          <Button variant="solid" color="primary" onClick={() => setEditing(true)}>
-            수정하기
+          <Button variant="outlined" color="primary" onClick={() => setEditing(true)}>
+            수정
           </Button>
         )}
       </FlexBox>

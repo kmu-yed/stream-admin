@@ -22,6 +22,7 @@ const TAB_ROOT_PATHS = new Set([
   '/home-banner',
   '/chatbot',
   '/policies',
+  '/settings',
 ])
 
 function getPageBreadcrumbs(pathname: string): BreadcrumbItem[] {
