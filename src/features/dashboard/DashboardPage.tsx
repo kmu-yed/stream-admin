@@ -77,7 +77,7 @@ function DashboardPage() {
 
   const today = new Date().toISOString().slice(0, 10)
 
-  const pendingPayments = members.filter((member) => member.status === '납부 확인 필요')
+  const pendingPayments = members.filter((member) => member.status === '납부확인중')
   const pendingRentalApprovals = records.filter((record) => ['대여 승인대기', '반납 승인대기'].includes(getRentalRecordStatus(record)))
 
   const overdueRecords = records

@@ -12,14 +12,14 @@ import { BANKS, type BankName, type PaymentStatus, type StreamMembershipStatus, 
 type Filter = 'all' | PaymentStatus
 type AccountForm = Omit<StudentCouncilFeeAccount, 'id'>
 
-const paymentStatuses: PaymentStatus[] = ['납부 전', '납부 확인 필요', '납부 완료', '입금 확인 불가']
+const paymentStatuses: PaymentStatus[] = ['납부 전', '납부확인중', '납부완료', '확인필요']
 const defaultMessage = '입금자 정보를 확인하지 못했어요. 문제가 있을 경우 학생회에 문의해 주세요.'
 
 const statusTone: Record<PaymentStatus, BadgeTone> = {
   '납부 전': 'neutral',
-  '납부 확인 필요': 'cautionary',
-  '납부 완료': 'positive',
-  '입금 확인 불가': 'negative',
+  납부확인중: 'pending',
+  납부완료: 'positive',
+  확인필요: 'negative',
 }
 
 const streamMembershipTone: Record<StreamMembershipStatus, BadgeTone> = {
@@ -60,7 +60,7 @@ function PaymentMemberList() {
 
   const selectStatus = (member: StudentMember, status: PaymentStatus) => {
     setOpenStatusId(null)
-    if (status === '입금 확인 불가') {
+    if (status === '확인필요') {
       setMessageTarget(member)
       setMessage(member.managerMessage ?? defaultMessage)
       return
@@ -140,11 +140,11 @@ function PaymentMemberList() {
       <DataTable columns={columns} rows={filtered} rowKey={(row) => row.id} emptyMessage="명단이 없어요." className="student-payment-table" />
       <Modal open={Boolean(messageTarget)} onOpenChange={(open) => !open && setMessageTarget(null)}>
         <ModalContainer size="small"><ModalContent>
-          <ModalContentItem style={{ gap: 8 }}><ModalHeading>입금 확인 불가 안내</ModalHeading><ModalDescription>{messageTarget ? `${messageTarget.name}님에게 전달할 안내를 작성해주세요.` : undefined}</ModalDescription></ModalContentItem>
+          <ModalContentItem style={{ gap: 8 }}><ModalHeading>확인 필요 안내</ModalHeading><ModalDescription>{messageTarget ? `${messageTarget.name}님에게 전달할 안내를 작성해주세요.` : undefined}</ModalDescription></ModalContentItem>
           <ModalContentItem><TextArea value={message} onChange={(event) => setMessage(event.target.value)} style={{ minHeight: 120 }} /></ModalContentItem>
           <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
             <Button variant="outlined" color="assistive" onClick={() => setMessageTarget(null)}>취소</Button>
-            <Button variant="solid" color="primary" onClick={() => { if (!messageTarget) return; updatePaymentStatus(messageTarget.id, '입금 확인 불가', message.trim() || defaultMessage); toast({ content: '입금 확인 불가 안내를 저장했어요.', variant: 'positive' }); setMessageTarget(null) }}>저장</Button>
+            <Button variant="solid" color="primary" onClick={() => { if (!messageTarget) return; updatePaymentStatus(messageTarget.id, '확인필요', message.trim() || defaultMessage); toast({ content: '확인 필요 안내를 저장했어요.', variant: 'positive' }); setMessageTarget(null) }}>저장</Button>
           </ModalContentItem>
         </ModalContent></ModalContainer>
       </Modal>

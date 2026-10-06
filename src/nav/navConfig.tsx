@@ -59,7 +59,7 @@ export const navGroups: NavGroup[] = [
       { label: "관리자 관리", path: "/admins", icon: IconPerson },
       { label: "디스플레이 관리", path: "/display", icon: IconDesktop },
       { label: "개인정보 처리방침 관리", path: "/policies", icon: IconDocumentText },
-      { label: "설정 관리", path: "/settings", icon: IconSetting },
+      { label: "공통 비밀번호 관리", path: "/settings", icon: IconSetting },
     ],
   },
 ];

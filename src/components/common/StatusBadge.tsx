@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Chip } from '@wanteddev/wds'
 
-export type BadgeTone = 'neutral' | 'info' | 'positive' | 'negative' | 'cautionary'
+export type BadgeTone = 'neutral' | 'info' | 'positive' | 'negative' | 'cautionary' | 'pending'
 
 type StatusBadgeProps = {
   label: string
@@ -30,6 +30,10 @@ const toneStyle: Record<BadgeTone, { background: string; color: string }> = {
   cautionary: {
     background: 'var(--semantic-background-status-cautionary)',
     color: 'var(--semantic-status-cautionary)',
+  },
+  pending: {
+    background: '#fff5e9',
+    color: '#c9781b',
   },
 }
 
