@@ -29,7 +29,10 @@ const initialItemSeeds: Omit<RentalItem, 'returnPolicy'>[] = [
   { id: 'item_15', name: '생리대', category: '위생용품', itemKind: '소모품', totalQuantity: 24 },
 ]
 
-const initialItems: RentalItem[] = initialItemSeeds.map((item) => ({ ...item, returnPolicy: '7일 후 반납' }))
+const initialItems: RentalItem[] = initialItemSeeds.map((item) => ({
+  ...item,
+  returnPolicy: item.name === '우산' ? '7일 후 반납' : '당일 반납',
+}))
 
 const initialItemTypes: RentalItemType[] = Object.entries(RENTAL_CATALOG).flatMap(([category, names]) =>
   names.map((name) => ({
