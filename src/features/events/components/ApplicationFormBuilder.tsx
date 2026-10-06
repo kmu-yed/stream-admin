@@ -1,12 +1,14 @@
-import { IconTrash } from '@wanteddev/wds-icon'
+import { IconClose, IconTrash } from '@wanteddev/wds-icon'
 import {
   FlexBox,
   IconButton,
   Option,
+  Button,
   Select,
   Switch,
   TextButton,
   TextField,
+  TextFieldContent,
   Typography,
 } from '@wanteddev/wds'
 import type { ApplicationFieldType, ApplicationFormField } from '../types'
@@ -53,6 +55,10 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
     updateField(fieldId, { options: [...field.options, ''] })
   }
 
+  const addOtherOption = (fieldId: string) => {
+    updateField(fieldId, { allowOther: true })
+  }
+
   const removeOption = (fieldId: string, index: number) => {
     const field = value.find((item) => item.id === fieldId)
     if (!field) return
@@ -68,24 +74,14 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
           style={{
             gap: 12,
             padding: 16,
-            border: '1px solid var(--semantic-line-normal-normal)',
-            borderRadius: 12,
+            background: 'var(--semantic-background-normal-normal)',
           }}
         >
-          <FlexBox alignItems="center" style={{ gap: 8 }}>
-            <Typography variant="label2" color="semantic.label.alternative" style={{ width: 20, flexShrink: 0 }}>
-              {index + 1}
-            </Typography>
-            <TextField
-              placeholder="질문 라벨"
-              value={field.label}
-              onChange={(e) => updateField(field.id, { label: e.target.value })}
-              style={{ flex: 1 }}
-            />
+          <FlexBox style={{ paddingLeft: 28 }}>
             <Select
               value={field.type}
               onChange={(v) => updateField(field.id, { type: v as ApplicationFieldType })}
-              style={{ width: 200, flexShrink: 0 }}
+              style={{ width: 200 }}
             >
               {(Object.keys(typeLabels) as ApplicationFieldType[]).map((type) => (
                 <Option key={type} value={type}>
@@ -93,24 +89,32 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
                 </Option>
               ))}
             </Select>
-            <IconButton variant="normal" size="small" onClick={() => removeField(field.id)}>
-              <IconTrash />
-            </IconButton>
           </FlexBox>
 
-          <FlexBox alignItems="center" style={{ gap: 8 }}>
-            <Switch
-              checked={field.required}
-              onCheckedChange={(checked) => updateField(field.id, { required: checked })}
-              size="small"
-            />
-            <Typography variant="label2" color="semantic.label.alternative">
-              필수 응답
+          <FlexBox alignItems="flex-start" style={{ gap: 8 }}>
+            <Typography variant="label2" color="semantic.label.alternative" style={{ width: 20, flexShrink: 0, paddingBottom: 12 }}>
+              {index + 1}
             </Typography>
+            <FlexBox flexDirection="column" style={{ flex: 1, gap: 6, padding: 12, background: 'var(--semantic-background-normal-normal)' }}>
+              <Typography variant="label2" color="semantic.label.alternative">질문</Typography>
+              <FlexBox alignItems="center" style={{ gap: 8 }}>
+                <TextField
+                  placeholder="질문을 입력하세요"
+                  value={field.label}
+                  onChange={(e) => updateField(field.id, { label: e.target.value })}
+                  leadingContent={field.required ? <TextFieldContent variant="text" color="semantic.status.negative">*</TextFieldContent> : undefined}
+                  style={{ flex: 1 }}
+                />
+                <IconButton variant="normal" size="small" aria-label={`질문 ${index + 1} 삭제`} onClick={() => removeField(field.id)}>
+                  <IconTrash width={16} height={16} />
+                </IconButton>
+              </FlexBox>
+            </FlexBox>
           </FlexBox>
 
           {(field.type === 'radio' || field.type === 'checkbox') && (
-            <FlexBox flexDirection="column" style={{ gap: 6, paddingLeft: 28 }}>
+            <FlexBox flexDirection="column" style={{ gap: 8, padding: '12px 12px 12px 40px', borderLeft: '3px solid var(--semantic-line-normal-normal)' }}>
+              <Typography variant="label2" color="semantic.label.alternative">선택지</Typography>
               {field.options.map((option, optionIndex) => (
                 <FlexBox key={optionIndex} alignItems="center" style={{ gap: 8 }}>
                   <TextField
@@ -122,43 +126,27 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
                   <IconButton
                     variant="normal"
                     size="small"
+                    aria-label={`선택지 ${optionIndex + 1} 삭제`}
                     onClick={() => removeOption(field.id, optionIndex)}
                   >
-                    <IconTrash />
+                    <IconClose width={16} height={16} />
                   </IconButton>
                 </FlexBox>
               ))}
-              <FlexBox>
+              {field.allowOther && (
+                <FlexBox alignItems="center" style={{ gap: 8 }}>
+                  <TextField disabled value="기타 내용을 입력해주세요" style={{ flex: 1 }} />
+                  <IconButton variant="normal" size="small" aria-label="기타 선택지 삭제" onClick={() => updateField(field.id, { allowOther: false })}>
+                    <IconClose width={16} height={16} />
+                  </IconButton>
+                </FlexBox>
+              )}
+              <FlexBox alignItems="center" style={{ gap: 8 }}>
                 <TextButton size="small" onClick={() => addOption(field.id)}>
                   + 선택지 추가
                 </TextButton>
+                {!field.allowOther && <><Typography variant="caption1" color="semantic.label.alternative">또는</Typography><TextButton size="small" onClick={() => addOtherOption(field.id)}>+ 기타</TextButton></>}
               </FlexBox>
-              <FlexBox alignItems="center" style={{ gap: 8, marginTop: 4 }}>
-                <Switch
-                  checked={Boolean(field.allowOther)}
-                  onCheckedChange={(checked) => updateField(field.id, { allowOther: checked })}
-                  size="small"
-                />
-                <FlexBox flexDirection="column" style={{ gap: 2 }}>
-                  <Typography variant="label2" color="semantic.label.normal">
-                    기타 선택지 사용
-                  </Typography>
-                  <Typography variant="caption1" color="semantic.label.alternative">
-                    신청자가 기타를 선택하면 단답식으로 내용을 입력할 수 있어요.
-                  </Typography>
-                </FlexBox>
-              </FlexBox>
-              {field.allowOther && (
-                <FlexBox flexDirection="column" style={{ gap: 6, marginTop: 4 }}>
-                  <Typography variant="caption1" color="semantic.label.alternative">
-                    신청자 화면 미리보기
-                  </Typography>
-                  <FlexBox alignItems="center" style={{ gap: 8 }}>
-                    <Typography variant="body2">□ 기타</Typography>
-                    <TextField disabled placeholder="기타 내용을 입력해 주세요." style={{ flex: 1 }} />
-                  </FlexBox>
-                </FlexBox>
-              )}
             </FlexBox>
           )}
 
@@ -177,12 +165,23 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
               />
             </FlexBox>
           )}
+
+          <FlexBox alignItems="center" justifyContent="flex-end" style={{ gap: 8, marginTop: 4 }}>
+            <Typography variant="label2" color="semantic.label.alternative">
+              필수 응답
+            </Typography>
+            <Switch
+              checked={field.required}
+              onCheckedChange={(checked) => updateField(field.id, { required: checked })}
+              size="small"
+            />
+          </FlexBox>
         </FlexBox>
       ))}
       <FlexBox>
-        <TextButton size="small" onClick={addField}>
+        <Button variant="outlined" color="primary" size="small" onClick={addField}>
           + 신청 항목 추가
-        </TextButton>
+        </Button>
       </FlexBox>
     </FlexBox>
   )

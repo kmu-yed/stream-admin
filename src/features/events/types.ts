@@ -23,8 +23,12 @@ export type EventRecord = {
   isPublic: boolean
   openDate: string
   deadline: string
+  eventStartDate: string
+  eventEndDate: string
+  venue: string
+  requiresFeePayment: boolean
+  isFirstCome: boolean
   capacity: number | null
-  infoLabels: EventInfoLabel[]
   description: string
   formFields: ApplicationFormField[]
   createdAt: string
@@ -39,6 +43,7 @@ export type Applicant = {
   eventId: string
   name: string
   studentId: string
+  phone: string
   appliedAt: string
   status: ApplicantStatus
   answers: Record<string, string>

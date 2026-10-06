@@ -6,6 +6,7 @@ import FormItem from '../../components/common/FormItem'
 import { useStudentCouncil } from '../studentCouncil/store'
 import { useAdminManagement } from '../adminManagement/store'
 import { useRentals } from './store'
+import { getReturnPolicyDays } from './types'
 
 function toDateValue(date: Date) {
   return date.toISOString().slice(0, 10)
@@ -51,7 +52,7 @@ function RentalRecordFormPage() {
 
     const borrowedAt = `${rentalDate} ${rentalTime}`
     const due = new Date(`${rentalDate}T${rentalTime}`)
-    due.setDate(due.getDate() + 7)
+    due.setDate(due.getDate() + getReturnPolicyDays(item.returnPolicy))
     const dueDate = `${toDateValue(due)} ${due.toTimeString().slice(0, 5)}`
     addRentalRecord({ itemId: item.id, itemName: item.name, borrowerName: borrower.name, borrowerStudentId: borrower.studentId, borrowedAt, dueDate, workerName: worker.name, status: '대여중' })
     toast({ content: '대여 내역을 추가했어요.', variant: 'positive' })

@@ -18,12 +18,12 @@ const initialEvents: EventRecord[] = [
     isPublic: true,
     openDate: addDays(-10),
     deadline: addDays(5),
+    eventStartDate: addDays(14),
+    eventEndDate: addDays(15),
+    venue: '대운동장 및 대강당',
+    requiresFeePayment: true,
+    isFirstCome: true,
     capacity: 200,
-    infoLabels: [
-      { id: 'lbl_1', label: '일시', value: '2026.03.05 ~ 03.06', locked: true },
-      { id: 'lbl_2', label: '장소', value: '대운동장 및 대강당', locked: true },
-      { id: 'lbl_3', label: '대상', value: '2026학번 신입생' },
-    ],
     description: '새내기들을 위한 오리엔테이션 행사입니다. 학과 소개, 레크리에이션, 친목 도모 프로그램이 진행됩니다.',
     formFields: [
       { id: 'fld_1', label: '참석 여부', required: true, type: 'radio', options: ['참석', '불참'] },
@@ -37,11 +37,12 @@ const initialEvents: EventRecord[] = [
     isPublic: true,
     openDate: addDays(3),
     deadline: addDays(14),
+    eventStartDate: addDays(21),
+    eventEndDate: addDays(21),
+    venue: '종합운동장',
+    requiresFeePayment: false,
+    isFirstCome: false,
     capacity: null,
-    infoLabels: [
-      { id: 'lbl_4', label: '일시', value: '2026.04.10', locked: true },
-      { id: 'lbl_5', label: '장소', value: '종합운동장', locked: true },
-    ],
     description: '학과 대항 체육대회입니다. 다양한 종목에 참여할 수 있습니다.',
     formFields: [
       {
@@ -60,11 +61,12 @@ const initialEvents: EventRecord[] = [
     isPublic: true,
     openDate: addDays(-30),
     deadline: addDays(-15),
+    eventStartDate: addDays(-10),
+    eventEndDate: addDays(-9),
+    venue: '중앙광장',
+    requiresFeePayment: false,
+    isFirstCome: true,
     capacity: 40,
-    infoLabels: [
-      { id: 'lbl_6', label: '일시', value: '2025.10.20 ~ 10.21', locked: true },
-      { id: 'lbl_7', label: '장소', value: '중앙광장', locked: true },
-    ],
     description: '해오름제 부스 운영 동아리/학과를 모집합니다.',
     formFields: [
       { id: 'fld_4', label: '부스 소개', required: true, type: 'text', options: [], maxLength: 300 },
@@ -79,6 +81,7 @@ const initialApplicants: Applicant[] = [
     eventId: 'evt_1',
     name: '김학생',
     studentId: '20261234',
+    phone: '010-1234-5678',
     appliedAt: addDays(-8),
     status: '신청완료',
     answers: { fld_1: '참석', fld_2: '없음' },
@@ -88,6 +91,7 @@ const initialApplicants: Applicant[] = [
     eventId: 'evt_1',
     name: '이대학',
     studentId: '20265678',
+    phone: '010-2345-6789',
     appliedAt: addDays(-7),
     status: '신청완료',
     answers: { fld_1: '참석', fld_2: '땅콩' },
@@ -97,6 +101,7 @@ const initialApplicants: Applicant[] = [
     eventId: 'evt_1',
     name: '박신입',
     studentId: '20269999',
+    phone: '010-3456-7890',
     appliedAt: addDays(-6),
     status: '취소',
     answers: { fld_1: '불참', fld_2: '없음' },
@@ -111,6 +116,7 @@ type EventsContextValue = {
   createEvent: (input: EventFormInput) => EventRecord
   updateEvent: (id: string, input: EventFormInput) => void
   toggleEventVisibility: (id: string) => void
+  setEventVisibility: (id: string, isPublic: boolean) => void
   deleteEvent: (id: string) => void
   cancelApplicant: (applicantId: string) => void
 }
@@ -142,6 +148,9 @@ export function EventsProvider({ children }: { children: ReactNode }) {
       },
       toggleEventVisibility: (id) => {
         setEvents((prev) => prev.map((event) => (event.id === id ? { ...event, isPublic: !event.isPublic } : event)))
+      },
+      setEventVisibility: (id, isPublic) => {
+        setEvents((prev) => prev.map((event) => (event.id === id ? { ...event, isPublic } : event)))
       },
       deleteEvent: (id) => {
         setEvents((prev) => prev.filter((event) => event.id !== id))

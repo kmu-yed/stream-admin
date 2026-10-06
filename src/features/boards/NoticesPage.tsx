@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, FlexBox, Typography } from '@wanteddev/wds'
-import { IconPinFill } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
@@ -36,7 +35,7 @@ function NoticesPage() {
       render: (row) => (
         <FlexBox alignItems="center" style={{ gap: 6 }}>
           {row.pinned && (
-            <IconPinFill width={14} height={14} style={{ color: 'var(--semantic-primary-normal)' }} />
+            <img src="/icons/Shape.svg" alt="고정 공지" style={{ width: 14, height: 14, objectFit: 'contain' }} />
           )}
           <Typography variant="body1" weight="medium">
             {row.title}

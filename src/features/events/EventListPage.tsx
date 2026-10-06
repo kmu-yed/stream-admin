@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Typography, TextButton, useToast } from '@wanteddev/wds'
-import { IconMoreVertical } from '@wanteddev/wds-icon'
+import { IconChevronDownSmall, IconMoreVertical } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
@@ -16,13 +16,19 @@ const statusTone: Record<EventStatus, BadgeTone> = {
   모집종료: 'neutral',
 }
 
+type VisibilityChangeTarget = {
+  event: EventRecord
+  nextIsPublic: boolean
+}
+
 function EventListPage() {
   const navigate = useNavigate()
-  const { events, getApplicants, deleteEvent, toggleEventVisibility } = useEvents()
+  const { events, getApplicants, deleteEvent, setEventVisibility } = useEvents()
   const toast = useToast()
   const [deleteTarget, setDeleteTarget] = useState<EventRecord | null>(null)
-  const [visibilityTarget, setVisibilityTarget] = useState<EventRecord | null>(null)
+  const [visibilityTarget, setVisibilityTarget] = useState<VisibilityChangeTarget | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [openVisibilityId, setOpenVisibilityId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
   const filtered = events.filter((event) => event.title.includes(search.trim()))
@@ -55,12 +61,12 @@ function EventListPage() {
     {
       key: 'visibility',
       header: '공개 상태',
-      width: 100,
-      render: (event) => <StatusBadge label={event.isPublic ? '공개' : '비공개'} tone={event.isPublic ? 'positive' : 'neutral'} />,
+      width: 120,
+      render: (event) => <Menu value={[event.isPublic ? 'public' : 'private']} onValueChange={() => undefined} open={openVisibilityId === event.id} onOpenChange={(open) => setOpenVisibilityId(open ? event.id : null)}><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={event.isPublic ? '공개' : '비공개'} tone={event.isPublic ? 'positive' : 'neutral'} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-start" offset={8}><MenuList><MenuItem variant="checkbox" value="public" onClick={() => { if (!event.isPublic) setVisibilityTarget({ event, nextIsPublic: true }); setOpenVisibilityId(null) }}>공개</MenuItem><MenuItem variant="checkbox" value="private" onClick={() => { if (event.isPublic) setVisibilityTarget({ event, nextIsPublic: false }); setOpenVisibilityId(null) }}>비공개</MenuItem></MenuList></MenuContent></Menu>,
     },
     {
       key: 'period',
-      header: '신청 오픈일 ~ 모집 마감일',
+      header: '신청 오픈일 ~ 신청 마감일',
       render: (event) => `${event.openDate} ~ ${event.deadline}`,
     },
     {
@@ -81,7 +87,7 @@ function EventListPage() {
             </MenuTrigger>
             <MenuContent position="bottom-end" offset={4}>
               <MenuList>
-                <MenuItem value="visibility" onClick={() => { setVisibilityTarget(event); setOpenMenuId(null) }}>
+                <MenuItem value="visibility" onClick={() => { setVisibilityTarget({ event, nextIsPublic: !event.isPublic }); setOpenMenuId(null) }}>
                   {event.isPublic ? '비공개 처리' : '공개 처리'}
                 </MenuItem>
                 <MenuItem value="edit" onClick={() => { navigate(`/events/${event.id}/edit`); setOpenMenuId(null) }}>
@@ -127,18 +133,13 @@ function EventListPage() {
       <ConfirmModal
         open={Boolean(visibilityTarget)}
         onOpenChange={(open) => !open && setVisibilityTarget(null)}
-        title={visibilityTarget?.isPublic ? '행사를 비공개 처리할까요?' : '행사를 공개 처리할까요?'}
-        description={visibilityTarget?.isPublic
-          ? '비공개 처리하면 사용자에게 행사와 신청 폼이 노출되지 않아요.'
-          : '공개 처리하면 사용자가 행사와 신청 폼을 볼 수 있어요.'}
-        confirmLabel={visibilityTarget?.isPublic ? '비공개 처리' : '공개 처리'}
+        title={visibilityTarget?.nextIsPublic ? '행사를 공개로 변경할까요?' : '행사를 비공개로 변경할까요?'}
+        description={visibilityTarget?.nextIsPublic ? '공개로 변경하면 사용자가 행사와 신청 폼을 볼 수 있어요.' : '비공개로 변경하면 사용자에게 행사와 신청 폼이 노출되지 않아요.'}
+        confirmLabel={visibilityTarget?.nextIsPublic ? '공개로 변경' : '비공개로 변경'}
         onConfirm={() => {
           if (!visibilityTarget) return
-          toggleEventVisibility(visibilityTarget.id)
-          toast({
-            content: visibilityTarget.isPublic ? '행사를 비공개 처리했어요.' : '행사를 공개 처리했어요.',
-            variant: 'positive',
-          })
+          setEventVisibility(visibilityTarget.event.id, visibilityTarget.nextIsPublic)
+          toast({ content: visibilityTarget.nextIsPublic ? '행사를 공개로 변경했어요.' : '행사를 비공개로 변경했어요.', variant: 'positive' })
         }}
       />
     </>

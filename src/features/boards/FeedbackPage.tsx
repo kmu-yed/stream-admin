@@ -88,7 +88,7 @@ function QuestionsPanel() {
           color="primary"
           onClick={() => navigate("/feedback/rounds/new")}
         >
-          + N차 피드백 등록
+          + 피드백 답변 등록
         </Button>
       </FlexBox>
       <DataTable

@@ -5,7 +5,7 @@ export type Notice = {
   category: NoticeCategory
   title: string
   content: string
-  thumbnailUrl?: string
+  images: string[]
   pinned: boolean
   createdAt: string
 }

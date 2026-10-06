@@ -22,7 +22,7 @@ const emptyForm: NoticeInput = {
   category: '일반',
   title: '',
   content: '',
-  thumbnailUrl: undefined,
+  images: [],
   pinned: false,
 }
 
@@ -40,7 +40,7 @@ function NoticeFormPage() {
           category: existing.category,
           title: existing.title,
           content: existing.content,
-          thumbnailUrl: existing.thumbnailUrl,
+          images: existing.images,
           pinned: existing.pinned,
         }
       : emptyForm,
@@ -105,12 +105,11 @@ function NoticeFormPage() {
           />
         </FormItem>
 
-        <FormItem label="카드뉴스 / 썸네일 (선택)">
+        <FormItem label="공지 이미지 (복수 등록 가능)">
           <ImageUploadField
-            value={form.thumbnailUrl ? [form.thumbnailUrl] : []}
-            onChange={(urls) => setForm({ ...form, thumbnailUrl: urls[0] })}
-            multiple={false}
-            maxCount={1}
+            value={form.images}
+            onChange={(images) => setForm({ ...form, images })}
+            multiple
           />
         </FormItem>
 

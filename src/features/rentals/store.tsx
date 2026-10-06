@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import { RENTAL_CATALOG, RENTAL_ITEM_ICONS, type RentalItem, type RentalItemInput, type RentalItemType, type RentalRecord, type RentalRecordInput, type RentalRecordStatus } from './types'
+import { RENTAL_CATALOG, RENTAL_ITEM_ICONS, type RentalItem, type RentalItemInput, type RentalItemType, type RentalRecord, type RentalRecordInput, type RentalRecordStatus, type RentalReturnPolicy } from './types'
 
 function addDays(days: number) {
   const d = new Date()
@@ -11,7 +11,7 @@ function makeId(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`
 }
 
-const initialItems: RentalItem[] = [
+const initialItemSeeds: Omit<RentalItem, 'returnPolicy'>[] = [
   { id: 'item_1', name: '보조배터리', category: '전자기기', itemKind: '대여품', totalQuantity: 8 },
   { id: 'item_2', name: '우산', category: '생활잡화', itemKind: '대여품', totalQuantity: 10 },
   { id: 'item_3', name: '밴드', category: '상비약', itemKind: '소모품', totalQuantity: 30 },
@@ -28,6 +28,8 @@ const initialItems: RentalItem[] = [
   { id: 'item_14', name: 'C to C', category: '전자기기', itemKind: '대여품', totalQuantity: 12 },
   { id: 'item_15', name: '생리대', category: '위생용품', itemKind: '소모품', totalQuantity: 24 },
 ]
+
+const initialItems: RentalItem[] = initialItemSeeds.map((item) => ({ ...item, returnPolicy: '7일 후 반납' }))
 
 const initialItemTypes: RentalItemType[] = Object.entries(RENTAL_CATALOG).flatMap(([category, names]) =>
   names.map((name) => ({
@@ -81,6 +83,7 @@ type RentalsContextValue = {
   records: RentalRecord[]
   addItem: (input: RentalItemInput) => void
   updateItem: (id: string, input: RentalItemInput) => void
+  updateReturnPolicies: (ids: string[], policy: RentalReturnPolicy) => void
   deleteItem: (id: string) => void
   addItemType: (input: Omit<RentalItemType, 'id'>) => void
   addRentalRecord: (input: RentalRecordInput) => void
@@ -104,6 +107,10 @@ export function RentalsProvider({ children }: { children: ReactNode }) {
       },
       updateItem: (id, input) => {
         setItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...input } : item)))
+      },
+      updateReturnPolicies: (ids, policy) => {
+        const targetIds = new Set(ids)
+        setItems((prev) => prev.map((item) => (targetIds.has(item.id) ? { ...item, returnPolicy: policy } : item)))
       },
       deleteItem: (id) => {
         setItems((prev) => prev.filter((item) => item.id !== id))

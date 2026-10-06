@@ -47,7 +47,8 @@ function DataTable<T>({
   className,
   rowNumberPosition = 'first',
 }: DataTableProps<T>) {
-  const numberAfterFirstColumn = rowNumberPosition === 'after-first-column'
+  // 선택 체크박스가 있는 표는 항상 선택 열 다음에 NO가 오도록 고정한다.
+  const numberAfterFirstColumn = columns[0]?.key === 'select' || rowNumberPosition === 'after-first-column'
   return (
     <div className={`data-table-scroll${className ? ` ${className}` : ''}`} style={style}>
       <Table

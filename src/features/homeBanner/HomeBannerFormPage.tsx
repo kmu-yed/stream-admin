@@ -20,10 +20,10 @@ import { useBoards } from '../boards/store'
 import { type BannerInput, type LandingType } from './types'
 
 const bannerImagePresets = [
-  { id: 'notice', label: '일반 공지', src: '/banner-notice.png' },
-  { id: 'event', label: '행사', src: '/banner-event.png' },
-  { id: 'partnership', label: '제휴', src: '/banner-partnership.png' },
-  { id: 'locker', label: '사물함', src: '/banner-locker.png' },
+  { id: 'notice', label: '일반 공지', src: '/banners/banner-notice.png' },
+  { id: 'event', label: '행사', src: '/banners/banner-event.png' },
+  { id: 'partnership', label: '제휴', src: '/banners/banner-partnership.png' },
+  { id: 'locker', label: '사물함', src: '/banners/banner-locker.png' },
 ]
 
 function makeEmptyForm(noticeId?: string): BannerInput {

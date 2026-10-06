@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  Button,
   FlexBox,
   IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger,
   TextButton,
@@ -21,9 +22,9 @@ type StatusFilter = 'all' | '신청완료' | '취소'
 
 function toCsv(rows: Applicant[], fieldLabels: Record<string, string>) {
   const fieldIds = Object.keys(fieldLabels)
-  const header = ['이름', '학번', '신청일시', '상태', ...fieldIds.map((id) => fieldLabels[id])]
+  const header = ['이름', '학번', '전화번호', '신청일시', '상태', ...fieldIds.map((id) => fieldLabels[id])]
   const lines = rows.map((row) =>
-    [row.name, row.studentId, row.appliedAt, row.status, ...fieldIds.map((id) => row.answers[id] ?? '')]
+    [row.name, row.studentId, row.phone, row.appliedAt, row.status, ...fieldIds.map((id) => row.answers[id] ?? '')]
       .map((value) => `"${String(value).replace(/"/g, '""')}"`)
       .join(','),
   )
@@ -72,6 +73,7 @@ function EventApplicantsPage() {
   const columns: DataTableColumn<Applicant>[] = [
     { key: 'name', header: '이름', width: 120, render: (row) => row.name },
     { key: 'studentId', header: '학번', width: 140, render: (row) => row.studentId },
+    { key: 'phone', header: '전화번호', width: 150, render: (row) => row.phone },
     { key: 'appliedAt', header: '신청일시', width: 140, render: (row) => row.appliedAt },
     ...Object.keys(fieldLabels).map<DataTableColumn<Applicant>>((fieldId) => ({
       key: fieldId,
@@ -91,9 +93,9 @@ function EventApplicantsPage() {
       align: 'right',
       render: (row) =>
         row.status === '신청완료' ? (
-          <TextButton size="small" color="assistive" onClick={() => setCancelTarget(row)}>
+          <Button variant="outlined" color="assistive" size="small" style={{ color: 'var(--semantic-label-normal)', borderColor: 'var(--semantic-line-normal-normal)' }} onClick={() => setCancelTarget(row)}>
             취소 처리
-          </TextButton>
+          </Button>
         ) : (
           <Typography variant="label2" color="semantic.label.alternative">
             -

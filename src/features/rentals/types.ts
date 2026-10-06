@@ -33,9 +33,18 @@ export type RentalItem = {
   category: RentalCategory
   itemKind: RentalItemKind
   totalQuantity: number
+  returnPolicy: RentalReturnPolicy
 }
 
 export type RentalItemKind = '대여품' | '소모품'
+
+export type RentalReturnPolicy = '당일 반납' | '익일 반납' | '3일 후 반납' | '7일 후 반납'
+
+export const RENTAL_RETURN_POLICIES: RentalReturnPolicy[] = ['당일 반납', '익일 반납', '3일 후 반납', '7일 후 반납']
+
+export function getReturnPolicyDays(policy: RentalReturnPolicy) {
+  return { '당일 반납': 0, '익일 반납': 1, '3일 후 반납': 3, '7일 후 반납': 7 }[policy]
+}
 
 export type RentalItemType = {
   id: string

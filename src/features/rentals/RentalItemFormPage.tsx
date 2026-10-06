@@ -5,9 +5,9 @@ import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import ImageUploadField from '../../components/common/ImageUploadField'
 import { useRentals } from './store'
-import { RENTAL_CATEGORIES, type RentalCategory, type RentalItemInput } from './types'
+import { RENTAL_CATEGORIES, RENTAL_RETURN_POLICIES, type RentalCategory, type RentalItemInput } from './types'
 
-const emptyForm: RentalItemInput = { name: '', category: '전자기기', itemKind: '대여품', totalQuantity: 1 }
+const emptyForm: RentalItemInput = { name: '', category: '전자기기', itemKind: '대여품', totalQuantity: 1, returnPolicy: '7일 후 반납' }
 const CUSTOM_CATEGORY_VALUE = '__custom_category__'
 
 function RentalItemFormPage() {
@@ -19,7 +19,7 @@ function RentalItemFormPage() {
 
   const existing = id ? items.find((item) => item.id === id) : undefined
   const [form, setForm] = useState<RentalItemInput>(
-    existing ? { name: existing.name, category: existing.category, itemKind: existing.itemKind, totalQuantity: existing.totalQuantity } : { ...emptyForm, name: itemTypes.find((item) => item.category === '전자기기')?.name ?? '' },
+    existing ? { name: existing.name, category: existing.category, itemKind: existing.itemKind, totalQuantity: existing.totalQuantity, returnPolicy: existing.returnPolicy } : { ...emptyForm, name: itemTypes.find((item) => item.category === '전자기기')?.name ?? '' },
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [icon, setIcon] = useState<string[]>([])
@@ -87,6 +87,12 @@ function RentalItemFormPage() {
             value={String(form.totalQuantity)}
             onChange={(e) => setForm({ ...form, totalQuantity: Number(e.target.value) || 0 })}
           />
+        </FormItem>
+
+        <FormItem label="반납 정책">
+          <Select value={form.returnPolicy} onChange={(value) => setForm({ ...form, returnPolicy: value as RentalItemInput['returnPolicy'] })}>
+            {RENTAL_RETURN_POLICIES.map((policy) => <Option key={policy} value={policy}>{policy}</Option>)}
+          </Select>
         </FormItem>
 
         <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>

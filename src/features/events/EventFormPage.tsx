@@ -1,27 +1,23 @@
-import { useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import { useState } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, FlexBox, TextArea, TextField, Typography, useToast } from '@wanteddev/wds'
+import { Button, Checkbox, DatePicker, FlexBox, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import { useEvents } from './store'
 import type { EventFormInput } from './types'
-import InfoLabelsEditor from './components/InfoLabelsEditor'
 import ApplicationFormBuilder from './components/ApplicationFormBuilder'
-
-function makeId() {
-  return `lbl_${Math.random().toString(36).slice(2, 9)}`
-}
 
 const emptyForm: EventFormInput = {
   title: '',
   openDate: '',
   deadline: '',
+  eventStartDate: '',
+  eventEndDate: '',
+  venue: '',
+  requiresFeePayment: false,
+  isFirstCome: false,
   capacity: null,
-  infoLabels: [
-    { id: makeId(), label: '일시', value: '', locked: true },
-    { id: makeId(), label: '장소', value: '', locked: true },
-  ],
   description: '',
   formFields: [],
 }
@@ -30,12 +26,41 @@ function FormSection({ title, children }: { title: string; children: ReactNode }
   return (
     <FlexBox
       flexDirection="column"
-      style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 14 }}
+      style={{ gap: 12, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 20 }}
     >
-      <Typography variant="label1" weight="bold">{title}</Typography>
+      <Typography variant="body1" weight="bold">{title}</Typography>
       {children}
     </FlexBox>
   )
+}
+
+function EventFormItem(props: Omit<ComponentProps<typeof FormItem>, 'labelVariant' | 'labelWeight'>) {
+  return <FormItem {...props} labelVariant="body1" labelWeight="regular" />
+}
+
+function EventInfoRow({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: ReactNode }) {
+  return (
+    <FlexBox alignItems="flex-start" style={{ gap: 16 }}>
+      <FlexBox alignItems="center" style={{ width: 88, minHeight: 48, flexShrink: 0 }}>
+        {required && <Typography variant="body1" weight="bold" style={{ color: 'var(--semantic-status-negative)', marginRight: 3 }}>*</Typography>}
+        <Typography variant="body1" weight="regular">{label}</Typography>
+      </FlexBox>
+      <FlexBox flexDirection="column" style={{ flex: 1, minWidth: 0, gap: 6 }}>
+        {children}
+        {error && <Typography variant="caption1" style={{ color: 'var(--semantic-status-negative)' }}>{error}</Typography>}
+      </FlexBox>
+    </FlexBox>
+  )
+}
+
+function toDateValue(value: DateType) {
+  if (!value) return ''
+  if (typeof value === 'string') return value.slice(0, 10)
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
+}
+
+function EventDatePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return <DatePicker value={value ? new Date(`${value}T00:00:00`) : undefined} onChange={(nextValue) => onChange(toDateValue(nextValue))} format="YYYY-MM-DD" width="100%" />
 }
 
 function EventFormPage() {
@@ -52,8 +77,12 @@ function EventFormPage() {
           title: existingEvent.title,
           openDate: existingEvent.openDate,
           deadline: existingEvent.deadline,
+          eventStartDate: existingEvent.eventStartDate,
+          eventEndDate: existingEvent.eventEndDate,
+          venue: existingEvent.venue,
+          requiresFeePayment: existingEvent.requiresFeePayment,
+          isFirstCome: existingEvent.isFirstCome,
           capacity: existingEvent.capacity,
-          infoLabels: existingEvent.infoLabels,
           description: existingEvent.description,
           formFields: existingEvent.formFields,
         }
@@ -63,22 +92,18 @@ function EventFormPage() {
 
   const title = isEdit ? '행사 수정' : '새 행사 등록'
 
-  const infoLabelErrors = useMemo(() => {
-    const missing = form.infoLabels.filter((label) => label.locked && !label.value.trim())
-    return missing.map((label) => label.label)
-  }, [form.infoLabels])
-
   const handleSubmit = () => {
     const nextErrors: Record<string, string> = {}
     if (!form.title.trim()) nextErrors.title = '행사 제목을 입력해주세요.'
     if (!form.openDate) nextErrors.openDate = '신청 오픈일을 선택해주세요.'
-    if (!form.deadline) nextErrors.deadline = '모집 마감일을 선택해주세요.'
+    if (!form.deadline) nextErrors.deadline = '신청 마감일을 선택해주세요.'
     if (form.openDate && form.deadline && form.openDate > form.deadline) {
-      nextErrors.deadline = '모집 마감일은 신청 오픈일 이후여야 해요.'
+      nextErrors.deadline = '신청 마감일은 신청 오픈일 이후여야 해요.'
     }
-    if (infoLabelErrors.length > 0) {
-      nextErrors.infoLabels = `${infoLabelErrors.join(', ')} 항목을 입력해주세요.`
-    }
+    if (!form.eventStartDate || !form.eventEndDate) nextErrors.eventDate = '행사 시작일과 종료일을 모두 선택해주세요.'
+    else if (form.eventStartDate > form.eventEndDate) nextErrors.eventDate = '행사 종료일은 시작일 이후여야 해요.'
+    if (!form.venue.trim()) nextErrors.venue = '행사 장소를 입력해주세요.'
+    if (form.isFirstCome && (!form.capacity || form.capacity < 1)) nextErrors.capacity = '선착순 인원을 1명 이상 입력해주세요.'
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
@@ -96,16 +121,16 @@ function EventFormPage() {
     <>
       <PageHeader title={title} description="행사 정보와 신청 폼을 설정해요." />
 
-      <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 720 }}>
+      <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
         <FormSection title="기본 정보">
-          <FormItem label="행사 제목" required error={errors.title}>
+          <EventFormItem label="행사 제목" required error={errors.title}>
             <TextField
               placeholder="예: 2026학년도 새내기 배움터"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
-          </FormItem>
-          <FormItem label="행사 소개글">
+          </EventFormItem>
+          <EventFormItem label="행사 소개글">
             <TextArea
               placeholder="행사에 대한 소개글을 입력하세요."
               value={form.description}
@@ -113,37 +138,39 @@ function EventFormPage() {
               minRows={4}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
-          </FormItem>
+          </EventFormItem>
         </FormSection>
 
-        <FormSection title="신청 설정">
-          <FlexBox style={{ gap: 16 }}>
-            <FlexBox style={{ flex: 1 }}>
-              <FormItem label="신청 오픈일" required error={errors.openDate}>
-                <TextField type="date" value={form.openDate} onChange={(e) => setForm({ ...form, openDate: e.target.value })} />
-              </FormItem>
-            </FlexBox>
-            <FlexBox style={{ flex: 1 }}>
-              <FormItem label="모집 마감일" required error={errors.deadline}>
-                <TextField type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
-              </FormItem>
-            </FlexBox>
+        <FormSection title="신청 기간">
+          <FlexBox style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 12, alignItems: 'end', width: '100%' }}>
+            <FlexBox style={{ minWidth: 0 }}><EventFormItem label="신청 오픈일" required error={errors.openDate} style={{ width: '100%' }}><EventDatePicker value={form.openDate} onChange={(value) => setForm({ ...form, openDate: value })} /></EventFormItem></FlexBox>
+            <FlexBox alignItems="center" justifyContent="center" style={{ height: 48 }}><Typography variant="body1" color="semantic.label.alternative">~</Typography></FlexBox>
+            <FlexBox style={{ minWidth: 0 }}><EventFormItem label="신청 마감일" required error={errors.deadline} style={{ width: '100%' }}><EventDatePicker value={form.deadline} onChange={(value) => setForm({ ...form, deadline: value })} /></EventFormItem></FlexBox>
           </FlexBox>
-          <FormItem label="신청 인원 제한">
-            <TextField
-              type="number"
-              placeholder="비워두면 인원 제한 없음"
-              value={form.capacity === null ? '' : String(form.capacity)}
-              onChange={(e) => setForm({ ...form, capacity: e.target.value === '' ? null : Number(e.target.value) })}
-              style={{ width: 200 }}
-            />
-          </FormItem>
         </FormSection>
 
         <FormSection title="행사 정보">
-          <FormItem label="행사 정보 라벨" required error={errors.infoLabels}>
-            <InfoLabelsEditor value={form.infoLabels} onChange={(infoLabels) => setForm({ ...form, infoLabels })} />
-          </FormItem>
+          <FlexBox flexDirection="column" style={{ gap: 20 }}>
+          <EventInfoRow label="일시" error={errors.eventDate}>
+            <FlexBox style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 12, alignItems: 'end', width: '100%' }}>
+              <FlexBox style={{ minWidth: 0 }}><FormItem label="시작일자" required labelVariant="label1" labelWeight="regular" style={{ width: '100%' }}><EventDatePicker value={form.eventStartDate} onChange={(value) => setForm({ ...form, eventStartDate: value })} /></FormItem></FlexBox>
+              <FlexBox alignItems="center" justifyContent="center" style={{ height: 48 }}><Typography variant="body1" color="semantic.label.alternative">~</Typography></FlexBox>
+              <FlexBox style={{ minWidth: 0 }}><FormItem label="종료일자" required labelVariant="label1" labelWeight="regular" style={{ width: '100%' }}><EventDatePicker value={form.eventEndDate} onChange={(value) => setForm({ ...form, eventEndDate: value })} /></FormItem></FlexBox>
+            </FlexBox>
+          </EventInfoRow>
+          <div style={{ height: 1, background: 'var(--semantic-line-normal-normal)', opacity: 0.45 }} />
+          <EventInfoRow label="장소" error={errors.venue}>
+            <TextField value={form.venue} placeholder="행사 장소를 입력하세요" onChange={(e) => setForm({ ...form, venue: e.target.value })} />
+          </EventInfoRow>
+          <div style={{ height: 1, background: 'var(--semantic-line-normal-normal)', opacity: 0.45 }} />
+          <EventInfoRow label="대상" error={errors.capacity}>
+            <FlexBox flexDirection="column" style={{ gap: 12 }}>
+              <FlexBox alignItems="center" style={{ gap: 8 }}><Checkbox checked={form.requiresFeePayment} onCheckedChange={(checked) => setForm({ ...form, requiresFeePayment: checked })} /><Typography variant="body2">학생회비 납부자만 신청 가능</Typography></FlexBox>
+              <FlexBox alignItems="center" style={{ gap: 8 }}><Checkbox checked={form.isFirstCome} onCheckedChange={(checked) => setForm({ ...form, isFirstCome: checked, capacity: checked ? form.capacity : null })} /><Typography variant="body2">선착순 신청</Typography></FlexBox>
+              {form.isFirstCome && <FlexBox alignItems="center" style={{ gap: 8, paddingLeft: 28 }}><Typography variant="body2" color="semantic.label.alternative">선착순 인원</Typography><TextField type="number" placeholder="인원 입력" value={form.capacity === null ? '' : String(form.capacity)} onChange={(e) => setForm({ ...form, capacity: e.target.value === '' ? null : Number(e.target.value) })} style={{ width: 160 }} /><Typography variant="body2" color="semantic.label.alternative">명</Typography></FlexBox>}
+            </FlexBox>
+          </EventInfoRow>
+          </FlexBox>
         </FormSection>
 
         <FormSection title="신청 폼">
@@ -155,12 +182,12 @@ function EventFormPage() {
           </FlexBox>
         </FormSection>
 
-        <FlexBox justifyContent="flex-end" style={{ gap: 8, marginTop: 8 }}>
-          <Button variant="solid" color="primary" onClick={handleSubmit}>
-            {isEdit ? '수정 완료' : '등록하기'}
-          </Button>
+        <FlexBox justifyContent="flex-end" style={{ gap: 8, marginTop: 4 }}>
           <Button variant="outlined" color="assistive" onClick={() => navigate('/events')}>
             취소
+          </Button>
+          <Button variant="solid" color="primary" onClick={handleSubmit}>
+            {isEdit ? '수정 완료' : '등록하기'}
           </Button>
         </FlexBox>
       </FlexBox>

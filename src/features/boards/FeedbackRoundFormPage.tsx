@@ -61,10 +61,10 @@ function FeedbackRoundFormPage() {
 
     if (isEdit && id) {
       updateFeedbackRound(id, payload)
-      toast({ content: '피드백 회차가 수정되었어요.', variant: 'positive' })
+      toast({ content: '피드백 답변이 수정되었어요.', variant: 'positive' })
     } else {
       addFeedbackRound(payload)
-      toast({ content: '새 피드백 회차가 등록되었어요.', variant: 'positive' })
+      toast({ content: '피드백 답변이 등록되었어요.', variant: 'positive' })
     }
     goToList()
   }
@@ -72,7 +72,7 @@ function FeedbackRoundFormPage() {
   return (
     <>
       <PageHeader
-        title={isEdit ? '피드백 회차 수정' : 'N차 피드백 등록'}
+        title={isEdit ? '피드백 답변 수정' : '피드백 답변 등록'}
         description="사용자 질문 목록에서 답변할 질문을 선택하고 답변을 작성하세요. **텍스트**로 감싸면 굵게 표시돼요."
       />
 
