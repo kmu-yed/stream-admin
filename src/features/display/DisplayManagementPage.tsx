@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Button, FlexBox, IconButton, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Tab, TabList, TabListItem, TabPanel, TextField, Typography, useToast } from '@wanteddev/wds'
+import { Button, DatePicker, FlexBox, IconButton, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Tab, TabList, TabListItem, TabPanel, TextField, Typography, useToast } from '@wanteddev/wds'
 import { IconChevronLeft, IconChevronRight, IconImage, IconTrash } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
@@ -11,6 +11,11 @@ type Poster = { id: string; title: string; image: string }
 
 const weekDays = ['일', '월', '화', '수', '목', '금', '토']
 const isoDate = (year: number, month: number, day: number) => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+const toDateValue = (value: Date | string | null | undefined) => {
+  if (!value) return ''
+  if (value instanceof Date) return isoDate(value.getFullYear(), value.getMonth(), value.getDate())
+  return value.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? value
+}
 
 function DisplayManagementPage() {
   const toast = useToast()
@@ -48,7 +53,6 @@ function DisplayManagementPage() {
       return day > 0 && day <= daysInMonth ? day : null
     })
   }, [year, monthIndex])
-
   const openDate = (day: number) => {
     const date = isoDate(year, monthIndex, day)
     setSelectedDate(date)
@@ -103,31 +107,12 @@ function DisplayManagementPage() {
               {cells.map((day, index) => {
                 const date = day ? isoDate(year, monthIndex, day) : ''
                 const dateEvents = events.filter((event) => event.startDate <= date && event.endDate >= date)
-                const continuesFromPrevious = (event: CalendarEvent) => event.startDate < date && index % 7 !== 0
-                const spanLength = (event: CalendarEvent) => {
-                  let length = 1
-                  let cursor = index
-                  while (cursor % 7 !== 6) {
-                    const followingDay = cells[cursor + 1]
-                    if (!followingDay) break
-                    const followingDate = isoDate(year, monthIndex, followingDay)
-                    if (event.endDate < followingDate) break
-                    length += 1
-                    cursor += 1
-                  }
-                  return length
-                }
-                const visibleEvents = dateEvents.filter((event) => !continuesFromPrevious(event) || index % 7 === 0)
-                const hasScheduleStart = visibleEvents.length > 0
-                return <button className={day ? 'app-hoverable app-hoverable-flat' : undefined} key={`${date}-${index}`} type="button" onClick={() => day && openDate(day)} style={{ position: 'relative', zIndex: hasScheduleStart ? 2 : 0, minHeight: Math.max(132, 58 + visibleEvents.length * 36), border: 'none', borderRight: index % 7 === 6 ? 'none' : '1px solid var(--semantic-line-normal-normal)', borderBottom: index < cells.length - 7 ? '1px solid var(--semantic-line-normal-normal)' : 'none', background: day ? 'var(--semantic-background-normal-normal)' : 'var(--semantic-background-normal-alternative)', padding: 0, textAlign: 'left', cursor: day ? 'pointer' : 'default' }}>
+                return <button className={day ? 'app-hoverable app-hoverable-flat' : undefined} key={`${date}-${index}`} type="button" onClick={() => day && openDate(day)} style={{ position: 'relative', minHeight: Math.max(132, 58 + dateEvents.length * 32), border: 'none', borderRight: index % 7 === 6 ? 'none' : '1px solid var(--semantic-line-normal-normal)', borderBottom: index < cells.length - 7 ? '1px solid var(--semantic-line-normal-normal)' : 'none', background: day ? 'var(--semantic-background-normal-normal)' : 'var(--semantic-background-normal-alternative)', padding: 0, textAlign: 'left', cursor: day ? 'pointer' : 'default' }}>
                   {day && <>
                     <Typography variant="body1" weight="medium" style={{ position: 'absolute', top: 14, left: 14, display: 'block', textAlign: 'left', zIndex: 1 }}>{day}</Typography>
-                    <FlexBox flexDirection="column" style={{ position: 'absolute', zIndex: 3, top: 52, left: 8, right: 8, gap: 6, pointerEvents: 'none' }}>
-                      {visibleEvents.map((event) => {
-                        const length = spanLength(event)
-                        return <span key={event.id} style={{ position: 'relative', zIndex: 3, display: 'block', width: `calc(${length * 100}% + ${(length - 1) * 16}px)`, minHeight: 30, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRadius: 6, padding: '6px 10px', background: 'var(--semantic-primary-normal)', color: '#fff', fontSize: 14, textAlign: 'center' }}>{event.title}</span>
-                      })}
-                    </FlexBox>
+                    <div style={{ position: 'absolute', top: 48, left: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 6, pointerEvents: 'none' }}>
+                      {dateEvents.map((event) => <span key={event.id} style={{ minHeight: 26, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRadius: 5, padding: '5px 8px', background: 'var(--semantic-primary-normal)', color: '#fff', fontSize: 13, textAlign: 'center' }}>{event.title}</span>)}
+                    </div>
                   </>}
                 </button>
               })}
@@ -145,10 +130,20 @@ function DisplayManagementPage() {
         </TabPanel>
       </Tab>
       <Modal open={Boolean(selectedDate)} onOpenChange={(open) => !open && setSelectedDate(null)}>
-        <ModalContainer size="small"><ModalContent>
+        <ModalContainer size="medium"><ModalContent>
           <ModalContentItem><ModalHeading>{selectedDate?.replaceAll('-', '. ')} 일정 편집</ModalHeading></ModalContentItem>
-          <ModalContentItem style={{ gap: 14 }}>{!eventFormOpen ? <>{events.filter((event) => event.startDate <= (selectedDate ?? '') && event.endDate >= (selectedDate ?? '')).map((event) => <button key={event.id} type="button" onClick={() => { setEditingEventId(event.id); setEventTitle(event.title); setEventStartDate(event.startDate); setEventEndDate(event.endDate); setEventFormOpen(true) }} style={{ border: 0, background: 'var(--semantic-fill-normal)', borderRadius: 8, padding: 12, textAlign: 'left', cursor: 'pointer' }}>{event.title}</button>)}<Button variant="outlined" color="primary" onClick={() => { setEditingEventId(null); setEventTitle(''); setEventStartDate(selectedDate ?? ''); setEventEndDate(selectedDate ?? ''); setEventFormOpen(true) }}>＋ 일정 추가</Button></> : <><FormItem label="일정명"><TextField value={eventTitle} placeholder="일정을 입력해주세요" onChange={(event) => setEventTitle(event.target.value)} /></FormItem><FormItem label="시작일"><TextField type="date" value={eventStartDate} onChange={(event) => setEventStartDate(event.target.value)} /></FormItem><FormItem label="종료일"><TextField type="date" value={eventEndDate} onChange={(event) => setEventEndDate(event.target.value)} /></FormItem></>}</ModalContentItem>
-          <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}><Button variant="outlined" color="assistive" style={{ visibility: eventFormOpen && editingEventId ? 'visible' : 'hidden', color: 'var(--semantic-status-negative)' }} onClick={deleteEvent}><IconTrash width={16} height={16} />삭제</Button><FlexBox style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => setSelectedDate(null)}>취소</Button><Button variant="solid" color="primary" disabled={!eventFormOpen} onClick={saveEvent}>저장</Button></FlexBox></ModalContentItem>
+          <ModalContentItem style={{ gap: 14 }}>
+            {events.filter((event) => event.startDate <= (selectedDate ?? '') && event.endDate >= (selectedDate ?? '')).map((event) => {
+              const isEditing = editingEventId === event.id
+              return <button key={event.id} className="app-hoverable" type="button" aria-pressed={isEditing} onClick={() => { setEditingEventId(event.id); setEventTitle(event.title); setEventStartDate(event.startDate); setEventEndDate(event.endDate); setEventFormOpen(true) }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%', border: isEditing ? '1px solid var(--semantic-primary-normal)' : '1px solid transparent', background: isEditing ? 'var(--semantic-primary-light)' : 'var(--semantic-fill-normal)', borderRadius: 8, padding: '9px 12px', color: 'var(--semantic-label-normal)', textAlign: 'left', cursor: 'pointer', fontSize: 14, lineHeight: 1.4 }}><span>{event.title}</span>{isEditing && <span style={{ flexShrink: 0, padding: '2px 6px', borderRadius: 999, background: 'var(--semantic-primary-normal)', color: '#fff', fontSize: 11, fontWeight: 600 }}>수정 중</span>}</button>
+            })}
+            {!eventFormOpen && <Button variant="outlined" color="primary" onClick={() => { setEditingEventId(null); setEventTitle(''); setEventStartDate(selectedDate ?? ''); setEventEndDate(selectedDate ?? ''); setEventFormOpen(true) }}>＋ 일정 추가</Button>}
+            {eventFormOpen && <FlexBox flexDirection="column" style={{ gap: 16, paddingTop: 8 }}>
+              <FormItem label="일정명"><TextField value={eventTitle} placeholder="일정을 입력해주세요" onChange={(event) => setEventTitle(event.target.value)} /></FormItem>
+              <FormItem label="일정 기간"><FlexBox alignItems="center" style={{ gap: 8 }}><DatePicker value={eventStartDate} width="100%" onChange={(value) => setEventStartDate(toDateValue(value))} /><Typography variant="body2" color="semantic.label.alternative">~</Typography><DatePicker value={eventEndDate} width="100%" onChange={(value) => setEventEndDate(toDateValue(value))} /></FlexBox></FormItem>
+            </FlexBox>}
+          </ModalContentItem>
+          <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}><Button variant="outlined" color="assistive" style={{ visibility: eventFormOpen && editingEventId ? 'visible' : 'hidden', color: 'var(--semantic-status-negative)' }} onClick={deleteEvent}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconTrash width={16} height={16} style={{ display: 'block' }} />삭제</span></Button><FlexBox style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => setSelectedDate(null)}>취소</Button><Button variant="solid" color="primary" disabled={!eventFormOpen} onClick={saveEvent}>저장</Button></FlexBox></ModalContentItem>
         </ModalContent></ModalContainer>
       </Modal>
       <ConfirmModal open={Boolean(deletePosterTarget)} onOpenChange={(open) => !open && setDeletePosterTarget(null)} title="포스터를 삭제할까요?" description={deletePosterTarget ? `\"${deletePosterTarget.title}\" 포스터를 삭제해요.` : undefined} confirmLabel="삭제" tone="negative" onConfirm={() => { if (!deletePosterTarget) return; setPosters((prev) => prev.filter((poster) => poster.id !== deletePosterTarget.id)); setDeletePosterTarget(null); toast({ content: '포스터를 삭제했어요.', variant: 'positive' }) }} />
