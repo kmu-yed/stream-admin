@@ -13,6 +13,7 @@ import {
 } from "@wanteddev/wds";
 import PageHeader from "../../components/common/PageHeader";
 import FormItem from "../../components/common/FormItem";
+import InfoNotice from "../../components/common/InfoNotice";
 import { useLockers } from "./store";
 import { formatSemesterLabel } from "./types";
 
@@ -57,7 +58,6 @@ function LockerSemesterFormPage() {
   const today = new Date().toISOString().slice(0, 10);
   const isApplying = Boolean(existing && today >= existing.applyStartDate && today <= existing.applyEndDate);
   const isEnded = Boolean(existing && today > existing.applyEndDate);
-  const isScheduleLocked = isApplying || isEnded;
 
   const goBackToSchedule = () => navigate("/lockers?tab=schedule");
 
@@ -68,6 +68,8 @@ function LockerSemesterFormPage() {
       nextErrors.apply = "신청 시작일과 마감일을 모두 입력해주세요.";
     } else if (form.applyStartDate > form.applyEndDate) {
       nextErrors.apply = "신청 마감일은 신청 시작일 이후여야 해요.";
+    } else if (isApplying && existing && form.applyEndDate < existing.applyEndDate) {
+      nextErrors.apply = "진행 중인 일정의 신청 마감일은 기존 날짜보다 앞당길 수 없어요.";
     }
     if (!form.useStartDate || !form.useEndDate) {
       nextErrors.use = "사용 시작일과 종료일을 모두 입력해주세요.";
@@ -98,10 +100,10 @@ function LockerSemesterFormPage() {
       <PageHeader
         title={isEdit ? "신청 일정 수정" : "새 학기 신청 일정 등록"}
       />
-      {isApplying && <Typography variant="body2" style={{ padding: 14, marginBottom: 16, borderRadius: 10, color: 'var(--semantic-status-cautionary)', background: 'var(--semantic-fill-normal)' }}>신청이 진행 중이라 신청 기간과 사물함 운영 조건을 변경할 수 없어요.</Typography>}
-      {isEnded && <Typography variant="body2" style={{ padding: 14, marginBottom: 16, borderRadius: 10, color: 'var(--semantic-label-alternative)', background: 'var(--semantic-fill-normal)' }}>신청이 종료된 일정은 읽기 전용이에요.</Typography>}
+      {isApplying && <InfoNotice>신청이 진행 중이라 학기와 신청 시작일은 수정할 수 없어요. 신청 마감일은 연장만 가능하며, 사용 가능 기간은 수정할 수 있어요.</InfoNotice>}
+      {isEnded && <InfoNotice>신청이 종료된 일정은 읽기 전용이에요.</InfoNotice>}
 
-      <fieldset disabled={isScheduleLocked} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
+      <fieldset disabled={isEnded} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
         <FlexBox
           flexDirection="column"
           style={{
@@ -114,7 +116,7 @@ function LockerSemesterFormPage() {
           <Typography variant="body1" weight="bold">
             학기 설정
           </Typography>
-          <FlexBox style={{ gap: 16 }}>
+          <fieldset disabled={isEdit} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox style={{ gap: 16 }}>
             <FlexBox style={{ width: 160 }}>
               <FormItem
                 label="연도"
@@ -124,6 +126,7 @@ function LockerSemesterFormPage() {
               >
                 <TextField
                   type="number"
+                  disabled={isEdit || isEnded}
                   value={String(form.year)}
                   onChange={(e) =>
                     setForm({
@@ -142,6 +145,7 @@ function LockerSemesterFormPage() {
                 labelWeight="regular"
               >
                 <Select
+                  disabled={isEdit || isEnded}
                   value={String(form.term)}
                   onChange={(v) =>
                     setForm({ ...form, term: Number(v) as 1 | 2 })
@@ -152,7 +156,7 @@ function LockerSemesterFormPage() {
                 </Select>
               </FormItem>
             </FlexBox>
-          </FlexBox>
+          </FlexBox></fieldset>
         </FlexBox>
 
         <FlexBox
@@ -176,7 +180,7 @@ function LockerSemesterFormPage() {
               width: "100%",
             }}
           >
-            <FlexBox style={{ minWidth: 0 }}>
+            <fieldset disabled={isApplying} style={{ margin: 0, padding: 0, border: 0, minWidth: 0 }}><FlexBox style={{ minWidth: 0 }}>
               <FormItem
                 label="신청 시작일"
                 required
@@ -188,11 +192,12 @@ function LockerSemesterFormPage() {
                 <DatePicker
                   width="100%"
                   format="YYYY-MM-DD"
+                  disabled={isApplying || isEnded}
                   value={form.applyStartDate ? new Date(`${form.applyStartDate}T00:00:00`) : undefined}
                   onChange={(value) => setForm({ ...form, applyStartDate: toDateValue(value) })}
                 />
               </FormItem>
-            </FlexBox>
+            </FlexBox></fieldset>
             <FlexBox
               alignItems="center"
               justifyContent="center"
@@ -213,6 +218,7 @@ function LockerSemesterFormPage() {
                 <DatePicker
                   width="100%"
                   format="YYYY-MM-DD"
+                  disabled={isEnded}
                   value={form.applyEndDate ? new Date(`${form.applyEndDate}T00:00:00`) : undefined}
                   onChange={(value) => setForm({ ...form, applyEndDate: toDateValue(value) })}
                 />
@@ -254,6 +260,7 @@ function LockerSemesterFormPage() {
                 <DatePicker
                   width="100%"
                   format="YYYY-MM-DD"
+                  disabled={isEnded}
                   value={form.useStartDate ? new Date(`${form.useStartDate}T00:00:00`) : undefined}
                   onChange={(value) => setForm({ ...form, useStartDate: toDateValue(value) })}
                 />
@@ -279,6 +286,7 @@ function LockerSemesterFormPage() {
                 <DatePicker
                   width="100%"
                   format="YYYY-MM-DD"
+                  disabled={isEnded}
                   value={form.useEndDate ? new Date(`${form.useEndDate}T00:00:00`) : undefined}
                   onChange={(value) => setForm({ ...form, useEndDate: toDateValue(value) })}
                 />
@@ -288,7 +296,7 @@ function LockerSemesterFormPage() {
         </FlexBox>
 
         <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
-          <Button variant="solid" color="primary" disabled={isScheduleLocked} onClick={handleSubmit}>
+          <Button variant="solid" color="primary" disabled={isEnded} onClick={handleSubmit}>
             {isEdit ? "수정 완료" : "등록하기"}
           </Button>
           <Button

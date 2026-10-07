@@ -10,8 +10,8 @@ import {
   IconMegaphone,
   IconBubble,
   IconPersons,
+  IconCoins,
   IconDocumentText,
-  IconPerson,
   IconDesktop,
   IconSetting,
 } from "@wanteddev/wds-icon";
@@ -40,7 +40,7 @@ export const navGroups: NavGroup[] = [
       { label: "공지 관리", path: "/notices", icon: IconMessage },
       { label: "행사 관리", path: "/events", icon: IconCalendar },
       { label: "빌릴게 관리", path: "/rentals", icon: IconPouch },
-      { label: "학생회비 관리", path: "/student-council", icon: IconPersons },
+      { label: "학생회비 관리", path: "/student-council", icon: IconCoins },
       { label: "사물함 관리", path: "/lockers", icon: IconStorage },
     ],
   },
@@ -56,7 +56,7 @@ export const navGroups: NavGroup[] = [
   {
     label: "기타 관리",
     items: [
-      { label: "관리자 및 근무 관리", path: "/admins", icon: IconPerson },
+      { label: "관리자 및 근무 관리", path: "/admins", icon: IconPersons },
       { label: "디스플레이 관리", path: "/display", icon: IconDesktop },
       {
         label: "개인정보 처리방침 관리",

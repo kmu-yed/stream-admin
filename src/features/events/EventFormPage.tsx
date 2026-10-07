@@ -2,9 +2,9 @@ import { useState } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Checkbox, DatePicker, FlexBox, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
-import { IconCircleInfo } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
+import InfoNotice from '../../components/common/InfoNotice'
 import { useEvents } from './store'
 import type { EventFormInput } from './types'
 import ApplicationFormBuilder from './components/ApplicationFormBuilder'
@@ -127,8 +127,8 @@ function EventFormPage() {
     <>
       <PageHeader title={title} description="행사 정보와 신청 폼을 설정해요." />
 
-      {isRecruiting && <FlexBox alignItems="flex-start" style={{ width: '100%', maxWidth: 640, gap: 8, padding: 14, marginBottom: 16, borderRadius: 10, color: 'var(--semantic-primary-normal)', background: 'rgba(0, 102, 255, 0.08)' }}><IconCircleInfo width={18} height={18} style={{ flexShrink: 0, marginTop: 2 }} /><Typography variant="body2" style={{ color: 'inherit' }}>신청이 진행 중이라 신청 기간, 대상·정원, 신청 폼은 변경할 수 없어요. 제목, 소개글, 행사 정보는 수정할 수 있어요.</Typography></FlexBox>}
-      {isEnded && <FlexBox alignItems="flex-start" style={{ width: '100%', maxWidth: 640, gap: 8, padding: 14, marginBottom: 16, borderRadius: 10, color: 'var(--semantic-primary-normal)', background: 'rgba(0, 102, 255, 0.08)' }}><IconCircleInfo width={18} height={18} style={{ flexShrink: 0, marginTop: 2 }} /><Typography variant="body2" style={{ color: 'inherit' }}>모집이 종료된 행사는 읽기 전용이에요.</Typography></FlexBox>}
+      {isRecruiting && <InfoNotice>신청이 진행 중이라 신청 기간, 대상·정원, 신청 폼은 변경할 수 없어요. 제목, 소개글, 행사 정보는 수정할 수 있어요.</InfoNotice>}
+      {isEnded && <InfoNotice>모집이 종료된 행사는 읽기 전용이에요.</InfoNotice>}
 
       <fieldset disabled={isEnded} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
         <FormSection title="기본 정보">

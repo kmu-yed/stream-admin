@@ -61,7 +61,8 @@ function LockerSchedulePanel() {
       width: 56,
       align: 'right',
       render: (row) => {
-        const canEdit = getSemesterStatus(row) === '예정'
+        const status = getSemesterStatus(row)
+        const canEdit = status === '예정' || status === '진행중'
         return <RowMoreMenu label={`${formatSemesterLabel(row)} 신청 일정`} onEdit={canEdit ? () => navigate(`/lockers/schedule/${row.id}/edit`) : undefined} onDelete={() => setDeleteTarget(row)} />
       },
     },
