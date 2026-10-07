@@ -478,7 +478,7 @@ export default function WorkManagementPage() {
       <Modal open={shiftOpen} onOpenChange={setShiftOpen}>
         <ModalContainer
           size="xlarge"
-          style={{ width: 960, maxWidth: "calc(100vw - 48px)" }}
+          style={{ width: 560, maxWidth: "calc(100vw - 48px)" }}
         >
           <ModalContent>
             <ModalContentItem>
@@ -512,7 +512,7 @@ export default function WorkManagementPage() {
                       style={{
                         display: "grid",
                         gridTemplateColumns:
-                          "minmax(144px, 1fr) minmax(132px, 1fr) 20px minmax(132px, 1fr) auto",
+                          "minmax(96px, 1fr) minmax(88px, 1fr) 12px minmax(88px, 1fr) auto",
                         gap: 8,
                         alignItems: "center",
                         width: "100%",
