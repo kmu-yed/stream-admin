@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react'
 import { Button, FlexBox, Tooltip, TooltipContent, TooltipTrigger, Typography, useToast } from '@wanteddev/wds'
 import StatusBadge from '../../../components/common/StatusBadge'
 import ImageUploadField from '../../../components/common/ImageUploadField'
+import ConfirmModal from '../../../components/common/ConfirmModal'
 import { useLockers } from '../store'
-import { LOCKER_PHYSICAL_LAYOUTS, LOCKER_ZONES, getLockerDisplayStatus, type Locker, type LockerDisplayStatus, type LockerZone } from '../types'
+import { LOCKER_ZONES, getLockerDisplayStatus, type Locker, type LockerDisplayStatus, type LockerZone } from '../types'
 
 const statusStyle: Record<LockerDisplayStatus, { background: string; color: string; border: string }> = {
   선택가능: { background: 'var(--semantic-background-normal-normal)', color: 'var(--semantic-label-normal)', border: '1px solid var(--semantic-line-normal-normal)' },
@@ -66,7 +67,7 @@ function LegendItem({ status }: { status: LockerDisplayStatus }) {
 }
 
 function LockerLayoutPanel() {
-  const { lockers, applications, updateLockerStatuses } = useLockers()
+  const { lockers, applications, updateLockerStatuses, layouts } = useLockers()
   const toast = useToast()
   const [selectedZone, setSelectedZone] = useState<LockerZone>('A-1')
   const [editing, setEditing] = useState(false)
@@ -80,6 +81,9 @@ function LockerLayoutPanel() {
     C: [encodeURI('/locker-photos/C구역 실제사진 1.png'), encodeURI('/locker-photos/C구역 실제사진 2.png')],
     D: [encodeURI('/locker-photos/D구역 실제사진.png')],
   })
+  const [photoEditing, setPhotoEditing] = useState(false)
+  const [photoDraft, setPhotoDraft] = useState<string[]>([])
+  const [photoDeleteIndex, setPhotoDeleteIndex] = useState<number | null>(null)
   const applicantNameById = new Map(applications.map((application) => [application.id, application.name]))
   const zoneLockers = useMemo(() => lockers.filter((locker) => locker.zone === selectedZone), [lockers, selectedZone])
   const lockersByNumber = new Map(zoneLockers.map((locker) => [Number(locker.number.split('-').at(-1)), locker]))
@@ -88,6 +92,8 @@ function LockerLayoutPanel() {
     setSelectedZone(zone)
     setEditing(false)
     setSelectedLockerIds([])
+    setPhotoEditing(false)
+    setPhotoDraft([])
   }
 
   const toggleSelection = (locker: Locker) => {
@@ -99,6 +105,17 @@ function LockerLayoutPanel() {
     updateLockerStatuses(selectedLockerIds, status)
     toast({ content: `${selectedLockerIds.length}개 사물함을 ${status === 'disabled' ? '선택불가' : '선택가능'}로 변경했어요.`, variant: 'positive' })
     setSelectedLockerIds([])
+  }
+
+  const startPhotoEditing = () => {
+    setPhotoDraft([...(photosByZone[selectedZone] ?? [])])
+    setPhotoEditing(true)
+  }
+
+  const savePhotos = () => {
+    setPhotosByZone((prev) => ({ ...prev, [selectedZone]: photoDraft }))
+    setPhotoEditing(false)
+    toast({ content: '구역 실제 사진을 저장했어요.', variant: 'positive' })
   }
 
   return (
@@ -152,7 +169,7 @@ function LockerLayoutPanel() {
 
         <div style={{ overflowX: 'auto', paddingBottom: 4 }}>
           <FlexBox alignItems="flex-start" style={{ width: 'max-content', minWidth: '100%', gap: 18 }}>
-            {LOCKER_PHYSICAL_LAYOUTS[selectedZone].map((group, groupIndex) => (
+            {layouts[selectedZone].map((group, groupIndex) => (
               <div key={`${selectedZone}-${groupIndex}`} style={{ display: 'grid', gridTemplateColumns: `repeat(${group.columns}, 36px)`, gap: 6 }}>
                 {group.numbers.map((number) => {
                   const locker = lockersByNumber.get(number)
@@ -163,10 +180,11 @@ function LockerLayoutPanel() {
           </FlexBox>
         </div>
         <FlexBox flexDirection="column" style={{ gap: 10, marginTop: 20, paddingTop: 28, borderTop: '1px solid var(--semantic-line-normal-normal)' }}>
-          <FlexBox flexDirection="column" style={{ gap: 2 }}><Typography variant="body1" weight="bold">{selectedZone} 구역 실제 사진</Typography><Typography variant="caption1" color="semantic.label.alternative">등록된 사진은 수정(새 이미지 업로드)하거나 삭제할 수 있어요.</Typography></FlexBox>
-          <ImageUploadField value={photosByZone[selectedZone] ?? []} onChange={(urls) => setPhotosByZone((prev) => ({ ...prev, [selectedZone]: urls }))} multiple maxCount={4} previewSize={144} />
+          <FlexBox justifyContent="space-between" alignItems="flex-start" style={{ gap: 16 }}><FlexBox flexDirection="column" style={{ gap: 2 }}><Typography variant="body1" weight="bold">{selectedZone} 구역 실제 사진</Typography><Typography variant="caption1" color="semantic.label.alternative">수정 모드에서 새 사진을 업로드하거나 삭제할 수 있어요.</Typography></FlexBox>{photoEditing ? <FlexBox style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => { setPhotoEditing(false); setPhotoDraft([]) }}>취소</Button><Button variant="solid" color="primary" onClick={savePhotos}>저장</Button></FlexBox> : <Button variant="outlined" color="primary" onClick={startPhotoEditing}>수정</Button>}</FlexBox>
+          <ImageUploadField value={photoEditing ? photoDraft : (photosByZone[selectedZone] ?? [])} onChange={setPhotoDraft} onRemoveRequest={(index) => setPhotoDeleteIndex(index)} editable={photoEditing} multiple maxCount={4} previewSize={144} />
         </FlexBox>
       </FlexBox>
+      <ConfirmModal open={photoDeleteIndex !== null} onOpenChange={(open) => !open && setPhotoDeleteIndex(null)} title="사진을 삭제할까요?" description="삭제한 사진은 저장을 눌러야 최종 반영돼요." confirmLabel="삭제" tone="negative" onConfirm={() => { if (photoDeleteIndex !== null) { setPhotoDraft((photos) => photos.filter((_, index) => index !== photoDeleteIndex)); setPhotoDeleteIndex(null) } }} />
     </FlexBox>
   )
 }

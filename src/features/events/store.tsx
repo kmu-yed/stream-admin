@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import type { Applicant, EventFormInput, EventRecord } from './types'
+import type { Applicant, AttendanceStatus, EventFormInput, EventRecord } from './types'
 
 function addDays(days: number) {
   const d = new Date()
@@ -119,6 +119,7 @@ type EventsContextValue = {
   setEventVisibility: (id: string, isPublic: boolean) => void
   deleteEvent: (id: string) => void
   cancelApplicant: (applicantId: string) => void
+  updateAttendanceStatus: (applicantId: string, status: AttendanceStatus) => void
 }
 
 const EventsContext = createContext<EventsContextValue | null>(null)
@@ -162,6 +163,9 @@ export function EventsProvider({ children }: { children: ReactNode }) {
             applicant.id === applicantId ? { ...applicant, status: '취소' } : applicant,
           ),
         )
+      },
+      updateAttendanceStatus: (applicantId, status) => {
+        setApplicants((prev) => prev.map((applicant) => applicant.id === applicantId ? { ...applicant, attendanceStatus: status } : applicant))
       },
     }),
     [events, applicants],

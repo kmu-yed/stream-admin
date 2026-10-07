@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Modal, ModalContainer, ModalContent, ModalContentItem, ModalDescription, ModalHeading, Option, Select, Tab, TabList, TabListItem, TabPanel, TextArea, TextButton, TextField, Tooltip, TooltipContent, TooltipTrigger, Typography, useToast } from '@wanteddev/wds'
-import { IconChevronDown, IconChevronDownSmall, IconDownload } from '@wanteddev/wds-icon'
+import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Modal, ModalContainer, ModalContent, ModalContentItem, ModalDescription, ModalHeading, Option, Select, Tab, TabList, TabListItem, TabPanel, TextArea, TextButton, TextField, Typography, useToast } from '@wanteddev/wds'
+import { IconChevronDown, IconChevronDownSmall } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import FormItem from '../../components/common/FormItem'
 import SearchField from '../../components/common/SearchField'
+import ExcelExportButton from '../../components/common/ExcelExportButton'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import { useStudentCouncil } from './store'
 import { BANKS, type BankName, type PaymentStatus, type StreamMembershipStatus, type StudentCouncilFeeAccount, type StudentMember } from './types'
@@ -134,7 +135,7 @@ function PaymentMemberList() {
       <FlexBox justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
         <FlexBox alignItems="center" style={{ gap: 12 }}>
           <SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" />
-          <Tooltip mode="hover"><TooltipTrigger><IconButton variant="outlined" color="semantic.label.assistive" size="medium" onClick={handleExport}><IconDownload /></IconButton></TooltipTrigger><TooltipContent>엑셀 내보내기</TooltipContent></Tooltip>
+          <ExcelExportButton onClick={handleExport} />
         </FlexBox>
       </FlexBox>
       <DataTable columns={columns} rows={filtered} rowKey={(row) => row.id} emptyMessage="명단이 없어요." className="student-payment-table" />

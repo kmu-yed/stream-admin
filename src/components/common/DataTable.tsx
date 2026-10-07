@@ -34,6 +34,7 @@ type DataTableProps<T> = {
   style?: CSSProperties
   className?: string
   rowNumberPosition?: 'first' | 'after-first-column'
+  showRowNumber?: boolean
 }
 
 function DataTable<T>({
@@ -46,6 +47,7 @@ function DataTable<T>({
   style,
   className,
   rowNumberPosition = 'first',
+  showRowNumber = true,
 }: DataTableProps<T>) {
   // 선택 체크박스가 있는 표는 항상 선택 열 다음에 NO가 오도록 고정한다.
   const numberAfterFirstColumn = columns[0]?.key === 'select' || rowNumberPosition === 'after-first-column'
@@ -65,11 +67,11 @@ function DataTable<T>({
       >
         <TableHead>
           <TableRow>
-            {!numberAfterFirstColumn && <TableHeadCell align="center" style={{ width: 56, paddingLeft: 8, paddingRight: 8 }}>NO</TableHeadCell>}
+            {showRowNumber && !numberAfterFirstColumn && <TableHeadCell align="center" style={{ width: 56, paddingLeft: 8, paddingRight: 8 }}>NO</TableHeadCell>}
             {columns.map((column) => (
               <Fragment key={column.key}>
                 <TableHeadCell align={column.align ?? 'left'} style={{ width: column.width }}>{column.header}</TableHeadCell>
-                {numberAfterFirstColumn && column === columns[0] && <TableHeadCell align="center" style={{ width: 56, paddingLeft: 8, paddingRight: 8 }}>NO</TableHeadCell>}
+                {showRowNumber && numberAfterFirstColumn && column === columns[0] && <TableHeadCell align="center" style={{ width: 56, paddingLeft: 8, paddingRight: 8 }}>NO</TableHeadCell>}
               </Fragment>
             ))}
           </TableRow>
@@ -77,7 +79,7 @@ function DataTable<T>({
         <TableBody>
           {rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length + 1} align="center" style={{ padding: '48px 0' }}>
+              <TableCell colSpan={columns.length + (showRowNumber ? 1 : 0)} align="center" style={{ padding: '48px 0' }}>
                 <Typography variant="body2" color="semantic.label.alternative">
                   {emptyMessage}
                 </Typography>
@@ -90,11 +92,11 @@ function DataTable<T>({
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 style={onRowClick ? { cursor: 'pointer' } : undefined}
               >
-                {!numberAfterFirstColumn && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{index + 1}</TableCell>}
+                {showRowNumber && !numberAfterFirstColumn && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{index + 1}</TableCell>}
                 {columns.map((column) => (
                   <Fragment key={column.key}>
                     <TableCell align={column.align ?? 'left'}>{column.render(row)}</TableCell>
-                    {numberAfterFirstColumn && column === columns[0] && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{index + 1}</TableCell>}
+                    {showRowNumber && numberAfterFirstColumn && column === columns[0] && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{index + 1}</TableCell>}
                   </Fragment>
                 ))}
               </TableRow>

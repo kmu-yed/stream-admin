@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import { LOCKER_ZONE_RANGES, LOCKER_ZONES, type Locker, type LockerApplication, type LockerSemester } from './types'
+import { LOCKER_PHYSICAL_LAYOUTS, LOCKER_ZONE_RANGES, LOCKER_ZONES, type Locker, type LockerApplication, type LockerLayoutGroup, type LockerSemester, type LockerZone } from './types'
 
 function addDays(days: number) {
   const d = new Date()
@@ -73,6 +73,7 @@ type LockersContextValue = {
   lockers: Locker[]
   applications: LockerApplication[]
   semesters: LockerSemester[]
+  layouts: Record<LockerZone, LockerLayoutGroup[]>
   toggleLockerStatus: (id: string) => void
   updateLockerStatuses: (ids: string[], status: Locker['status']) => void
   changeLockerAssignment: (applicationId: string, lockerId: string) => void
@@ -81,6 +82,7 @@ type LockersContextValue = {
   addSemester: (input: LockerSemesterInput) => void
   updateSemester: (id: string, input: LockerSemesterInput) => void
   deleteSemester: (id: string) => void
+  updateLayout: (zone: LockerZone, groups: LockerLayoutGroup[]) => void
 }
 
 const LockersContext = createContext<LockersContextValue | null>(null)
@@ -89,12 +91,14 @@ export function LockersProvider({ children }: { children: ReactNode }) {
   const [lockers, setLockers] = useState<Locker[]>(buildInitialLockers)
   const [applications, setApplications] = useState<LockerApplication[]>(initialApplications)
   const [semesters, setSemesters] = useState<LockerSemester[]>(initialSemesters)
+  const [layouts, setLayouts] = useState<Record<LockerZone, LockerLayoutGroup[]>>(() => structuredClone(LOCKER_PHYSICAL_LAYOUTS))
 
   const value = useMemo<LockersContextValue>(
     () => ({
       lockers,
       applications,
       semesters,
+      layouts,
       toggleLockerStatus: (id) => {
         setLockers((prev) =>
           prev.map((locker) =>
@@ -157,8 +161,9 @@ export function LockersProvider({ children }: { children: ReactNode }) {
       deleteSemester: (id) => {
         setSemesters((prev) => prev.filter((semester) => semester.id !== id))
       },
+      updateLayout: (zone, groups) => setLayouts((prev) => ({ ...prev, [zone]: groups })),
     }),
-    [lockers, applications, semesters],
+    [lockers, applications, semesters, layouts],
   )
 
   return <LockersContext.Provider value={value}>{children}</LockersContext.Provider>

@@ -23,9 +23,16 @@ function FeedbackRoundFormPage() {
     existing?.answers.forEach((answer) => {
       initial[answer.questionId] = { answerText: answer.answerText }
     })
-    return initial
+    if (Object.keys(initial).length > 0) return initial
+    try {
+      const saved = localStorage.getItem(`stream-feedback-answer-draft-${id ?? 'new'}`)
+      return saved ? JSON.parse(saved) as Record<string, AnswerDraft> : initial
+    } catch {
+      return initial
+    }
   })
   const [error, setError] = useState<string>()
+  const draftStorageKey = `stream-feedback-answer-draft-${id ?? 'new'}`
 
   const goToList = () => navigate('/feedback?tab=questions')
 
@@ -66,7 +73,13 @@ function FeedbackRoundFormPage() {
       addFeedbackRound(payload)
       toast({ content: '피드백 답변이 등록되었어요.', variant: 'positive' })
     }
+    localStorage.removeItem(draftStorageKey)
     goToList()
+  }
+
+  const saveDraft = () => {
+    localStorage.setItem(draftStorageKey, JSON.stringify(answers))
+    toast({ content: '현재 답변을 임시저장했어요.', variant: 'positive' })
   }
 
   return (
@@ -134,6 +147,7 @@ function FeedbackRoundFormPage() {
         })}
 
         <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
+          <Button variant="outlined" color="assistive" onClick={saveDraft}>임시저장</Button>
           <Button variant="solid" color="primary" onClick={handleSubmit}>
             {isEdit ? '수정 완료' : '등록하기'}
           </Button>

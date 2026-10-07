@@ -9,16 +9,27 @@ import {
   Typography,
   useToast,
 } from '@wanteddev/wds'
-import { IconChevronDown, IconDownload } from '@wanteddev/wds-icon'
+import { IconChevronDown, IconChevronDownSmall, IconCircleQuestion } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
 import StatusBadge from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import ExcelExportButton from '../../components/common/ExcelExportButton'
 import { useEvents } from './store'
-import type { Applicant } from './types'
+import { getAttendanceStatus, type Applicant } from './types'
+import type { BadgeTone } from '../../components/common/StatusBadge'
 
 type StatusFilter = 'all' | '신청완료' | '취소'
+type AttendanceFilter = 'all' | '미확정' | '참가완료' | '불참'
+const attendanceTone: Record<'미확정' | '참가완료' | '불참', BadgeTone> = { 미확정: 'neutral', 참가완료: 'positive', 불참: 'negative' }
+
+function updateMultiFilter<T extends string>(current: T[], nextValue?: string | string[]) {
+  if (!Array.isArray(nextValue)) return current
+  if (nextValue.length === 0) return ['all'] as T[]
+  if (nextValue.includes('all')) return (current.includes('all' as T) ? nextValue.filter((item) => item !== 'all') : ['all']) as T[]
+  return nextValue as T[]
+}
 
 function toCsv(rows: Applicant[], fieldLabels: Record<string, string>) {
   const fieldIds = Object.keys(fieldLabels)
@@ -34,17 +45,20 @@ function toCsv(rows: Applicant[], fieldLabels: Record<string, string>) {
 function EventApplicantsPage() {
   const navigate = useNavigate()
   const { id } = useParams()
-  const { getEvent, getApplicants, cancelApplicant } = useEvents()
+  const { getEvent, getApplicants, cancelApplicant, updateAttendanceStatus } = useEvents()
   const toast = useToast()
 
   const event = id ? getEvent(id) : undefined
   const applicants = id ? getApplicants(id) : []
   const [filters, setFilters] = useState<StatusFilter[]>(['all'])
+  const [attendanceFilters, setAttendanceFilters] = useState<AttendanceFilter[]>(['all'])
   const [cancelTarget, setCancelTarget] = useState<Applicant | null>(null)
   const [search, setSearch] = useState('')
 
   const filtered = applicants.filter((a) => {
     if (!filters.includes('all') && !filters.includes(a.status)) return false
+    const attendance = getAttendanceStatus(a, event!)
+    if (attendance !== '-' && !attendanceFilters.includes('all') && !attendanceFilters.includes(attendance)) return false
     const keyword = search.trim()
     if (!keyword) return true
     return a.name.includes(keyword) || a.studentId.includes(keyword)
@@ -82,9 +96,17 @@ function EventApplicantsPage() {
     })),
     {
       key: 'status',
-      header: <Menu value={filters} onValueChange={(value) => { if (!Array.isArray(value)) return; if (value.length === 0) { setFilters(['all']); return }; if (value.includes('all')) { setFilters(filters.includes('all') ? value.filter((item) => item !== 'all') as StatusFilter[] : ['all']); return }; setFilters(value as StatusFilter[]) }}><FlexBox alignItems="center" style={{ gap: 4 }}><span>상태</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="행사 신청 상태 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체 상태</MenuItem><MenuItem variant="checkbox" value="신청완료">신청완료</MenuItem><MenuItem variant="checkbox" value="취소">취소</MenuItem></MenuList></MenuContent></Menu>,
+      header: <Menu value={filters} onValueChange={(value) => setFilters(updateMultiFilter(filters, value))}><FlexBox alignItems="center" style={{ gap: 4 }}><span>상태</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="행사 신청 상태 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체 상태</MenuItem><MenuItem variant="checkbox" value="신청완료">신청완료</MenuItem><MenuItem variant="checkbox" value="취소">취소</MenuItem></MenuList></MenuContent></Menu>,
       width: 100,
       render: (row) => <StatusBadge label={row.status} tone={row.status === '취소' ? 'negative' : 'positive'} />,
+    },
+    {
+      key: 'attendance', header: <Menu value={attendanceFilters} onValueChange={(value) => setAttendanceFilters(updateMultiFilter(attendanceFilters, value))}><FlexBox alignItems="center" style={{ gap: 4 }}><span>참석 여부</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="참석 여부 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체 참석 여부</MenuItem><MenuItem variant="checkbox" value="미확정">미확정</MenuItem><MenuItem variant="checkbox" value="참가완료">참가완료</MenuItem><MenuItem variant="checkbox" value="불참">불참</MenuItem></MenuList></MenuContent></Menu>, width: 150,
+      render: (row) => {
+        const attendance = getAttendanceStatus(row, event!)
+        if (attendance === '-') return '-'
+        return <Menu><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={attendance} tone={attendanceTone[attendance]} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-end" offset={8}><MenuList>{(['미확정', '불참', '참가완료'] as const).map((status) => <MenuItem key={status} value={status} onClick={() => updateAttendanceStatus(row.id, status)}><StatusBadge label={status} tone={attendanceTone[status]} /></MenuItem>)}</MenuList></MenuContent></Menu>
+      },
     },
     {
       key: 'actions',
@@ -93,7 +115,7 @@ function EventApplicantsPage() {
       align: 'right',
       render: (row) =>
         row.status === '신청완료' ? (
-          <Button variant="outlined" color="assistive" size="small" style={{ color: 'var(--semantic-label-normal)', borderColor: 'var(--semantic-line-normal-normal)' }} onClick={() => setCancelTarget(row)}>
+          <Button variant="outlined" color="assistive" size="small" style={{ color: 'var(--semantic-status-negative)', borderColor: 'var(--semantic-line-normal-normal)' }} onClick={() => setCancelTarget(row)}>
             취소 처리
           </Button>
         ) : (
@@ -125,15 +147,16 @@ function EventApplicantsPage() {
       />
 
       <FlexBox justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
-        <SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" />
         <Tooltip mode="hover">
           <TooltipTrigger>
-            <IconButton variant="outlined" color="semantic.label.assistive" size="medium" onClick={handleExport} aria-label="엑셀 내보내기">
-              <IconDownload />
+            <IconButton variant="normal" size="small" aria-label="참석 여부 안내" style={{ width: 32, height: 32 }}>
+              <IconCircleQuestion width={17} height={17} style={{ color: 'var(--semantic-label-assistive)' }} />
             </IconButton>
           </TooltipTrigger>
-          <TooltipContent>엑셀 내보내기</TooltipContent>
+          <TooltipContent>행사가 종료되면 자동으로 모두 참가완료 상태로 바뀌어요.</TooltipContent>
         </Tooltip>
+        <SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" />
+        <ExcelExportButton onClick={handleExport} />
       </FlexBox>
 
       <DataTable
@@ -146,14 +169,14 @@ function EventApplicantsPage() {
       <ConfirmModal
         open={Boolean(cancelTarget)}
         onOpenChange={(open) => !open && setCancelTarget(null)}
-        title="신청을 취소 처리할까요?"
-        description={cancelTarget ? `${cancelTarget.name}(${cancelTarget.studentId})님의 신청을 취소 처리해요.` : undefined}
+        title="신청을 취소 처리하고 알림을 보낼까요?"
+        description={cancelTarget ? `${cancelTarget.name}(${cancelTarget.studentId})님의 신청을 취소 처리하고, 취소 안내 알림을 보내요.` : undefined}
         confirmLabel="취소 처리"
         tone="negative"
         onConfirm={() => {
           if (cancelTarget) {
             cancelApplicant(cancelTarget.id)
-            toast({ content: '신청이 취소 처리되었어요.', variant: 'normal' })
+            toast({ content: '신청이 취소 처리되고 사용자에게 알림을 보냈어요.', variant: 'positive' })
           }
         }}
       />

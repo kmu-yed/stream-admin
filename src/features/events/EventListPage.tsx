@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Typography, TextButton, useToast } from '@wanteddev/wds'
+import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Typography, useToast } from '@wanteddev/wds'
 import { IconChevronDownSmall, IconMoreVertical } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
@@ -76,9 +76,7 @@ function EventListPage() {
       align: 'right',
       render: (event) => (
         <FlexBox alignItems="center" justifyContent="flex-end" style={{ gap: 8 }}>
-          <TextButton size="small" onClick={() => navigate(`/events/${event.id}/applicants`)}>
-            신청 현황
-          </TextButton>
+          <Button variant="outlined" color="primary" size="small" onClick={() => navigate(`/events/${event.id}/applicants`)}>신청 현황</Button>
           <Menu open={openMenuId === event.id} onOpenChange={(open) => setOpenMenuId(open ? event.id : null)}>
             <MenuTrigger>
               <IconButton variant="normal" size="small" aria-label={`${event.title} 더보기`}>

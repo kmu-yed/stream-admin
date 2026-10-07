@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Button,
+  DatePicker,
   FlexBox,
   Option,
   Select,
   TextField,
   Typography,
   useToast,
+  type DateType,
 } from "@wanteddev/wds";
 import PageHeader from "../../components/common/PageHeader";
 import FormItem from "../../components/common/FormItem";
@@ -22,6 +24,12 @@ const emptyForm = {
   useStartDate: "",
   useEndDate: "",
 };
+
+function toDateValue(value: DateType) {
+  if (!value) return "";
+  if (typeof value === "string") return value.slice(0, 10);
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+}
 
 function LockerSemesterFormPage() {
   const navigate = useNavigate();
@@ -46,10 +54,15 @@ function LockerSemesterFormPage() {
       : emptyForm,
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const today = new Date().toISOString().slice(0, 10);
+  const isApplying = Boolean(existing && today >= existing.applyStartDate && today <= existing.applyEndDate);
+  const isEnded = Boolean(existing && today > existing.applyEndDate);
+  const isScheduleLocked = isApplying || isEnded;
 
   const goBackToSchedule = () => navigate("/lockers?tab=schedule");
 
   const handleSubmit = () => {
+    if (isEnded) return;
     const nextErrors: Record<string, string> = {};
     if (!form.applyStartDate || !form.applyEndDate) {
       nextErrors.apply = "신청 시작일과 마감일을 모두 입력해주세요.";
@@ -85,8 +98,10 @@ function LockerSemesterFormPage() {
       <PageHeader
         title={isEdit ? "신청 일정 수정" : "새 학기 신청 일정 등록"}
       />
+      {isApplying && <Typography variant="body2" style={{ padding: 14, marginBottom: 16, borderRadius: 10, color: 'var(--semantic-status-cautionary)', background: 'var(--semantic-fill-normal)' }}>신청이 진행 중이라 신청 기간과 사물함 운영 조건을 변경할 수 없어요.</Typography>}
+      {isEnded && <Typography variant="body2" style={{ padding: 14, marginBottom: 16, borderRadius: 10, color: 'var(--semantic-label-alternative)', background: 'var(--semantic-fill-normal)' }}>신청이 종료된 일정은 읽기 전용이에요.</Typography>}
 
-      <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
+      <fieldset disabled={isScheduleLocked} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
         <FlexBox
           flexDirection="column"
           style={{
@@ -170,13 +185,11 @@ function LockerSemesterFormPage() {
                 labelWeight="regular"
                 style={{ width: "100%" }}
               >
-                <TextField
-                  type="date"
+                <DatePicker
                   width="100%"
-                  value={form.applyStartDate}
-                  onChange={(e) =>
-                    setForm({ ...form, applyStartDate: e.target.value })
-                  }
+                  format="YYYY-MM-DD"
+                  value={form.applyStartDate ? new Date(`${form.applyStartDate}T00:00:00`) : undefined}
+                  onChange={(value) => setForm({ ...form, applyStartDate: toDateValue(value) })}
                 />
               </FormItem>
             </FlexBox>
@@ -197,13 +210,11 @@ function LockerSemesterFormPage() {
                 labelWeight="regular"
                 style={{ width: "100%" }}
               >
-                <TextField
-                  type="date"
+                <DatePicker
                   width="100%"
-                  value={form.applyEndDate}
-                  onChange={(e) =>
-                    setForm({ ...form, applyEndDate: e.target.value })
-                  }
+                  format="YYYY-MM-DD"
+                  value={form.applyEndDate ? new Date(`${form.applyEndDate}T00:00:00`) : undefined}
+                  onChange={(value) => setForm({ ...form, applyEndDate: toDateValue(value) })}
                 />
               </FormItem>
             </FlexBox>
@@ -240,13 +251,11 @@ function LockerSemesterFormPage() {
                 labelWeight="regular"
                 style={{ width: "100%" }}
               >
-                <TextField
-                  type="date"
+                <DatePicker
                   width="100%"
-                  value={form.useStartDate}
-                  onChange={(e) =>
-                    setForm({ ...form, useStartDate: e.target.value })
-                  }
+                  format="YYYY-MM-DD"
+                  value={form.useStartDate ? new Date(`${form.useStartDate}T00:00:00`) : undefined}
+                  onChange={(value) => setForm({ ...form, useStartDate: toDateValue(value) })}
                 />
               </FormItem>
             </FlexBox>
@@ -267,13 +276,11 @@ function LockerSemesterFormPage() {
                 labelWeight="regular"
                 style={{ width: "100%" }}
               >
-                <TextField
-                  type="date"
+                <DatePicker
                   width="100%"
-                  value={form.useEndDate}
-                  onChange={(e) =>
-                    setForm({ ...form, useEndDate: e.target.value })
-                  }
+                  format="YYYY-MM-DD"
+                  value={form.useEndDate ? new Date(`${form.useEndDate}T00:00:00`) : undefined}
+                  onChange={(value) => setForm({ ...form, useEndDate: toDateValue(value) })}
                 />
               </FormItem>
             </FlexBox>
@@ -281,7 +288,7 @@ function LockerSemesterFormPage() {
         </FlexBox>
 
         <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
-          <Button variant="solid" color="primary" onClick={handleSubmit}>
+          <Button variant="solid" color="primary" disabled={isScheduleLocked} onClick={handleSubmit}>
             {isEdit ? "수정 완료" : "등록하기"}
           </Button>
           <Button
@@ -292,7 +299,7 @@ function LockerSemesterFormPage() {
             취소
           </Button>
         </FlexBox>
-      </FlexBox>
+      </FlexBox></fieldset>
     </>
   );
 }

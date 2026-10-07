@@ -8,6 +8,7 @@ export type ArchivePost = {
   department: string
   content: string
   linkedPageUrl?: string
+  includeInSlangje: boolean
   createdAt: string
 }
 

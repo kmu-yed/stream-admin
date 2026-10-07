@@ -12,7 +12,8 @@ export type Notice = {
 
 export type NoticeInput = Omit<Notice, 'id' | 'createdAt'>
 
-export type FeedbackQuestionStatus = '답변완료' | '대기'
+export type FeedbackQuestionStatus = '답변대기' | '답변작성중' | '개별답변완료' | '공개답변완료'
+export type FeedbackRoundStatus = '오픈예정' | '질문접수중' | '답변작성중' | '회차종료'
 
 export type FeedbackQuestion = {
   id: string
@@ -31,6 +32,9 @@ export type FeedbackRound = {
   id: string
   roundNumber: number
   createdAt: string
+  status: FeedbackRoundStatus
+  openDate: string
+  closeDate: string
   answers: FeedbackAnswer[]
 }
 

@@ -14,7 +14,7 @@ import type { StudentMember } from '../studentCouncil/types'
 const roleTone: Record<AdminRole, BadgeTone> = { 학생: 'neutral', 관리자: 'info' }
 const departments: StudentCouncilDepartment[] = ['총무부', '집행부', '기획부', '복지부', '홍보부', '미디어부', '소통부']
 
-export default function AdminManagementPage() {
+export default function AdminManagementPage({ embedded = false }: { embedded?: boolean }) {
   const toast = useToast()
   const { admins, setAdmins } = useAdminManagement()
   const { members } = useStudentCouncil()
@@ -62,11 +62,11 @@ export default function AdminManagementPage() {
     { key: 'studentId', header: '학번', width: 160, render: (admin) => admin.studentId },
     { key: 'role', header: '권한', width: 120, render: (admin) => <StatusBadge label={admin.role} tone={roleTone[admin.role]} /> },
     { key: 'department', header: '학생회 부서', width: 150, render: (admin) => admin.councilDepartment ?? '-' },
-    { key: 'edit', header: '', width: 64, align: 'right', render: (admin) => <Button variant="outlined" color="assistive" size="small" onClick={() => openEdit(admin)}><IconPencil width={15} height={15} />수정</Button> },
+    { key: 'edit', header: '', width: 156, align: 'right', render: (admin) => <FlexBox alignItems="center" justifyContent="flex-end"><Button variant="outlined" color="assistive" size="small" leadingContent={<IconPencil width={18} height={18} style={{ display: 'block' }} />} onClick={() => openEdit(admin)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', verticalAlign: 'middle' }}>수정</Button></FlexBox> },
   ]
 
   return <>
-    <PageHeader title="관리자 관리" description="Stream 접근 권한과 학생회 부서를 관리해요." />
+    {!embedded && <PageHeader title="관리자 및 근무 관리" description="관리자 권한과 근무자를 관리해요." />}
     <FlexBox justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}><SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" /><Button variant="solid" color="primary" onClick={() => setAddOpen(true)}>+ 관리자 추가</Button></FlexBox>
     <FlexBox style={{ position: 'relative', width: '100%' }}>
       {selectedIds.length > 0 && <FlexBox alignItems="center" style={{ position: 'absolute', zIndex: 2, bottom: 'calc(100% + 12px)', height: 48, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 12, background: 'var(--semantic-background-elevated-normal)', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,.12)' }}><Typography variant="body2" weight="bold" style={{ padding: '0 16px', color: 'var(--semantic-primary-normal)' }}>{selectedIds.length}개 선택됨</Typography><button type="button" onClick={() => setBulkOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: '100%', padding: '0 16px', border: 0, borderLeft: '1px solid var(--semantic-line-normal-normal)', background: 'transparent', color: 'var(--semantic-label-normal)', font: 'inherit', fontWeight: 600, cursor: 'pointer' }}><IconPencil width={16} height={16} />권한 수정</button><button type="button" aria-label="선택한 관리자 삭제" onClick={() => setDeleteOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 48, height: '100%', padding: 0, border: 0, borderLeft: '1px solid var(--semantic-line-normal-normal)', background: 'transparent', color: 'var(--semantic-status-negative)', cursor: 'pointer' }}><IconTrash width={16} height={16} /></button></FlexBox>}

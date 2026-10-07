@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, FlexBox, TextArea, TextField, useToast } from '@wanteddev/wds'
+import { Button, Checkbox, DatePicker, FlexBox, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import ImageUploadField from '../../components/common/ImageUploadField'
 import { useArchiving } from './store'
 import type { ArchivePostInput } from './types'
+import { useBoards } from '../boards/store'
 
 const emptyForm: ArchivePostInput = {
   title: '',
@@ -16,6 +17,17 @@ const emptyForm: ArchivePostInput = {
   department: '',
   content: '',
   linkedPageUrl: '',
+  includeInSlangje: false,
+}
+
+function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return <FlexBox flexDirection="column" style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}><Typography variant="body1" weight="bold">{title}</Typography>{children}</FlexBox>
+}
+
+function toDateValue(value: DateType) {
+  if (!value) return ''
+  if (typeof value === 'string') return value.slice(0, 10)
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
 }
 
 function ArchiveFormPage() {
@@ -23,6 +35,7 @@ function ArchiveFormPage() {
   const { id } = useParams()
   const isEdit = Boolean(id)
   const { posts, addPost, updatePost } = useArchiving()
+  const { notices } = useBoards()
   const toast = useToast()
 
   const existing = id ? posts.find((post) => post.id === id) : undefined
@@ -37,10 +50,16 @@ function ArchiveFormPage() {
           department: existing.department,
           content: existing.content,
           linkedPageUrl: existing.linkedPageUrl,
+          includeInSlangje: existing.includeInSlangje,
         }
       : emptyForm,
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [noticeSearch, setNoticeSearch] = useState(() => {
+    const noticeId = existing?.linkedPageUrl?.replace('/notices/', '')
+    const notice = notices.find((item) => item.id === noticeId)
+    return notice ? `${notice.title} · ${notice.category}` : ''
+  })
 
   const goToList = () => navigate('/archiving')
 
@@ -67,11 +86,12 @@ function ArchiveFormPage() {
   return (
     <>
       <PageHeader
-        title={isEdit ? '아카이빙 게시물 수정' : '새 아카이빙 게시물 등록'}
+        title={isEdit ? '아카이빙 게시물 수정' : '새 게시물 등록'}
         description="학생회 활동 기록을 아카이빙해요."
       />
 
-      <FlexBox flexDirection="column" style={{ gap: 24, maxWidth: 640, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
+      <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 720 }}>
+        <FormSection title="기본 정보">
         <FormItem label="제목" required error={errors.title}>
           <TextField
             placeholder="게시물 제목을 입력하세요"
@@ -80,6 +100,24 @@ function ArchiveFormPage() {
           />
         </FormItem>
 
+        <FlexBox style={{ gap: 16 }}>
+          <FlexBox style={{ flex: 1 }}><FormItem label="일시" required error={errors.date}>
+            <DatePicker value={form.date ? new Date(`${form.date}T00:00:00`) : undefined} onChange={(value) => setForm({ ...form, date: toDateValue(value) })} format="YYYY-MM-DD" width="100%" />
+          </FormItem></FlexBox>
+          <FlexBox style={{ flex: 1 }}><FormItem label="장소" required error={errors.location}>
+            <TextField placeholder="예: 중앙광장" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+          </FormItem></FlexBox>
+          <FlexBox style={{ flex: 1 }}><FormItem label="담당부서" required error={errors.department}>
+            <TextField placeholder="예: 문화기획국" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
+          </FormItem></FlexBox>
+        </FlexBox>
+        <FlexBox as="label" alignItems="center" style={{ gap: 8, cursor: 'pointer', width: 'fit-content' }}>
+          <Checkbox checked={form.includeInSlangje} onCheckedChange={(checked) => setForm({ ...form, includeInSlangje: checked })} />
+          <Typography variant="body2">슬랑제 페이지에 포함</Typography>
+        </FlexBox>
+        </FormSection>
+
+        <FormSection title="이미지">
         <FormItem label="대표이미지">
           <ImageUploadField
             value={form.coverImageUrl ? [form.coverImageUrl] : []}
@@ -96,37 +134,9 @@ function ArchiveFormPage() {
             multiple
           />
         </FormItem>
+        </FormSection>
 
-        <FlexBox style={{ gap: 16 }}>
-          <FlexBox style={{ flex: 1 }}>
-            <FormItem label="일시" required error={errors.date}>
-              <TextField
-                type="date"
-                value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-              />
-            </FormItem>
-          </FlexBox>
-          <FlexBox style={{ flex: 1 }}>
-            <FormItem label="장소" required error={errors.location}>
-              <TextField
-                placeholder="예: 중앙광장"
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-              />
-            </FormItem>
-          </FlexBox>
-          <FlexBox style={{ flex: 1 }}>
-            <FormItem label="담당부서" required error={errors.department}>
-              <TextField
-                placeholder="예: 문화기획국"
-                value={form.department}
-                onChange={(e) => setForm({ ...form, department: e.target.value })}
-              />
-            </FormItem>
-          </FlexBox>
-        </FlexBox>
-
+        <FormSection title="상세 내용">
         <FormItem label="활동내용" required error={errors.content}>
           <TextArea
             placeholder="활동 내용을 입력하세요"
@@ -137,13 +147,25 @@ function ArchiveFormPage() {
           />
         </FormItem>
 
-        <FormItem label="관련페이지 연결 (Stream 게시판 내 페이지, 선택)">
-          <TextField
-            placeholder="https://stream.ac.kr/board/..."
-            value={form.linkedPageUrl}
-            onChange={(e) => setForm({ ...form, linkedPageUrl: e.target.value })}
-          />
+        <FormItem label="관련 공지 연결 (선택)">
+          <FlexBox flexDirection="column">
+            <TextField
+              list="archive-notice-options"
+              placeholder="공지 제목을 검색해 선택하세요"
+              value={noticeSearch}
+              onChange={(e) => {
+                const value = e.target.value
+                setNoticeSearch(value)
+                const notice = notices.find((item) => `${item.title} · ${item.category}` === value)
+                setForm({ ...form, linkedPageUrl: notice ? `/notices/${notice.id}` : undefined })
+              }}
+            />
+            <datalist id="archive-notice-options">
+              {notices.map((notice) => <option key={notice.id} value={`${notice.title} · ${notice.category}`} />)}
+            </datalist>
+          </FlexBox>
         </FormItem>
+        </FormSection>
 
         <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
           <Button variant="solid" color="primary" onClick={handleSubmit}>

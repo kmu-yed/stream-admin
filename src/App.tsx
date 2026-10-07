@@ -13,6 +13,7 @@ import NoticesPage from './features/boards/NoticesPage'
 import NoticeFormPage from './features/boards/NoticeFormPage'
 import FeedbackPage from './features/boards/FeedbackPage'
 import FeedbackRoundFormPage from './features/boards/FeedbackRoundFormPage'
+import FeedbackRoundCreatePage from './features/boards/FeedbackRoundCreatePage'
 import { ArchivingProvider } from './features/archiving/store'
 import ArchiveListPage from './features/archiving/ArchiveListPage'
 import ArchiveFormPage from './features/archiving/ArchiveFormPage'
@@ -30,10 +31,10 @@ import ChatbotPage from './features/chatbot/ChatbotPage'
 import FaqFormPage from './features/chatbot/FaqFormPage'
 import { PoliciesProvider } from './features/policies/store'
 import PoliciesPage from './features/policies/PoliciesPage'
-import AdminManagementPage from './features/adminManagement/AdminManagementPage'
 import { AdminManagementProvider } from './features/adminManagement/store'
 import DisplayManagementPage from './features/display/DisplayManagementPage'
 import SettingsPage from './features/settings/SettingsPage'
+import WorkManagementPage from './features/workers/WorkManagementPage'
 import { AuthProvider, useAuth } from './features/auth/store'
 import LoginPage from './features/auth/LoginPage'
 
@@ -78,7 +79,8 @@ function FeedbackRoutes() {
   return (
     <Routes>
       <Route index element={<FeedbackPage />} />
-      <Route path="rounds/new" element={<FeedbackRoundFormPage />} />
+      <Route path="rounds/new" element={<FeedbackRoundCreatePage />} />
+      <Route path="answers/new" element={<FeedbackRoundFormPage />} />
       <Route path="rounds/:id/edit" element={<FeedbackRoundFormPage />} />
     </Routes>
   )
@@ -152,9 +154,10 @@ function App() {
                     <Route path="/archiving/*" element={<ArchivingRoutes />} />
                     <Route path="/rentals/*" element={<RentalsRoutes />} />
                     <Route path="/student-council" element={<StudentCouncilPage />} />
-                    <Route path="/admins" element={<AdminManagementPage />} />
+                    <Route path="/admins" element={<WorkManagementPage />} />
                     <Route path="/display" element={<DisplayManagementPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/work" element={<WorkManagementPage />} />
                     <Route path="/chatbot/*" element={<ChatbotRoutes />} />
                     <Route
                       path="/policies"

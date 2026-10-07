@@ -9,6 +9,7 @@ function AdminLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [mobileHeaderCompact, setMobileHeaderCompact] = useState(false)
+  const [mainScrolled, setMainScrolled] = useState(false)
   const lastScrollTop = useRef(0)
 
   const openMobileSidebar = () => {
@@ -19,6 +20,7 @@ function AdminLayout() {
   const handleMainScroll = (event: React.UIEvent<HTMLElement>) => {
     const currentScrollTop = event.currentTarget.scrollTop
     const difference = currentScrollTop - lastScrollTop.current
+    setMainScrolled(currentScrollTop > 0)
 
     if (currentScrollTop <= 8) setMobileHeaderCompact(false)
     else if (difference > 6) setMobileHeaderCompact(true)
@@ -37,7 +39,7 @@ function AdminLayout() {
       />
       {mobileSidebarOpen && <button type="button" className="mobile-sidebar-backdrop" aria-label="메뉴 닫기" onClick={() => setMobileSidebarOpen(false)} />}
       <FlexBox className="admin-content" flexDirection="column" style={{ flex: 1, minWidth: 0, height: '100vh' }}>
-        <TopBar onOpenMobileSidebar={openMobileSidebar} compact={mobileHeaderCompact} />
+        <TopBar onOpenMobileSidebar={openMobileSidebar} compact={mobileHeaderCompact} scrolled={mainScrolled} />
         <FlexBox
           as="main"
           className="admin-main"

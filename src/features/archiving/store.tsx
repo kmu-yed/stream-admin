@@ -20,6 +20,7 @@ const initialPosts: ArchivePost[] = [
     location: '중앙광장',
     department: '문화기획국',
     content: '올해 해오름제는 역대 최다 인원이 참여한 가운데 성황리에 마무리되었습니다.',
+    includeInSlangje: true,
     createdAt: addDays(-15),
   },
   {
@@ -30,6 +31,7 @@ const initialPosts: ArchivePost[] = [
     location: '대운동장',
     department: '학생복지국',
     content: '신입생들과 함께한 새내기 배움터 현장을 아카이빙합니다.',
+    includeInSlangje: false,
     createdAt: addDays(-8),
   },
   {
@@ -40,6 +42,7 @@ const initialPosts: ArchivePost[] = [
     location: '학생회관 대강당',
     department: '대외협력국',
     content: '동문패널톡 진행을 위한 사전 준비 과정을 정리 중입니다.',
+    includeInSlangje: false,
     createdAt: addDays(-1),
   },
 ]
@@ -49,6 +52,7 @@ type ArchivingContextValue = {
   addPost: (input: ArchivePostInput) => ArchivePost
   updatePost: (id: string, input: ArchivePostInput) => void
   deletePost: (id: string) => void
+  updateSlangjeInclusion: (id: string, includeInSlangje: boolean) => void
 }
 
 const ArchivingContext = createContext<ArchivingContextValue | null>(null)
@@ -70,6 +74,7 @@ export function ArchivingProvider({ children }: { children: ReactNode }) {
       deletePost: (id) => {
         setPosts((prev) => prev.filter((post) => post.id !== id))
       },
+      updateSlangjeInclusion: (id, includeInSlangje) => setPosts((prev) => prev.map((post) => post.id === id ? { ...post, includeInSlangje } : post)),
     }),
     [posts],
   )

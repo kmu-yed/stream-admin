@@ -26,12 +26,12 @@ export const LOCKER_ZONE_RANGES: Record<LockerZone, { start: number; end: number
   D: { start: 1, end: 20 },
 }
 
-type LockerMapGroup = {
+export type LockerLayoutGroup = {
   columns: number
   numbers: number[]
 }
 
-export const LOCKER_PHYSICAL_LAYOUTS: Record<LockerZone, LockerMapGroup[]> = {
+export const LOCKER_PHYSICAL_LAYOUTS: Record<LockerZone, LockerLayoutGroup[]> = {
   'A-1': [
     { columns: 3, numbers: [10, 11, 12, 13, 14, 15, 16, 17, 18] },
     { columns: 6, numbers: [25, 26, 27, 28, 29, 30, 22, 23, 24, 31, 32, 33, 19, 20, 21, 34, 35, 36] },

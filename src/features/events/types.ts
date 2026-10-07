@@ -37,6 +37,7 @@ export type EventRecord = {
 export type EventFormInput = Omit<EventRecord, 'id' | 'createdAt' | 'isPublic'>
 
 export type ApplicantStatus = '신청완료' | '취소'
+export type AttendanceStatus = '미확정' | '참가완료' | '불참'
 
 export type Applicant = {
   id: string
@@ -46,7 +47,15 @@ export type Applicant = {
   phone: string
   appliedAt: string
   status: ApplicantStatus
+  attendanceStatus?: AttendanceStatus
   answers: Record<string, string>
+}
+
+export function getAttendanceStatus(applicant: Pick<Applicant, 'status' | 'attendanceStatus'>, event: Pick<EventRecord, 'eventEndDate'>): AttendanceStatus | '-' {
+  if (applicant.status === '취소') return '-'
+  if (applicant.attendanceStatus === '불참') return '불참'
+  if (event.eventEndDate < new Date().toISOString().slice(0, 10)) return '참가완료'
+  return applicant.attendanceStatus ?? '미확정'
 }
 
 export type EventStatus = '모집예정' | '모집중' | '모집종료'

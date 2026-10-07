@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Button, FlexBox, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, TextField, Typography, useToast } from '@wanteddev/wds'
+import { Button, DatePicker, FlexBox, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Typography, useToast, type DateType } from '@wanteddev/wds'
 import FormItem from '../../../components/common/FormItem'
+
+function toDateValue(value: DateType) { if (!value) return ''; if (typeof value === 'string') return value.slice(0, 10); return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}` }
 
 function RentalSettingsPanel() {
   const toast = useToast()
@@ -38,8 +40,8 @@ function RentalSettingsPanel() {
         <ModalContainer size="small"><ModalContent>
           <ModalContentItem><ModalHeading>시험기간 설정 수정</ModalHeading></ModalContentItem>
           <ModalContentItem style={{ gap: 20 }}>
-            <FormItem label="시작일"><TextField type="date" value={examDraft.start} onChange={(event) => setExamDraft({ ...examDraft, start: event.target.value })} /></FormItem>
-            <FormItem label="종료일"><TextField type="date" value={examDraft.end} onChange={(event) => setExamDraft({ ...examDraft, end: event.target.value })} /></FormItem>
+            <FormItem label="시작일"><DatePicker format="YYYY-MM-DD" width="100%" value={examDraft.start ? new Date(`${examDraft.start}T00:00:00`) : undefined} onChange={(value) => setExamDraft({ ...examDraft, start: toDateValue(value) })} /></FormItem>
+            <FormItem label="종료일"><DatePicker format="YYYY-MM-DD" width="100%" value={examDraft.end ? new Date(`${examDraft.end}T00:00:00`) : undefined} onChange={(value) => setExamDraft({ ...examDraft, end: toDateValue(value) })} /></FormItem>
           </ModalContentItem>
           <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => setEditing(null)}>취소</Button><Button variant="solid" color="primary" onClick={saveExam}>저장</Button></ModalContentItem>
         </ModalContent></ModalContainer>

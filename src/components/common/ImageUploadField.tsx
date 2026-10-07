@@ -9,11 +9,14 @@ type ImageUploadFieldProps = {
   maxCount?: number
   previewSize?: number
   accept?: string
+  editable?: boolean
+  onRemoveRequest?: (index: number) => void
 }
 
-function ImageUploadField({ value, onChange, multiple = false, maxCount, previewSize = 96, accept = 'image/*' }: ImageUploadFieldProps) {
+function ImageUploadField({ value, onChange, multiple = false, maxCount, previewSize = 96, accept = 'image/*', editable = true, onRemoveRequest }: ImageUploadFieldProps) {
   const canAddMore = maxCount === undefined || value.length < maxCount
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return
@@ -28,14 +31,15 @@ function ImageUploadField({ value, onChange, multiple = false, maxCount, preview
   return (
     <FlexBox style={{ gap: 12, flexWrap: 'wrap' }}>
       {value.map((url, index) => (
-        <FlexBox key={url} style={{ position: 'relative' }}>
-          <button type="button" aria-label="이미지 크게 보기" onClick={() => setPreviewUrl(url)} style={{ width: previewSize, height: previewSize, padding: 0, border: 0, borderRadius: 12, background: 'transparent', cursor: 'zoom-in', overflow: 'hidden' }}>
+        <FlexBox key={url} style={{ position: 'relative' }} onMouseEnter={() => setHoveredIndex(index)} onMouseLeave={() => setHoveredIndex(null)}>
+          <button type="button" aria-label="이미지 크게 보기" onClick={() => setPreviewUrl(url)} style={{ width: previewSize, height: previewSize, padding: 0, border: 0, borderRadius: 12, background: 'transparent', cursor: 'zoom-in', overflow: 'hidden', position: 'relative' }}>
             <Thumbnail src={url} alt="업로드한 이미지 미리보기" ratio="1:1" width={previewSize} border radius />
+            <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.48)', color: '#fff', fontSize: 13, fontWeight: 600, opacity: hoveredIndex === index ? 1 : 0, transition: 'opacity .16s ease' }}>미리보기</span>
           </button>
-          <IconButton
+          {editable && <IconButton
             variant="normal"
             size="small"
-            onClick={() => removeAt(index)}
+            onClick={() => onRemoveRequest ? onRemoveRequest(index) : removeAt(index)}
             style={{
               position: 'absolute',
               top: 8,
@@ -48,11 +52,11 @@ function ImageUploadField({ value, onChange, multiple = false, maxCount, preview
             }}
           >
             <IconClose width={14} height={14} />
-          </IconButton>
+          </IconButton>}
         </FlexBox>
       ))}
 
-      {canAddMore && (
+      {editable && canAddMore && (
         <FlexBox
           as="label"
           className="app-hoverable"

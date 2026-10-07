@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, FlexBox, TextField, Typography, useToast } from '@wanteddev/wds'
+import { Button, DatePicker, FlexBox, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
@@ -12,13 +12,23 @@ function toDateValue(date: Date) {
   return date.toISOString().slice(0, 10)
 }
 
-function SearchSelect({ id, value, onChange, options, placeholder }: { id: string; value: string; onChange: (value: string) => void; options: string[]; placeholder: string }) {
-  return (
-    <>
-      <TextField list={id} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
-      <datalist id={id}>{options.map((option) => <option key={option} value={option} />)}</datalist>
-    </>
-  )
+function toPickerDateValue(value: DateType) {
+  if (!value) return ''
+  if (typeof value === 'string') return value.slice(0, 10)
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
+}
+
+type SearchOption = { value: string; title: string; description: string }
+
+function SearchSelect({ value, onChange, options, placeholder }: { value: string; onChange: (value: string) => void; options: SearchOption[]; placeholder: string }) {
+  const [open, setOpen] = useState(false)
+  const results = options.filter((option) => !value.trim() || `${option.title} ${option.description}`.includes(value.trim()))
+  return <FlexBox flexDirection="column" style={{ gap: 8 }}>
+    <TextField value={value} placeholder={placeholder} onFocus={() => setOpen(true)} onChange={(event) => { onChange(event.target.value); setOpen(true) }} />
+    {open && <FlexBox flexDirection="column" style={{ maxHeight: 196, overflowY: 'auto', border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 10 }}>
+      {results.length ? results.map((option) => <button key={option.value} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { onChange(option.value); setOpen(false) }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '12px 14px', border: 0, borderBottom: '1px solid var(--semantic-line-normal-normal)', background: value === option.value ? 'var(--semantic-primary-light)' : 'transparent', color: 'var(--semantic-label-normal)', textAlign: 'left', cursor: 'pointer', font: 'inherit' }}><strong>{option.title}</strong><span style={{ fontSize: 13, color: 'var(--semantic-label-alternative)' }}>{option.description}</span></button>) : <Typography variant="body2" color="semantic.label.alternative" style={{ padding: 16 }}>검색 결과가 없어요.</Typography>}
+    </FlexBox>}
+  </FlexBox>
 }
 
 function RentalRecordFormPage() {
@@ -34,9 +44,9 @@ function RentalRecordFormPage() {
   const [rentalTime, setRentalTime] = useState('09:00')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const borrowerOptions = members.map((member) => `${member.name} · ${member.studentId}`)
-  const itemOptions = items.map((item) => `${item.name} · ${item.category}`)
-  const workerOptions = admins.map((admin) => `${admin.name} · ${admin.studentId} · ${admin.role}`)
+  const borrowerOptions = members.map((member) => ({ value: `${member.name} · ${member.studentId}`, title: member.name, description: `${member.studentId} · ${member.department}` }))
+  const itemOptions = items.map((item) => ({ value: `${item.name} · ${item.category}`, title: item.name, description: item.category }))
+  const workerOptions = admins.map((admin) => ({ value: `${admin.name} · ${admin.studentId} · ${admin.role}`, title: admin.name, description: `${admin.studentId} · ${admin.role}` }))
 
   const submit = () => {
     const borrower = members.find((member) => `${member.name} · ${member.studentId}` === borrowerValue)
@@ -66,21 +76,21 @@ function RentalRecordFormPage() {
         <FlexBox flexDirection="column" style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 14 }}>
           <Typography variant="label1" weight="bold">대여 정보</Typography>
           <FormItem label="대여자" error={errors.borrower}>
-            <SearchSelect id="rental-borrower-options" value={borrowerValue} onChange={setBorrowerValue} options={borrowerOptions} placeholder="이름 또는 학번으로 검색해 선택하세요" />
+            <SearchSelect value={borrowerValue} onChange={setBorrowerValue} options={borrowerOptions} placeholder="이름 또는 학번으로 검색해 선택하세요" />
           </FormItem>
           <FormItem label="대여 물품" error={errors.item}>
-            <SearchSelect id="rental-item-options" value={itemValue} onChange={setItemValue} options={itemOptions} placeholder="물품명 또는 카테고리로 검색해 선택하세요" />
+            <SearchSelect value={itemValue} onChange={setItemValue} options={itemOptions} placeholder="물품명 또는 카테고리로 검색해 선택하세요" />
           </FormItem>
         </FlexBox>
 
         <FlexBox flexDirection="column" style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 14 }}>
           <Typography variant="label1" weight="bold">처리 정보</Typography>
           <FlexBox style={{ gap: 16 }}>
-            <FlexBox style={{ flex: 1 }}><FormItem label="대여 날짜" error={errors.rentalAt}><TextField type="date" value={rentalDate} onChange={(event) => setRentalDate(event.target.value)} /></FormItem></FlexBox>
+            <FlexBox style={{ flex: 1 }}><FormItem label="대여 날짜" error={errors.rentalAt}><DatePicker format="YYYY-MM-DD" width="100%" value={rentalDate ? new Date(`${rentalDate}T00:00:00`) : undefined} onChange={(value) => setRentalDate(toPickerDateValue(value))} /></FormItem></FlexBox>
             <FlexBox style={{ flex: 1 }}><FormItem label="대여 시간" error={errors.rentalAt}><TextField type="time" value={rentalTime} onChange={(event) => setRentalTime(event.target.value)} /></FormItem></FlexBox>
           </FlexBox>
           <FormItem label="근무자" error={errors.worker}>
-            <SearchSelect id="rental-worker-options" value={workerValue} onChange={setWorkerValue} options={workerOptions} placeholder="이름 또는 학번으로 검색해 선택하세요" />
+            <SearchSelect value={workerValue} onChange={setWorkerValue} options={workerOptions} placeholder="이름 또는 학번으로 검색해 선택하세요" />
           </FormItem>
         </FlexBox>
 
