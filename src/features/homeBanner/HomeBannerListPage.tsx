@@ -92,16 +92,16 @@ function HomeBannerListPage() {
 
   return (
     <>
-      <SegmentedControl value={tab} onValueChange={(value) => setSearchParams({ tab: value })} size="medium" style={{ width: 220, marginBottom: 20 }}>
-        <SegmentedControlItem value="active">노출 중</SegmentedControlItem>
-        <SegmentedControlItem value="past">지난 배너</SegmentedControlItem>
-      </SegmentedControl>
-
-      <FlexBox justifyContent="flex-end" style={{ marginBottom: 16 }}>
-          <Button variant="solid" color="primary" onClick={() => navigate('/home-banner/new')}>+ 새 배너 등록</Button>
+      <FlexBox className="app-page-toolbar" justifyContent="space-between" alignItems="center" style={{ gap: 12, marginBottom: 16 }}>
+        <SegmentedControl value={tab} onValueChange={(value) => setSearchParams({ tab: value })} size="medium" style={{ width: 196 }}>
+          <SegmentedControlItem value="active">노출 중</SegmentedControlItem>
+          <SegmentedControlItem value="past">지난 배너</SegmentedControlItem>
+        </SegmentedControl>
+        {tab === 'active' && <Button variant="solid" color="primary" onClick={() => navigate('/home-banner/new')}>+ 새 배너 등록</Button>}
       </FlexBox>
 
       {tab === 'active' && (
+      <>
       <Table className="data-table">
         <TableHead>
           <TableRow>
@@ -195,6 +195,7 @@ function HomeBannerListPage() {
           )}
         </TableBody>
       </Table>
+      </>
       )}
 
       {tab === 'past' && (

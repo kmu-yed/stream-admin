@@ -84,36 +84,36 @@ function DisplayManagementPage() {
 
   return (
     <>
-      <PageHeader title="디스플레이 관리" description="디스플레이에 노출할 학사 일정과 행사 포스터를 관리해요." />
+      <PageHeader title="디스플레이 관리" description="학사 일정과 행사 포스터를 관리해요." />
       <Tab value={tab} onValueChange={setTab}>
         <TabList size="medium" style={{ marginBottom: 32 }}>
           <TabListItem value="calendar">학사 캘린더</TabListItem>
           <TabListItem value="poster">행사 포스터</TabListItem>
         </TabList>
         <TabPanel value="calendar">
-          <FlexBox justifyContent="space-between" alignItems="center" style={{ marginBottom: 24 }}>
-            <FlexBox alignItems="center" style={{ gap: 16 }}>
+          <FlexBox className="display-calendar-toolbar" justifyContent="space-between" alignItems="center" style={{ marginBottom: 24, gap: 12 }}>
+            <FlexBox className="display-calendar-navigation" alignItems="center" style={{ gap: 16 }}>
               <IconButton variant="outlined" size="medium" aria-label="이전 달" onClick={() => setMonth(new Date(year, monthIndex - 1, 1))}><IconChevronLeft width={22} height={22} /></IconButton>
-              <Typography variant="heading2" weight="bold">{year}년 {monthIndex + 1}월</Typography>
+              <Typography className="display-calendar-month" variant="heading2" weight="bold">{year}년 {monthIndex + 1}월</Typography>
               <IconButton variant="outlined" size="medium" aria-label="다음 달" onClick={() => setMonth(new Date(year, monthIndex + 1, 1))}><IconChevronRight width={22} height={22} /></IconButton>
             </FlexBox>
-            <Typography variant="body2" color="semantic.label.alternative">날짜를 클릭하여 일정을 추가·수정하세요.</Typography>
+            <Typography className="display-calendar-help" variant="body2" color="semantic.label.alternative">날짜를 눌러 일정을 관리하세요.</Typography>
           </FlexBox>
           <div style={{ border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16, overflowX: 'auto' }}>
-            <div style={{ minWidth: 784 }}>
+            <div className="display-calendar-grid">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', borderBottom: '1px solid var(--semantic-line-normal-normal)' }}>
-              {weekDays.map((day, index) => <FlexBox key={day} justifyContent="center" style={{ padding: '18px 0' }}><Typography variant="body1" weight="bold" style={{ color: index === 0 ? 'var(--semantic-status-negative)' : index === 6 ? 'var(--semantic-primary-normal)' : undefined }}>{day}</Typography></FlexBox>)}
+              {weekDays.map((day, index) => <FlexBox className="display-calendar-weekday" key={day} justifyContent="center"><Typography variant="body1" weight="bold" style={{ color: index === 0 ? 'var(--semantic-status-negative)' : index === 6 ? 'var(--semantic-primary-normal)' : undefined }}>{day}</Typography></FlexBox>)}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
               {cells.map((day, index) => {
                 const date = day ? isoDate(year, monthIndex, day) : ''
                 const dateEvents = events.filter((event) => event.startDate <= date && event.endDate >= date)
-                return <button className={day ? 'app-hoverable app-hoverable-flat' : undefined} key={`${date}-${index}`} type="button" onClick={() => day && openDate(day)} style={{ position: 'relative', height: 132, overflow: 'hidden', border: 'none', borderRight: index % 7 === 6 ? 'none' : '1px solid var(--semantic-line-normal-normal)', borderBottom: index < cells.length - 7 ? '1px solid var(--semantic-line-normal-normal)' : 'none', background: day ? 'var(--semantic-background-normal-normal)' : 'var(--semantic-background-normal-alternative)', padding: 0, textAlign: 'left', cursor: day ? 'pointer' : 'default' }}>
+                return <button className={`display-calendar-day${day ? ' app-hoverable app-hoverable-flat' : ''}`} key={`${date}-${index}`} type="button" onClick={() => day && openDate(day)} style={{ position: 'relative', overflow: 'hidden', border: 'none', borderRight: index % 7 === 6 ? 'none' : '1px solid var(--semantic-line-normal-normal)', borderBottom: index < cells.length - 7 ? '1px solid var(--semantic-line-normal-normal)' : 'none', background: day ? 'var(--semantic-background-normal-normal)' : 'var(--semantic-background-normal-alternative)', padding: 0, textAlign: 'left', cursor: day ? 'pointer' : 'default' }}>
                   {day && <>
-                    <Typography variant="body1" weight="medium" style={{ position: 'absolute', top: 14, left: 14, display: 'block', textAlign: 'left', zIndex: 1 }}>{day}</Typography>
-                    <div style={{ position: 'absolute', top: 48, left: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 6, pointerEvents: 'none' }}>
-                      {dateEvents.slice(0, 2).map((event) => <span key={event.id} style={{ minHeight: 26, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRadius: 5, padding: '5px 8px', background: 'var(--semantic-primary-normal)', color: '#fff', fontSize: 13, textAlign: 'center' }}>{event.title}</span>)}
-                      {dateEvents.length > 2 && <Typography variant="caption1" color="semantic.primary.normal" style={{ paddingLeft: 4, textAlign: 'left' }}>+{dateEvents.length - 2}개 더보기</Typography>}
+                    <Typography className="display-calendar-date" variant="body1" weight="medium">{day}</Typography>
+                    <div className="display-calendar-events">
+                      {dateEvents.slice(0, 2).map((event) => <span className="display-calendar-event" key={event.id}>{event.title}</span>)}
+                      {dateEvents.length > 2 && <Typography className="display-calendar-more" variant="caption1" color="semantic.primary.normal">+{dateEvents.length - 2}개 더보기</Typography>}
                     </div>
                   </>}
                 </button>
@@ -123,12 +123,12 @@ function DisplayManagementPage() {
           </div>
         </TabPanel>
         <TabPanel value="poster">
-          <FlexBox justifyContent="space-between" alignItems="center" style={{ marginBottom: 28 }}>
+          <FlexBox className="display-poster-toolbar" justifyContent="space-between" alignItems="center" style={{ marginBottom: 28, gap: 12 }}>
             <Typography variant="body1" color="semantic.label.alternative">총 {posters.length}개 / 활성화 {posters.length}개</Typography>
             <Button variant="solid" color="primary" onClick={() => { setEditingPoster(null); setPosterTitle(''); setPosterImage([]); setPosterModalOpen(true) }}>+ 포스터 추가하기</Button>
           </FlexBox>
           {posters.length === 0 ? (
-            <FlexBox flexDirection="column" alignItems="center" justifyContent="center" style={{ minHeight: 400, gap: 12, border: '1px dashed var(--semantic-line-normal-normal)', borderRadius: 16 }}><IconImage width={40} height={40} style={{ color: 'var(--semantic-label-alternative)' }} /><Typography variant="body1" color="semantic.label.alternative">등록된 포스터가 없습니다.</Typography></FlexBox>
+            <FlexBox className="display-poster-empty" flexDirection="column" alignItems="center" justifyContent="center" style={{ minHeight: 400, gap: 12, border: '1px dashed var(--semantic-line-normal-normal)', borderRadius: 16 }}><IconImage width={40} height={40} style={{ color: 'var(--semantic-label-alternative)' }} /><Typography variant="body1" color="semantic.label.alternative">등록된 포스터가 없습니다.</Typography></FlexBox>
           ) : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>{posters.map((poster) => <FlexBox key={poster.id} flexDirection="column" style={{ gap: 8 }}><img src={poster.image} alt={poster.title} style={{ width: '100%', aspectRatio: '3 / 4', objectFit: 'cover', borderRadius: 12 }} /><FlexBox justifyContent="space-between" alignItems="center"><Typography variant="body1" weight="medium">{poster.title}</Typography><FlexBox style={{ gap: 6 }}><Button size="small" variant="outlined" color="assistive" onClick={() => { setEditingPoster(poster); setPosterTitle(poster.title); setPosterImage([poster.image]); setPosterModalOpen(true) }}>수정</Button><Button size="small" variant="outlined" color="assistive" onClick={() => setDeletePosterTarget(poster)}>삭제</Button></FlexBox></FlexBox></FlexBox>)}</div>}
         </TabPanel>
       </Tab>
@@ -143,13 +143,13 @@ function DisplayManagementPage() {
             {!eventFormOpen && <Button variant="outlined" color="primary" onClick={() => { setEditingEventId(null); setEventTitle(''); setEventStartDate(selectedDate ?? ''); setEventEndDate(selectedDate ?? ''); setEventFormOpen(true) }}>＋ 일정 추가</Button>}
             {eventFormOpen && <FlexBox flexDirection="column" style={{ gap: 16, paddingTop: 8 }}>
               <FormItem label="일정명"><TextField value={eventTitle} placeholder="일정을 입력해주세요" onChange={(event) => setEventTitle(event.target.value)} /></FormItem>
-              <FormItem label="일정 기간"><FlexBox alignItems="center" style={{ gap: 8 }}><DatePicker value={eventStartDate} width="100%" onChange={(value) => setEventStartDate(toDateValue(value))} /><Typography variant="body2" color="semantic.label.alternative">~</Typography><DatePicker value={eventEndDate} width="100%" onChange={(value) => setEventEndDate(toDateValue(value))} /></FlexBox></FormItem>
+              <FormItem label="일정 기간"><FlexBox className="app-date-range" alignItems="center" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 8, width: '100%' }}><DatePicker value={eventStartDate} width="100%" onChange={(value) => setEventStartDate(toDateValue(value))} /><Typography className="app-date-range-separator" variant="body2" color="semantic.label.alternative">~</Typography><DatePicker value={eventEndDate} width="100%" onChange={(value) => setEventEndDate(toDateValue(value))} /></FlexBox></FormItem>
             </FlexBox>}
           </ModalContentItem>
           <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}><Button variant="outlined" color="assistive" style={{ visibility: eventFormOpen && editingEventId ? 'visible' : 'hidden', color: 'var(--semantic-status-negative)' }} onClick={deleteEvent}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconTrash width={16} height={16} style={{ display: 'block' }} />삭제</span></Button><FlexBox style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => setSelectedDate(null)}>취소</Button><Button variant="solid" color="primary" disabled={!eventFormOpen} onClick={saveEvent}>저장</Button></FlexBox></ModalContentItem>
         </ModalContent></ModalContainer>
       </Modal>
-      <ConfirmModal open={Boolean(deletePosterTarget)} onOpenChange={(open) => !open && setDeletePosterTarget(null)} title="포스터를 삭제할까요?" description={deletePosterTarget ? `\"${deletePosterTarget.title}\" 포스터를 삭제해요.` : undefined} confirmLabel="삭제" tone="negative" onConfirm={() => { if (!deletePosterTarget) return; setPosters((prev) => prev.filter((poster) => poster.id !== deletePosterTarget.id)); setDeletePosterTarget(null); toast({ content: '포스터를 삭제했어요.', variant: 'positive' }) }} />
+      <ConfirmModal open={Boolean(deletePosterTarget)} onOpenChange={(open) => !open && setDeletePosterTarget(null)} title="포스터를 삭제할까요?" description={deletePosterTarget ? `"${deletePosterTarget.title}" 포스터를 삭제해요.` : undefined} confirmLabel="삭제" tone="negative" onConfirm={() => { if (!deletePosterTarget) return; setPosters((prev) => prev.filter((poster) => poster.id !== deletePosterTarget.id)); setDeletePosterTarget(null); toast({ content: '포스터를 삭제했어요.', variant: 'positive' }) }} />
       <Modal open={posterModalOpen} onOpenChange={setPosterModalOpen}>
         <ModalContainer size="small"><ModalContent>
           <ModalContentItem><ModalHeading>행사 포스터 {editingPoster ? '수정' : '추가'}</ModalHeading></ModalContentItem>

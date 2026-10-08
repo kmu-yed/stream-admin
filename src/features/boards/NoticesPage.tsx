@@ -55,7 +55,7 @@ function NoticesPage() {
       header: '',
       width: 56,
       align: 'right',
-      render: (row) => <RowMoreMenu label={row.title} onEdit={() => navigate(`/notices/${row.id}/edit`)} onDelete={() => setDeleteTarget(row)} />,
+      render: (row) => <span onClick={(event) => event.stopPropagation()}><RowMoreMenu label={row.title} onEdit={() => navigate(`/notices/${row.id}/edit`)} onDelete={() => setDeleteTarget(row)} /></span>,
     },
   ]
 
@@ -72,6 +72,7 @@ function NoticesPage() {
         columns={columns}
         rows={sorted}
         rowKey={(row) => row.id}
+        onRowClick={(row) => navigate(`/notices/${row.id}`)}
         emptyMessage="등록된 공지가 없어요."
       />
 

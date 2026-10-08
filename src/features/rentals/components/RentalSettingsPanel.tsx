@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button, DatePicker, FlexBox, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Typography, useToast, type DateType } from '@wanteddev/wds'
 import FormItem from '../../../components/common/FormItem'
+import FormSection from '../../../components/common/FormSection'
 
 function toDateValue(value: DateType) { if (!value) return ''; if (typeof value === 'string') return value.slice(0, 10); return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}` }
 
@@ -25,14 +26,16 @@ function RentalSettingsPanel() {
   return (
     <>
       <FlexBox flexDirection="column" style={{ gap: 16, maxWidth: 760 }}>
-        <FlexBox justifyContent="space-between" alignItems="center" style={{ gap: 24, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 14 }}>
-          <FlexBox flexDirection="column" style={{ gap: 6 }}>
-            <Typography variant="body1" weight="bold">시험기간 설정</Typography>
-            <Typography variant="body2" color="semantic.label.alternative">시험기간 동안 빌릴게 이용이 제한돼요.</Typography>
-            <Typography variant="caption1" color="semantic.label.alternative" style={{ marginTop: 6 }}>{examPeriod.start} ~ {examPeriod.end}</Typography>
+        <FormSection style={{ maxWidth: 760 }}>
+          <FlexBox justifyContent="space-between" alignItems="center" style={{ gap: 16, flexWrap: 'wrap' }}>
+            <FlexBox flexDirection="column" style={{ gap: 6 }}>
+              <Typography variant="body1" weight="bold">시험기간 설정</Typography>
+              <Typography variant="body2" color="semantic.label.alternative">시험기간 동안 빌릴게 이용이 제한돼요.</Typography>
+              <Typography variant="caption1" color="semantic.label.alternative" style={{ marginTop: 6 }}>{examPeriod.start} ~ {examPeriod.end}</Typography>
+            </FlexBox>
+            <Button variant="outlined" color="primary" onClick={openExamEdit}>수정</Button>
           </FlexBox>
-          <Button variant="outlined" color="primary" onClick={openExamEdit}>수정</Button>
-        </FlexBox>
+        </FormSection>
 
       </FlexBox>
 

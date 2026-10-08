@@ -13,8 +13,8 @@ type FormItemProps = {
 
 function FormItem({ label, required = false, error, labelVariant = 'label1', labelWeight = 'medium', style, children }: FormItemProps) {
   return (
-    <FormField style={style}>
-      <FormLabel variant={labelVariant} weight={labelWeight} required={required}>
+    <FormField style={style} aria-required={required || undefined}>
+      <FormLabel variant={labelVariant} weight={labelWeight}>
         {label}
       </FormLabel>
       <FormControl>{children}</FormControl>

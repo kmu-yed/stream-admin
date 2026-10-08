@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Checkbox, DatePicker, FlexBox, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
+import { Button, Checkbox, DatePicker, FlexBox, Option, Select, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
@@ -52,11 +52,6 @@ function ArchiveFormPage() {
       : emptyForm,
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [noticeSearch, setNoticeSearch] = useState(() => {
-    const noticeId = existing?.linkedPageUrl?.replace('/notices/', '')
-    const notice = notices.find((item) => item.id === noticeId)
-    return notice ? `${notice.title} · ${notice.category}` : ''
-  })
 
   const goToList = () => navigate('/archiving')
 
@@ -145,22 +140,10 @@ function ArchiveFormPage() {
         </FormItem>
 
         <FormItem label="관련 공지 연결 (선택)">
-          <FlexBox flexDirection="column">
-            <TextField
-              list="archive-notice-options"
-              placeholder="공지 제목을 검색해 선택하세요"
-              value={noticeSearch}
-              onChange={(e) => {
-                const value = e.target.value
-                setNoticeSearch(value)
-                const notice = notices.find((item) => `${item.title} · ${item.category}` === value)
-                setForm({ ...form, linkedPageUrl: notice ? `/notices/${notice.id}` : undefined })
-              }}
-            />
-            <datalist id="archive-notice-options">
-              {notices.map((notice) => <option key={notice.id} value={`${notice.title} · ${notice.category}`} />)}
-            </datalist>
-          </FlexBox>
+          <Select value={form.linkedPageUrl?.replace('/notices/', '') ?? ''} onChange={(value) => setForm({ ...form, linkedPageUrl: value ? `/notices/${value}` : '' })} style={{ width: '100%' }}>
+            <Option value="">연결하지 않음</Option>
+            {notices.map((notice) => <Option key={notice.id} value={notice.id}>{notice.title} · {notice.category}</Option>)}
+          </Select>
         </FormItem>
         </FormSection>
 

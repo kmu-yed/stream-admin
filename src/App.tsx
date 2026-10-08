@@ -11,6 +11,7 @@ import LockerSemesterFormPage from './features/lockers/LockerSemesterFormPage'
 import { BoardsProvider } from './features/boards/store'
 import NoticesPage from './features/boards/NoticesPage'
 import NoticeFormPage from './features/boards/NoticeFormPage'
+import NoticeDetailPage from './features/boards/NoticeDetailPage'
 import FeedbackPage from './features/boards/FeedbackPage'
 import FeedbackRoundFormPage from './features/boards/FeedbackRoundFormPage'
 import FeedbackRoundCreatePage from './features/boards/FeedbackRoundCreatePage'
@@ -71,6 +72,7 @@ function NoticesRoutes() {
       <Route index element={<NoticesPage />} />
       <Route path="new" element={<NoticeFormPage />} />
       <Route path=":id/edit" element={<NoticeFormPage />} />
+      <Route path=":id" element={<NoticeDetailPage />} />
     </Routes>
   )
 }

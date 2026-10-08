@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Checkbox, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Thumbnail, Typography, useToast } from '@wanteddev/wds'
-import { IconChevronDown, IconChevronDownSmall } from '@wanteddev/wds-icon'
+import { Button, Checkbox, FlexBox, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Typography, useToast } from '@wanteddev/wds'
+import { IconChevronDownSmall } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
@@ -10,14 +10,9 @@ import RowMoreMenu from '../../components/common/RowMoreMenu'
 import { useArchiving } from './store'
 import type { ArchivePost } from './types'
 import StatusBadge from '../../components/common/StatusBadge'
+import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
 
 type SlangjeFilter = 'all' | 'visible' | 'hidden'
-
-function updateMultiFilter(current: SlangjeFilter[], value?: string | string[]) {
-  if (!Array.isArray(value) || value.length === 0) return ['all'] as SlangjeFilter[]
-  if (value.includes('all')) return current.includes('all') ? value.filter((item) => item !== 'all') as SlangjeFilter[] : ['all'] as SlangjeFilter[]
-  return value as SlangjeFilter[]
-}
 
 function ArchiveListPage() {
   const navigate = useNavigate()
@@ -35,25 +30,7 @@ function ArchiveListPage() {
 
   const columns: DataTableColumn<ArchivePost>[] = [
     { key: 'select', header: <Checkbox checked={sorted.length > 0 && sorted.every((post) => selectedIds.includes(post.id))} onCheckedChange={(checked) => setSelectedIds(checked ? sorted.map((post) => post.id) : [])} />, width: 48, align: 'center', render: (row) => <Checkbox checked={selectedIds.includes(row.id)} onCheckedChange={(checked) => setSelectedIds((prev) => checked ? [...prev, row.id] : prev.filter((id) => id !== row.id))} /> },
-    {
-      key: 'cover',
-      header: '',
-      width: 64,
-      render: (row) =>
-        row.coverImageUrl ? (
-          <Thumbnail src={row.coverImageUrl} alt="" ratio="1:1" width={40} radius />
-        ) : (
-          <FlexBox
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 8,
-              background: 'var(--semantic-fill-normal)',
-            }}
-          />
-        ),
-    },
-    { key: 'slangje', header: <Menu value={slangjeFilters} onValueChange={(value) => setSlangjeFilters(updateMultiFilter(slangjeFilters, value))}><FlexBox alignItems="center" style={{ gap: 4 }}><span>슬랑제 페이지 여부</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="슬랑제 페이지 여부 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체</MenuItem><MenuItem variant="checkbox" value="visible">노출</MenuItem><MenuItem variant="checkbox" value="hidden">비노출</MenuItem></MenuList></MenuContent></Menu>, width: 180, render: (row) => <Menu><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={row.includeInSlangje ? '노출' : '비노출'} tone={row.includeInSlangje ? 'positive' : 'neutral'} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-end" offset={8}><MenuList><MenuItem value="visible" onClick={() => updateSlangjeInclusion(row.id, true)}><StatusBadge label="노출" tone="positive" /></MenuItem><MenuItem value="hidden" onClick={() => updateSlangjeInclusion(row.id, false)}><StatusBadge label="비노출" tone="neutral" /></MenuItem></MenuList></MenuContent></Menu> },
+    { key: 'slangje', header: <TableCheckboxFilter label="슬랑제 페이지 여부" ariaLabel="슬랑제 페이지 여부 필터" options={[{ value: 'visible', label: '노출' }, { value: 'hidden', label: '비노출' }]} value={slangjeFilters} onChange={(value) => setSlangjeFilters(value as SlangjeFilter[])} />, width: 180, render: (row) => <Menu><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={row.includeInSlangje ? '노출' : '비노출'} tone={row.includeInSlangje ? 'positive' : 'neutral'} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-end" offset={8}><MenuList><MenuItem value="visible" onClick={() => updateSlangjeInclusion(row.id, true)}><StatusBadge label="노출" tone="positive" /></MenuItem><MenuItem value="hidden" onClick={() => updateSlangjeInclusion(row.id, false)}><StatusBadge label="비노출" tone="neutral" /></MenuItem></MenuList></MenuContent></Menu> },
     {
       key: 'title',
       header: '제목',

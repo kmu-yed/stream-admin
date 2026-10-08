@@ -38,7 +38,7 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
   }
 
   const addField = () => {
-    onChange([...value, { id: makeId(), label: '', required: true, type: 'text', options: [], maxLength: 200 }])
+    onChange([...value, { id: makeId(), label: '', required: true, type: 'radio', options: [''], maxLength: 200 }])
   }
 
   const updateOption = (fieldId: string, index: number, text: string) => {

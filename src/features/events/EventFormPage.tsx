@@ -28,11 +28,10 @@ function EventFormItem(props: Omit<ComponentProps<typeof FormItem>, 'labelVarian
   return <FormItem {...props} labelVariant="body1" labelWeight="regular" />
 }
 
-function EventInfoRow({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: ReactNode }) {
+function EventInfoRow({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <FlexBox alignItems="flex-start" style={{ gap: 16 }}>
       <FlexBox alignItems="center" style={{ width: 88, minHeight: 48, flexShrink: 0 }}>
-        {required && <Typography variant="body1" weight="bold" style={{ color: 'var(--semantic-status-negative)', marginRight: 3 }}>*</Typography>}
         <Typography variant="body1" weight="regular">{label}</Typography>
       </FlexBox>
       <FlexBox flexDirection="column" style={{ flex: 1, minWidth: 0, gap: 6 }}>

@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Modal, ModalContainer, ModalContent, ModalContentItem, ModalDescription, ModalHeading, Option, Select, Tab, TabList, TabListItem, TabPanel, TextArea, TextButton, TextField, Typography, useToast } from '@wanteddev/wds'
-import { IconChevronDown, IconChevronDownSmall } from '@wanteddev/wds-icon'
+import { Button, FlexBox, Menu, MenuContent, MenuTrigger, Modal, ModalContainer, ModalContent, ModalContentItem, ModalDescription, ModalHeading, Option, Select, Tab, TabList, TabListItem, TabPanel, TextArea, TextButton, TextField, Typography, useToast } from '@wanteddev/wds'
+import { IconChevronDownSmall } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import FormItem from '../../components/common/FormItem'
+import FormSection from '../../components/common/FormSection'
 import SearchField from '../../components/common/SearchField'
 import ExcelExportButton from '../../components/common/ExcelExportButton'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
+import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
 import { useStudentCouncil } from './store'
 import { BANKS, type BankName, type PaymentStatus, type StreamMembershipStatus, type StudentCouncilFeeAccount, type StudentMember } from './types'
 
@@ -77,38 +79,7 @@ function PaymentMemberList() {
     { key: 'streamMembershipStatus', header: 'Stream 가입 상태', width: 140, render: (row) => <StatusBadge label={row.streamMembershipStatus} tone={streamMembershipTone[row.streamMembershipStatus]} /> },
     { key: 'paidAt', header: '납부일', width: 120, render: (row) => row.paidAt ?? '-' },
     {
-      key: 'status', header: (
-        <Menu
-          value={filters}
-          onValueChange={(value) => {
-            if (!Array.isArray(value)) return
-            if (value.length === 0) {
-              setFilters(['all'])
-              return
-            }
-            if (value.includes('all')) {
-              setFilters(filters.includes('all') ? value.filter((item) => item !== 'all') as Filter[] : ['all'])
-              return
-            }
-            setFilters(value as Filter[])
-          }}
-        >
-          <FlexBox alignItems="center" style={{ gap: 4 }}>
-            <span>납부 상태</span>
-            <MenuTrigger>
-              <IconButton variant="normal" size="small" aria-label="납부 상태 필터" style={{ width: 12, height: 12 }}>
-                <IconChevronDown width={6} height={6} />
-              </IconButton>
-            </MenuTrigger>
-          </FlexBox>
-          <MenuContent position="bottom-start" offset={4}>
-            <MenuList>
-              <MenuItem variant="checkbox" value="all">전체 납부 상태</MenuItem>
-              {paymentStatuses.map((status) => <MenuItem key={status} variant="checkbox" value={status}>{status}</MenuItem>)}
-            </MenuList>
-          </MenuContent>
-        </Menu>
-      ), width: 180,
+      key: 'status', header: <TableCheckboxFilter label="납부 상태" ariaLabel="납부 상태 필터" allLabel="전체 납부 상태" options={paymentStatuses} value={filters} onChange={(value) => setFilters(value as Filter[])} />, width: 180,
       render: (row) => (
         <Menu open={openStatusId === row.id} onOpenChange={(open) => setOpenStatusId(open ? row.id : null)}>
           <MenuTrigger>
@@ -167,8 +138,8 @@ function AccountManagement() {
   }
   return (
     <FlexBox flexDirection="column" style={{ gap: 32 }}>
-      <FlexBox flexDirection="column" style={{ gap: 24, maxWidth: 560, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
-        <FlexBox justifyContent="space-between" alignItems="flex-start"><FlexBox flexDirection="column" style={{ gap: 4 }}><Typography variant="body1" weight="bold">학생회비 납부계좌</Typography><Typography variant="body2" color="semantic.label.alternative">`(8학기 - 수강한 학기) × 학기당 회비`로 납부 금액이 계산돼요.</Typography></FlexBox>{!editing && <Button variant="outlined" color="primary" onClick={() => setEditing(true)}>수정</Button>}</FlexBox>
+      <FormSection style={{ maxWidth: 560 }}>
+        <FlexBox className="account-card-header" justifyContent="space-between" alignItems="flex-start"><FlexBox flexDirection="column" style={{ gap: 4 }}><Typography variant="body1" weight="bold">학생회비 납부계좌</Typography><Typography variant="body2" color="semantic.label.alternative">`(8학기 - 수강한 학기) × 학기당 회비`로 납부 금액이 계산돼요.</Typography></FlexBox>{!editing && <Button variant="outlined" color="primary" onClick={() => setEditing(true)}>수정</Button>}</FlexBox>
         {editing ? <>
           <FormItem label="은행"><Select value={form.bank} onChange={(value) => setForm({ ...form, bank: value as BankName })}>{BANKS.map((bank) => <Option key={bank} value={bank}>{bank}</Option>)}</Select></FormItem>
           <FormItem label="계좌번호"><TextField value={form.accountNumber} placeholder="계좌번호를 입력해주세요" onChange={(event) => setForm({ ...form, accountNumber: event.target.value })} /></FormItem>
@@ -176,9 +147,9 @@ function AccountManagement() {
           <FormItem label="학기당 학생회비"><TextField type="number" value={String(form.feePerSemester)} onChange={(event) => setForm({ ...form, feePerSemester: Number(event.target.value) || 0 })} /></FormItem>
           <FlexBox justifyContent="flex-end" style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => { setForm({ year: current.year, bank: current.bank, accountNumber: current.accountNumber, accountHolder: current.accountHolder, feePerSemester: current.feePerSemester }); setEditing(false) }}>취소</Button><Button variant="solid" color="primary" onClick={save}>저장</Button></FlexBox>
         </> : <FlexBox flexDirection="column" style={{ gap: 16 }}>
-          {[['은행', form.bank], ['계좌번호', form.accountNumber], ['예금주', form.accountHolder], ['학기당 학생회비', `${form.feePerSemester.toLocaleString()}원`]].map(([label, value]) => <FlexBox key={label} justifyContent="space-between" alignItems="center"><Typography variant="body2" color="semantic.label.alternative">{label}</Typography><Typography variant="body1" weight="medium">{value}</Typography></FlexBox>)}
+          {[['은행', form.bank], ['계좌번호', form.accountNumber], ['예금주', form.accountHolder], ['학기당 학생회비', `${form.feePerSemester.toLocaleString()}원`]].map(([label, value]) => <FlexBox className="account-info-row" key={label} justifyContent="space-between" alignItems="center"><Typography variant="body2" color="semantic.label.alternative">{label}</Typography><Typography variant="body1" weight="medium">{value}</Typography></FlexBox>)}
         </FlexBox>}
-      </FlexBox>
+      </FormSection>
     </FlexBox>
   )
 }

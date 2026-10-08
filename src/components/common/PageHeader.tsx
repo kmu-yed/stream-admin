@@ -16,7 +16,7 @@ function PageHeader({ title, description, action }: PageHeaderProps) {
       style={{ marginBottom: 24, gap: 16 }}
     >
       <FlexBox flexDirection="column" style={{ gap: 4 }}>
-        <Typography variant="title2" weight="bold">
+        <Typography className="page-header-title" variant="title2" weight="bold">
           {title}
         </Typography>
         {description && (

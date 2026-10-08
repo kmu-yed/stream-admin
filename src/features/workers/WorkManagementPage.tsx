@@ -24,6 +24,7 @@ import DataTable, {
   type DataTableColumn,
 } from "../../components/common/DataTable";
 import SearchField from "../../components/common/SearchField";
+import MultiPersonPicker from "../../components/common/MultiPersonPicker";
 
 type Worker = { adminId: string };
 type Shift = {
@@ -64,7 +65,7 @@ export default function WorkManagementPage() {
   const [workers, setWorkers] = useState<Worker[]>(initialWorkers);
   const [shifts, setShifts] = useState<Shift[]>(initialShifts);
   const [workerOpen, setWorkerOpen] = useState(false);
-  const [selectedAdminId, setSelectedAdminId] = useState("");
+  const [selectedAdminIds, setSelectedAdminIds] = useState<string[]>([]);
   const [workerSearch, setWorkerSearch] = useState("");
   const [shiftOpen, setShiftOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
@@ -159,7 +160,7 @@ export default function WorkManagementPage() {
     <>
       <PageHeader
         title="관리자 및 근무 관리"
-        description="관리자 권한, 근무자 목록, 근무 시간표를 관리해요."
+        description="관리자 권한·근무자·시간표를 관리해요."
       />
       <Tab value={tab} onValueChange={setTab}>
         <TabList size="medium" style={{ marginBottom: 20 }}>
@@ -176,8 +177,8 @@ export default function WorkManagementPage() {
               variant="solid"
               color="primary"
               onClick={() => {
-                setSelectedAdminId("");
                 setWorkerSearch("");
+                setSelectedAdminIds([]);
                 setWorkerOpen(true);
               }}
             >
@@ -325,7 +326,7 @@ export default function WorkManagementPage() {
           </div>
         </TabPanel>
       </Tab>
-      <Modal open={workerOpen} onOpenChange={setWorkerOpen}>
+      <Modal open={workerOpen} onOpenChange={(open) => { setWorkerOpen(open); if (!open) setSelectedAdminIds([]) }}>
         <ModalContainer size="medium">
           <ModalContent>
             <ModalContentItem>
@@ -340,105 +341,13 @@ export default function WorkManagementPage() {
                   width="100%"
                 />
               </FormItem>
-              <FlexBox
-                flexDirection="column"
-                style={{
-                  width: "100%",
-                  maxHeight: 220,
-                  overflowY: "auto",
-                  border: "1px solid var(--semantic-line-normal-normal)",
-                  borderRadius: 10,
-                }}
-              >
-                {workerSearchResults.length ? (
-                  workerSearchResults.map((admin) => (
-                    <button
-                      key={admin.id}
-                      type="button"
-                      onClick={() => setSelectedAdminId(admin.id)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        width: "100%",
-                        padding: "12px 14px",
-                        border: 0,
-                        borderBottom:
-                          "1px solid var(--semantic-line-normal-normal)",
-                        background:
-                          selectedAdminId === admin.id
-                            ? "var(--semantic-primary-light)"
-                            : "transparent",
-                        color: "var(--semantic-label-normal)",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        font: "inherit",
-                      }}
-                    >
-                      <span>
-                        <strong>{admin.name}</strong>
-                        <span style={{ marginLeft: 8, fontSize: 13 }}>
-                          {admin.studentId} ·{" "}
-                          {admin.councilDepartment ?? "소속 없음"}
-                        </span>
-                      </span>
-                      <span style={{ fontSize: 13 }}>
-                        {selectedAdminId === admin.id ? "선택" : ""}
-                      </span>
-                    </button>
-                  ))
-                ) : (
-                  <Typography
-                    variant="body2"
-                    color="semantic.label.alternative"
-                    style={{ padding: 16 }}
-                  >
-                    검색 결과가 없어요.
-                  </Typography>
-                )}
-              </FlexBox>
-              {selectedAdminId &&
-                (() => {
-                  const admin = admins.find(
-                    (item) => item.id === selectedAdminId,
-                  );
-                  return admin ? (
-                    <FlexBox
-                      justifyContent="space-between"
-                      alignItems="center"
-                      style={{
-                        padding: "14px 16px",
-                        border: "1px solid var(--semantic-primary-normal)",
-                        borderRadius: 10,
-                        background: "var(--semantic-primary-light)",
-                      }}
-                    >
-                      <FlexBox flexDirection="column" style={{ gap: 3 }}>
-                        <Typography
-                          variant="label2"
-                          color="semantic.primary.normal"
-                        >
-                          선택된 관리자
-                        </Typography>
-                        <Typography variant="body1" weight="bold">
-                          {admin.name}{" "}
-                          <span style={{ marginLeft: 6, fontWeight: 400 }}>
-                            {admin.studentId} ·{" "}
-                            {admin.councilDepartment ?? "소속 없음"}
-                          </span>
-                        </Typography>
-                      </FlexBox>
-                      <Button
-                        variant="outlined"
-                        color="assistive"
-                        size="small"
-                        onClick={() => setSelectedAdminId("")}
-                      >
-                        선택 해제
-                      </Button>
-                    </FlexBox>
-                  ) : null;
-                })()}
+              <MultiPersonPicker
+                items={workerSearchResults.map((admin) => ({ id: admin.id, name: admin.name, detail: `${admin.studentId} · ${admin.councilDepartment ?? '소속 없음'}` }))}
+                selectedItems={admins.filter((admin) => selectedAdminIds.includes(admin.id)).map((admin) => ({ id: admin.id, name: admin.name, detail: `${admin.studentId} · ${admin.councilDepartment ?? '소속 없음'}` }))}
+                selectedIds={selectedAdminIds}
+                onToggle={(id) => setSelectedAdminIds((previous) => previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id])}
+                onClear={() => setSelectedAdminIds([])}
+              />
             </ModalContentItem>
             <ModalContentItem
               style={{
@@ -457,20 +366,20 @@ export default function WorkManagementPage() {
               <Button
                 variant="solid"
                 color="primary"
-                disabled={!selectedAdminId}
+                disabled={selectedAdminIds.length === 0}
                 onClick={() => {
-                  setWorkers((previous) => [
-                    ...previous,
-                    { adminId: selectedAdminId },
-                  ]);
+                  const ids = selectedAdminIds.filter((id) => !workers.some((worker) => worker.adminId === id));
+                  if (ids.length === 0) return;
+                  setWorkers((previous) => [...previous, ...ids.map((adminId) => ({ adminId }))]);
                   setWorkerOpen(false);
+                  setSelectedAdminIds([]);
                   toast({
-                    content: "관리자 목록에서 근무자를 등록했어요.",
+                    content: `${ids.length}명을 근무자로 등록했어요.`,
                     variant: "positive",
                   });
                 }}
               >
-                등록
+                {selectedAdminIds.length ? `${selectedAdminIds.length}명 등록` : '등록'}
               </Button>
             </ModalContentItem>
           </ModalContent>
@@ -510,6 +419,7 @@ export default function WorkManagementPage() {
                   {draft.ranges.map((range, index) => (
                     <div
                       key={`${range.weekday}-${index}`}
+                      className="work-shift-range"
                       style={{
                         display: "grid",
                         gridTemplateColumns:

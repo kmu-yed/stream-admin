@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Typography, useToast } from '@wanteddev/wds'
-import { IconChevronDown, IconChevronDownSmall } from '@wanteddev/wds-icon'
+import { Button, FlexBox, Menu, MenuContent, MenuTrigger, Typography, useToast } from '@wanteddev/wds'
+import { IconChevronDownSmall } from '@wanteddev/wds-icon'
 import DataTable, { type DataTableColumn } from '../../../components/common/DataTable'
 import SearchField from '../../../components/common/SearchField'
 import StatusBadge, { type BadgeTone } from '../../../components/common/StatusBadge'
+import TableCheckboxFilter from '../../../components/common/TableCheckboxFilter'
 import { useRentals } from '../store'
 import { getRentalRecordStatus, RENTAL_RECORD_STATUSES, type RentalRecord, type RentalRecordStatus } from '../types'
 
@@ -78,7 +79,7 @@ function RentalRecordsPanel() {
     },
     {
       key: 'status',
-      header: <Menu value={filters} onValueChange={(value) => { if (!Array.isArray(value)) return; if (value.length === 0) { setFilters(['all']); return }; if (value.includes('all')) { setFilters(filters.includes('all') ? value.filter((item) => item !== 'all') as Filter[] : ['all']); return }; setFilters(value as Filter[]) }}><FlexBox alignItems="center" style={{ gap: 4 }}><span>상태</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="대여 상태 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체 상태</MenuItem>{RENTAL_RECORD_STATUSES.map((status) => <MenuItem key={status} variant="checkbox" value={status}>{status}</MenuItem>)}</MenuList></MenuContent></Menu>,
+      header: <TableCheckboxFilter label="상태" ariaLabel="대여 상태 필터" allLabel="전체 상태" options={RENTAL_RECORD_STATUSES} value={filters} onChange={(value) => setFilters(value as Filter[])} />,
       width: 180,
       render: (row) => {
         const status = getRentalRecordStatus(row)

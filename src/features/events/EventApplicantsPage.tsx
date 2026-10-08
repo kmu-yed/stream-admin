@@ -9,13 +9,14 @@ import {
   Typography,
   useToast,
 } from '@wanteddev/wds'
-import { IconChevronDown, IconChevronDownSmall, IconCircleQuestion } from '@wanteddev/wds-icon'
+import { IconChevronDownSmall, IconCircleQuestion } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
 import StatusBadge from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import ExcelExportButton from '../../components/common/ExcelExportButton'
+import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
 import { useEvents } from './store'
 import { getAttendanceStatus, type Applicant } from './types'
 import type { BadgeTone } from '../../components/common/StatusBadge'
@@ -23,13 +24,6 @@ import type { BadgeTone } from '../../components/common/StatusBadge'
 type StatusFilter = 'all' | '신청완료' | '취소'
 type AttendanceFilter = 'all' | '미확정' | '참가완료' | '불참'
 const attendanceTone: Record<'미확정' | '참가완료' | '불참', BadgeTone> = { 미확정: 'neutral', 참가완료: 'positive', 불참: 'negative' }
-
-function updateMultiFilter<T extends string>(current: T[], nextValue?: string | string[]) {
-  if (!Array.isArray(nextValue)) return current
-  if (nextValue.length === 0) return ['all'] as T[]
-  if (nextValue.includes('all')) return (current.includes('all' as T) ? nextValue.filter((item) => item !== 'all') : ['all']) as T[]
-  return nextValue as T[]
-}
 
 function toCsv(rows: Applicant[], fieldLabels: Record<string, string>) {
   const fieldIds = Object.keys(fieldLabels)
@@ -96,12 +90,12 @@ function EventApplicantsPage() {
     })),
     {
       key: 'status',
-      header: <Menu value={filters} onValueChange={(value) => setFilters(updateMultiFilter(filters, value))}><FlexBox alignItems="center" style={{ gap: 4 }}><span>상태</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="행사 신청 상태 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체 상태</MenuItem><MenuItem variant="checkbox" value="신청완료">신청완료</MenuItem><MenuItem variant="checkbox" value="취소">취소</MenuItem></MenuList></MenuContent></Menu>,
+      header: <TableCheckboxFilter label="상태" ariaLabel="행사 신청 상태 필터" allLabel="전체 상태" options={['신청완료', '취소']} value={filters} onChange={(value) => setFilters(value as StatusFilter[])} />,
       width: 100,
       render: (row) => <StatusBadge label={row.status} tone={row.status === '취소' ? 'negative' : 'positive'} />,
     },
     {
-      key: 'attendance', header: <Menu value={attendanceFilters} onValueChange={(value) => setAttendanceFilters(updateMultiFilter(attendanceFilters, value))}><FlexBox alignItems="center" style={{ gap: 4 }}><span>참석 여부</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="참석 여부 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체 참석 여부</MenuItem><MenuItem variant="checkbox" value="미확정">미확정</MenuItem><MenuItem variant="checkbox" value="참가완료">참가완료</MenuItem><MenuItem variant="checkbox" value="불참">불참</MenuItem></MenuList></MenuContent></Menu>, width: 150,
+      key: 'attendance', header: <TableCheckboxFilter label="참석 여부" ariaLabel="참석 여부 필터" allLabel="전체 참석 여부" options={['미확정', '참가완료', '불참']} value={attendanceFilters} onChange={(value) => setAttendanceFilters(value as AttendanceFilter[])} />, width: 150,
       render: (row) => {
         const attendance = getAttendanceStatus(row, event!)
         if (attendance === '-') return '-'

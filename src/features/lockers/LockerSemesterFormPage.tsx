@@ -14,7 +14,6 @@ import {
 import PageHeader from "../../components/common/PageHeader";
 import FormItem from "../../components/common/FormItem";
 import InfoNotice from "../../components/common/InfoNotice";
-import FormSection from "../../components/common/FormSection";
 import { useLockers } from "./store";
 import { formatSemesterLabel } from "./types";
 
@@ -105,8 +104,19 @@ function LockerSemesterFormPage() {
       {isEnded && <InfoNotice>신청이 종료된 일정은 읽기 전용이에요.</InfoNotice>}
 
       <fieldset disabled={isEnded} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
-        <FormSection title="학기 설정">
-          <fieldset disabled={isEdit} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox className="app-form-inline" style={{ gap: 16 }}>
+        <FlexBox
+          flexDirection="column"
+          style={{
+            gap: 12,
+            padding: 24,
+            borderRadius: 20,
+            border: "1px solid var(--semantic-line-normal-normal)",
+          }}
+        >
+          <Typography variant="body1" weight="bold">
+            학기 설정
+          </Typography>
+          <fieldset disabled={isEdit} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox style={{ gap: 16 }}>
             <FlexBox style={{ width: 160 }}>
               <FormItem
                 label="연도"
@@ -147,11 +157,21 @@ function LockerSemesterFormPage() {
               </FormItem>
             </FlexBox>
           </FlexBox></fieldset>
-        </FormSection>
+        </FlexBox>
 
-        <FormSection title="신청 기간">
+        <FlexBox
+          flexDirection="column"
+          style={{
+            gap: 12,
+            padding: 24,
+            borderRadius: 20,
+            border: "1px solid var(--semantic-line-normal-normal)",
+          }}
+        >
+          <Typography variant="body1" weight="bold">
+            신청 기간
+          </Typography>
           <FlexBox
-            className="app-date-range"
             style={{
               display: "grid",
               gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
@@ -179,7 +199,6 @@ function LockerSemesterFormPage() {
               </FormItem>
             </FlexBox></fieldset>
             <FlexBox
-              className="app-date-range-separator"
               alignItems="center"
               justifyContent="center"
               style={{ height: 48 }}
@@ -206,11 +225,21 @@ function LockerSemesterFormPage() {
               </FormItem>
             </FlexBox>
           </FlexBox>
-        </FormSection>
+        </FlexBox>
 
-        <FormSection title="사용 가능 기간">
+        <FlexBox
+          flexDirection="column"
+          style={{
+            gap: 12,
+            padding: 24,
+            borderRadius: 20,
+            border: "1px solid var(--semantic-line-normal-normal)",
+          }}
+        >
+          <Typography variant="body1" weight="bold">
+            사용 가능 기간
+          </Typography>
           <FlexBox
-            className="app-date-range"
             style={{
               display: "grid",
               gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
@@ -238,7 +267,6 @@ function LockerSemesterFormPage() {
               </FormItem>
             </FlexBox>
             <FlexBox
-              className="app-date-range-separator"
               alignItems="center"
               justifyContent="center"
               style={{ height: 48 }}
@@ -265,9 +293,9 @@ function LockerSemesterFormPage() {
               </FormItem>
             </FlexBox>
           </FlexBox>
-        </FormSection>
+        </FlexBox>
 
-        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
+        <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
           <Button variant="solid" color="primary" disabled={isEnded} onClick={handleSubmit}>
             {isEdit ? "수정 완료" : "등록하기"}
           </Button>

@@ -38,6 +38,7 @@ function getPageBreadcrumbs(pathname: string): BreadcrumbItem[] {
   else if (/^\/lockers\/schedule\/[^/]+\/edit$/.test(pathname)) items.push({ label: '신청 일정', path: '/lockers?tab=schedule' }, { label: '신청 일정 수정', path: pathname })
   else if (/^\/notices\/new$/.test(pathname)) items.push({ label: '새 공지 등록', path: pathname })
   else if (/^\/notices\/[^/]+\/edit$/.test(pathname)) items.push({ label: '공지 수정', path: pathname })
+  else if (/^\/notices\/[^/]+$/.test(pathname)) items.push({ label: '공지 상세', path: pathname })
   else if (/^\/feedback\/rounds\/new$/.test(pathname)) items.push({ label: '회차 관리', path: '/feedback?tab=rounds' }, { label: '새 회차 등록', path: pathname })
   else if (/^\/feedback\/answers\/new$/.test(pathname)) items.push({ label: '질문 관리', path: '/feedback?tab=questions' }, { label: '피드백 답변 등록', path: pathname })
   else if (/^\/feedback\/rounds\/[^/]+\/edit$/.test(pathname)) items.push({ label: '질문 관리', path: '/feedback?tab=questions' }, { label: '피드백 답변 수정', path: pathname })
@@ -61,7 +62,7 @@ function Breadcrumbs() {
   const items = getPageBreadcrumbs(pathname)
 
   return (
-    <FlexBox alignItems="center" style={{ gap: 8, marginBottom: 16, minHeight: 24 }}>
+    <FlexBox className="app-breadcrumbs" alignItems="center" style={{ gap: 8, marginBottom: 16, minHeight: 24 }}>
       {items.map((item, index) => {
         const isCurrent = index === items.length - 1
         return (

@@ -1,16 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Checkbox, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Typography, useToast } from '@wanteddev/wds'
-import { IconChevronDown, IconChevronDownSmall, IconMoreVertical } from '@wanteddev/wds-icon'
+import { IconChevronDownSmall, IconMoreVertical } from '@wanteddev/wds-icon'
 import DataTable, { type DataTableColumn } from '../../../components/common/DataTable'
 import ConfirmModal from '../../../components/common/ConfirmModal'
 import { useRentals } from '../store'
 import StatusBadge, { type BadgeTone } from '../../../components/common/StatusBadge'
+import TableCheckboxFilter from '../../../components/common/TableCheckboxFilter'
 import { RENTAL_RETURN_POLICIES, type RentalItem, type RentalReturnPolicy } from '../types'
-
-function FilterHeader({ label, options, value, onChange, ariaLabel }: { label: string; options: string[]; value: string[]; onChange: (value: string[]) => void; ariaLabel: string }) {
-  return <Menu value={value} onValueChange={(nextValue) => { if (!Array.isArray(nextValue)) return; if (nextValue.length === 0) { onChange(['all']); return }; if (nextValue.includes('all')) { onChange(value.includes('all') ? nextValue.filter((item) => item !== 'all') : ['all']); return }; onChange(nextValue) }}><FlexBox alignItems="center" style={{ gap: 4 }}><span>{label}</span><MenuTrigger><IconButton variant="normal" size="small" aria-label={ariaLabel} style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체</MenuItem>{options.map((option) => <MenuItem key={option} variant="checkbox" value={option}>{option}</MenuItem>)}</MenuList></MenuContent></Menu>
-}
 
 const policyTone: Record<RentalReturnPolicy, BadgeTone> = {
   '당일 반납': 'negative',
@@ -63,10 +60,10 @@ function RentalItemsPanel() {
       },
     },
     { key: 'name', header: '이름', render: (row) => row.name },
-    { key: 'category', header: <FilterHeader label="카테고리" options={categories} value={categoryFilters} onChange={setCategoryFilters} ariaLabel="카테고리 필터" />, width: 160, render: (row) => row.category },
+    { key: 'category', header: <TableCheckboxFilter label="카테고리" options={categories} value={categoryFilters} onChange={setCategoryFilters} ariaLabel="카테고리 필터" />, width: 160, render: (row) => row.category },
     {
       key: 'itemKind',
-      header: <FilterHeader label="물품 구분" options={['대여품', '소모품']} value={itemKindFilters} onChange={setItemKindFilters} ariaLabel="물품 구분 필터" />,
+      header: <TableCheckboxFilter label="물품 구분" options={['대여품', '소모품']} value={itemKindFilters} onChange={setItemKindFilters} ariaLabel="물품 구분 필터" />,
       width: 110,
       render: (row) => <StatusBadge label={row.itemKind} tone={row.itemKind === '대여품' ? 'info' : 'cautionary'} />,
     },
@@ -88,7 +85,7 @@ function RentalItemsPanel() {
     },
     {
       key: 'returnPolicy',
-      header: <FilterHeader label="반납 정책" options={RENTAL_RETURN_POLICIES} value={policyFilters} onChange={setPolicyFilters} ariaLabel="반납 정책 필터" />,
+      header: <TableCheckboxFilter label="반납 정책" options={RENTAL_RETURN_POLICIES} value={policyFilters} onChange={setPolicyFilters} ariaLabel="반납 정책 필터" />,
       width: 150,
       render: (row) => <Menu open={openPolicyId === row.id} onOpenChange={(open) => setOpenPolicyId(open ? row.id : null)}><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={row.returnPolicy} tone={policyTone[row.returnPolicy]} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-start" offset={8}><MenuList>{RENTAL_RETURN_POLICIES.map((policy) => <MenuItem key={policy} value={policy} onClick={() => { updatePolicy([row.id], policy); setOpenPolicyId(null) }}><StatusBadge label={policy} tone={policyTone[policy]} /></MenuItem>)}</MenuList></MenuContent></Menu>,
     },

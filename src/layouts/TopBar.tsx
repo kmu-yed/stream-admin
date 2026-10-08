@@ -44,8 +44,6 @@ function TopBar({
       justifyContent="space-between"
       style={{
         flexShrink: 0,
-        position: compact ? 'relative' : 'sticky',
-        top: compact ? undefined : 0,
         zIndex: 20,
         padding: "12px 96px 12px 80px",
         background: compact ? 'transparent' : "rgba(255, 255, 255, 0.78)",
