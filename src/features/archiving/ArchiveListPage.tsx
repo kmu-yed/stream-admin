@@ -82,7 +82,7 @@ function ArchiveListPage() {
     <>
       <PageHeader title="아카이빙 관리" description="노출 순서는 등록일 기준 최신순으로 고정돼요." />
 
-      <FlexBox justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
+      <FlexBox className="app-page-toolbar" justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
         <SearchField value={search} onChange={setSearch} placeholder="제목 검색" />
         <Button variant="solid" color="primary" onClick={() => navigate('/archiving/new')}>+ 새 게시물 등록</Button>
       </FlexBox>

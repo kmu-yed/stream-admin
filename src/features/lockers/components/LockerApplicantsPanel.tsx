@@ -118,7 +118,7 @@ function LockerApplicantsPanel() {
         취소 {applications.filter((a) => a.status === '취소').length}명)
       </Typography>
 
-      <FlexBox justifyContent="flex-end" alignItems="center" style={{ marginBottom: 4, gap: 12 }}>
+      <FlexBox className="app-page-toolbar" justifyContent="flex-end" alignItems="center" style={{ marginBottom: 4, gap: 12 }}>
         <SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" />
         <Button variant="solid" color="primary" onClick={() => setManualAssignOpen(true)}>
           + 수동 배정
@@ -130,6 +130,7 @@ function LockerApplicantsPanel() {
         rows={filtered}
         rowKey={(row) => row.id}
         emptyMessage="신청자가 없어요."
+        minWidth={900}
         style={{ width: '100%', tableLayout: 'fixed' }}
       />
 

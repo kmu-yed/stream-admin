@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Checkbox, DatePicker, FlexBox, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
+import FormSection from '../../components/common/FormSection'
 import ImageUploadField from '../../components/common/ImageUploadField'
 import { useArchiving } from './store'
 import type { ArchivePostInput } from './types'
@@ -18,10 +19,6 @@ const emptyForm: ArchivePostInput = {
   content: '',
   linkedPageUrl: '',
   includeInSlangje: false,
-}
-
-function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return <FlexBox flexDirection="column" style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}><Typography variant="body1" weight="bold">{title}</Typography>{children}</FlexBox>
 }
 
 function toDateValue(value: DateType) {
@@ -100,7 +97,7 @@ function ArchiveFormPage() {
           />
         </FormItem>
 
-        <FlexBox style={{ gap: 16 }}>
+        <FlexBox className="app-form-inline" style={{ gap: 16 }}>
           <FlexBox style={{ flex: 1 }}><FormItem label="일시" required error={errors.date}>
             <DatePicker value={form.date ? new Date(`${form.date}T00:00:00`) : undefined} onChange={(value) => setForm({ ...form, date: toDateValue(value) })} format="YYYY-MM-DD" width="100%" />
           </FormItem></FlexBox>
@@ -167,7 +164,7 @@ function ArchiveFormPage() {
         </FormItem>
         </FormSection>
 
-        <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
+        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
           <Button variant="solid" color="primary" onClick={handleSubmit}>
             {isEdit ? '수정 완료' : '등록하기'}
           </Button>

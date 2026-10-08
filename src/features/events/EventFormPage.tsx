@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Checkbox, DatePicker, FlexBox, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
+import FormSection from '../../components/common/FormSection'
 import InfoNotice from '../../components/common/InfoNotice'
 import { useEvents } from './store'
 import type { EventFormInput } from './types'
@@ -21,18 +22,6 @@ const emptyForm: EventFormInput = {
   capacity: null,
   description: '',
   formFields: [],
-}
-
-function FormSection({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <FlexBox
-      flexDirection="column"
-      style={{ gap: 12, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 20 }}
-    >
-      <Typography variant="body1" weight="bold">{title}</Typography>
-      {children}
-    </FlexBox>
-  )
 }
 
 function EventFormItem(props: Omit<ComponentProps<typeof FormItem>, 'labelVariant' | 'labelWeight'>) {
@@ -151,9 +140,9 @@ function EventFormPage() {
         </FormSection>
 
         <fieldset disabled={isApplicationLocked} style={{ margin: 0, padding: 0, border: 0 }}><FormSection title="신청 기간">
-          <FlexBox style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 12, alignItems: 'end', width: '100%' }}>
+          <FlexBox className="app-date-range" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 12, alignItems: 'end', width: '100%' }}>
             <FlexBox style={{ minWidth: 0 }}><EventFormItem label="신청 오픈일" required error={errors.openDate} style={{ width: '100%' }}><EventDatePicker value={form.openDate} onChange={(value) => setForm({ ...form, openDate: value })} /></EventFormItem></FlexBox>
-            <FlexBox alignItems="center" justifyContent="center" style={{ height: 48 }}><Typography variant="body1" color="semantic.label.alternative">~</Typography></FlexBox>
+            <FlexBox className="app-date-range-separator" alignItems="center" justifyContent="center" style={{ height: 48 }}><Typography variant="body1" color="semantic.label.alternative">~</Typography></FlexBox>
             <FlexBox style={{ minWidth: 0 }}><EventFormItem label="신청 마감일" required error={errors.deadline} style={{ width: '100%' }}><EventDatePicker value={form.deadline} onChange={(value) => setForm({ ...form, deadline: value })} /></EventFormItem></FlexBox>
           </FlexBox>
         </FormSection></fieldset>
@@ -161,9 +150,9 @@ function EventFormPage() {
         <FormSection title="행사 정보">
           <FlexBox flexDirection="column" style={{ gap: 20 }}>
           <EventInfoRow label="일시" error={errors.eventDate}>
-            <FlexBox style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 12, alignItems: 'end', width: '100%' }}>
+            <FlexBox className="app-date-range" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 12, alignItems: 'end', width: '100%' }}>
               <FlexBox style={{ minWidth: 0 }}><FormItem label="시작일자" required labelVariant="label1" labelWeight="regular" style={{ width: '100%' }}><EventDatePicker value={form.eventStartDate} onChange={(value) => setForm({ ...form, eventStartDate: value })} /></FormItem></FlexBox>
-              <FlexBox alignItems="center" justifyContent="center" style={{ height: 48 }}><Typography variant="body1" color="semantic.label.alternative">~</Typography></FlexBox>
+              <FlexBox className="app-date-range-separator" alignItems="center" justifyContent="center" style={{ height: 48 }}><Typography variant="body1" color="semantic.label.alternative">~</Typography></FlexBox>
               <FlexBox style={{ minWidth: 0 }}><FormItem label="종료일자" required labelVariant="label1" labelWeight="regular" style={{ width: '100%' }}><EventDatePicker value={form.eventEndDate} onChange={(value) => setForm({ ...form, eventEndDate: value })} /></FormItem></FlexBox>
             </FlexBox>
           </EventInfoRow>
@@ -191,7 +180,7 @@ function EventFormPage() {
           </FlexBox>
         </FormSection></fieldset>
 
-        <FlexBox justifyContent="flex-end" style={{ gap: 8, marginTop: 4 }}>
+        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8, marginTop: 4 }}>
           <Button variant="outlined" color="assistive" onClick={() => navigate('/events')}>
             취소
           </Button>

@@ -11,10 +11,10 @@ type FormItemProps = {
   children: ReactNode
 }
 
-function FormItem({ label, error, labelVariant = 'label1', labelWeight = 'medium', style, children }: FormItemProps) {
+function FormItem({ label, required = false, error, labelVariant = 'label1', labelWeight = 'medium', style, children }: FormItemProps) {
   return (
     <FormField style={style}>
-      <FormLabel variant={labelVariant} weight={labelWeight}>
+      <FormLabel variant={labelVariant} weight={labelWeight} required={required}>
         {label}
       </FormLabel>
       <FormControl>{children}</FormControl>

@@ -13,6 +13,7 @@ import {
 } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
+import FormSection from '../../components/common/FormSection'
 import ImageUploadField from '../../components/common/ImageUploadField'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import { useBoards } from './store'
@@ -72,8 +73,8 @@ function NoticeFormPage() {
     <>
       <PageHeader title={isEdit ? '공지 수정' : '새 공지 등록'} description="게시판에 노출될 공지를 작성해요." />
 
-      <FlexBox flexDirection="column" style={{ gap: 24, maxWidth: 640, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
-        <FlexBox style={{ gap: 16 }}>
+      <FormSection style={{ maxWidth: 640 }}>
+        <FlexBox className="app-form-inline" style={{ gap: 16 }}>
           <FlexBox style={{ width: 200 }}>
             <FormItem label="카테고리" required>
               <Select
@@ -122,7 +123,7 @@ function NoticeFormPage() {
           <Typography variant="body2">상단 고정(핀) 처리</Typography>
         </FlexBox>
 
-        <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
+        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
           <Button variant="solid" color="primary" onClick={handleSubmit}>
             {isEdit ? '수정 완료' : '등록하기'}
           </Button>
@@ -130,7 +131,7 @@ function NoticeFormPage() {
             취소
           </Button>
         </FlexBox>
-      </FlexBox>
+      </FormSection>
 
       <ConfirmModal
         open={Boolean(createdId)}

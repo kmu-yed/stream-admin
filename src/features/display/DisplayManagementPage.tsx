@@ -99,7 +99,8 @@ function DisplayManagementPage() {
             </FlexBox>
             <Typography variant="body2" color="semantic.label.alternative">날짜를 클릭하여 일정을 추가·수정하세요.</Typography>
           </FlexBox>
-          <div style={{ border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 18, overflow: 'hidden' }}>
+          <div style={{ border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16, overflowX: 'auto' }}>
+            <div style={{ minWidth: 784 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', borderBottom: '1px solid var(--semantic-line-normal-normal)' }}>
               {weekDays.map((day, index) => <FlexBox key={day} justifyContent="center" style={{ padding: '18px 0' }}><Typography variant="body1" weight="bold" style={{ color: index === 0 ? 'var(--semantic-status-negative)' : index === 6 ? 'var(--semantic-primary-normal)' : undefined }}>{day}</Typography></FlexBox>)}
             </div>
@@ -107,15 +108,17 @@ function DisplayManagementPage() {
               {cells.map((day, index) => {
                 const date = day ? isoDate(year, monthIndex, day) : ''
                 const dateEvents = events.filter((event) => event.startDate <= date && event.endDate >= date)
-                return <button className={day ? 'app-hoverable app-hoverable-flat' : undefined} key={`${date}-${index}`} type="button" onClick={() => day && openDate(day)} style={{ position: 'relative', minHeight: Math.max(132, 58 + dateEvents.length * 32), border: 'none', borderRight: index % 7 === 6 ? 'none' : '1px solid var(--semantic-line-normal-normal)', borderBottom: index < cells.length - 7 ? '1px solid var(--semantic-line-normal-normal)' : 'none', background: day ? 'var(--semantic-background-normal-normal)' : 'var(--semantic-background-normal-alternative)', padding: 0, textAlign: 'left', cursor: day ? 'pointer' : 'default' }}>
+                return <button className={day ? 'app-hoverable app-hoverable-flat' : undefined} key={`${date}-${index}`} type="button" onClick={() => day && openDate(day)} style={{ position: 'relative', height: 132, overflow: 'hidden', border: 'none', borderRight: index % 7 === 6 ? 'none' : '1px solid var(--semantic-line-normal-normal)', borderBottom: index < cells.length - 7 ? '1px solid var(--semantic-line-normal-normal)' : 'none', background: day ? 'var(--semantic-background-normal-normal)' : 'var(--semantic-background-normal-alternative)', padding: 0, textAlign: 'left', cursor: day ? 'pointer' : 'default' }}>
                   {day && <>
                     <Typography variant="body1" weight="medium" style={{ position: 'absolute', top: 14, left: 14, display: 'block', textAlign: 'left', zIndex: 1 }}>{day}</Typography>
                     <div style={{ position: 'absolute', top: 48, left: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 6, pointerEvents: 'none' }}>
-                      {dateEvents.map((event) => <span key={event.id} style={{ minHeight: 26, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRadius: 5, padding: '5px 8px', background: 'var(--semantic-primary-normal)', color: '#fff', fontSize: 13, textAlign: 'center' }}>{event.title}</span>)}
+                      {dateEvents.slice(0, 2).map((event) => <span key={event.id} style={{ minHeight: 26, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderRadius: 5, padding: '5px 8px', background: 'var(--semantic-primary-normal)', color: '#fff', fontSize: 13, textAlign: 'center' }}>{event.title}</span>)}
+                      {dateEvents.length > 2 && <Typography variant="caption1" color="semantic.primary.normal" style={{ paddingLeft: 4, textAlign: 'left' }}>+{dateEvents.length - 2}개 더보기</Typography>}
                     </div>
                   </>}
                 </button>
               })}
+            </div>
             </div>
           </div>
         </TabPanel>

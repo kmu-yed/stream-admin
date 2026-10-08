@@ -146,7 +146,7 @@ function EventApplicantsPage() {
         description={`총 ${applicants.length}명 신청 (신청완료 ${applicants.filter((a) => a.status === '신청완료').length}명)`}
       />
 
-      <FlexBox justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
+      <FlexBox className="app-page-toolbar" justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
         <Tooltip mode="hover">
           <TooltipTrigger>
             <IconButton variant="normal" size="small" aria-label="참석 여부 안내" style={{ width: 32, height: 32 }}>
@@ -164,6 +164,7 @@ function EventApplicantsPage() {
         rows={filtered}
         rowKey={(row) => row.id}
         emptyMessage="신청자가 없어요."
+        minWidth={1000 + Object.keys(fieldLabels).length * 160}
       />
 
       <ConfirmModal

@@ -106,7 +106,7 @@ function EventListPage() {
     <>
       <PageHeader title="행사 관리" description="행사를 등록하고 신청 현황을 관리해요." />
 
-      <FlexBox justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
+      <FlexBox className="app-page-toolbar" justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
         <SearchField value={search} onChange={setSearch} placeholder="행사명 검색" />
         <Button variant="solid" color="primary" onClick={() => navigate('/events/new')}>+ 새 행사 등록</Button>
       </FlexBox>

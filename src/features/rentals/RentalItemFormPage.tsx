@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button, FlexBox, Option, Select, TextField, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
+import FormSection from '../../components/common/FormSection'
 import ImageUploadField from '../../components/common/ImageUploadField'
 import { useRentals } from './store'
 import { RENTAL_CATEGORIES, RENTAL_RETURN_POLICIES, type RentalCategory, type RentalItemInput } from './types'
@@ -55,7 +56,7 @@ function RentalItemFormPage() {
     <>
       <PageHeader title={isEdit ? '물품 수정' : '물품 등록'} description="등록한 물품 종류를 선택하고 수량을 입력해요." />
 
-      <FlexBox flexDirection="column" style={{ gap: 24, maxWidth: 480, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
+      <FormSection style={{ maxWidth: 480 }}>
         <FormItem label="아이콘" error={errors.icon}>
           <ImageUploadField value={icon} onChange={setIcon} maxCount={1} previewSize={120} />
         </FormItem>
@@ -95,7 +96,7 @@ function RentalItemFormPage() {
           </Select>
         </FormItem>
 
-        <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
+        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
           <Button variant="solid" color="primary" onClick={handleSubmit}>
             {isEdit ? '수정 완료' : '등록하기'}
           </Button>
@@ -103,7 +104,7 @@ function RentalItemFormPage() {
             취소
           </Button>
         </FlexBox>
-      </FlexBox>
+      </FormSection>
     </>
   )
 }

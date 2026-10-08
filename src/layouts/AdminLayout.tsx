@@ -38,17 +38,15 @@ function AdminLayout() {
         onCloseMobile={() => setMobileSidebarOpen(false)}
       />
       {mobileSidebarOpen && <button type="button" className="mobile-sidebar-backdrop" aria-label="메뉴 닫기" onClick={() => setMobileSidebarOpen(false)} />}
-      <FlexBox className="admin-content" flexDirection="column" style={{ flex: 1, minWidth: 0, height: '100vh' }}>
+      <FlexBox className="admin-content" flexDirection="column" onScroll={handleMainScroll} style={{ flex: 1, minWidth: 0, height: '100vh', overflowY: 'auto' }}>
         <TopBar onOpenMobileSidebar={openMobileSidebar} compact={mobileHeaderCompact} scrolled={mainScrolled} />
         <FlexBox
           as="main"
           className="admin-main"
-          onScroll={handleMainScroll}
           flexDirection="column"
           style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: 'auto',
+            flexGrow: 1,
+            flexShrink: 0,
             padding: '0 80px 32px',
             background: 'var(--semantic-background-normal-normal)',
           }}

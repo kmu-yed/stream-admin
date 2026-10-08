@@ -171,7 +171,7 @@ export default function WorkManagementPage() {
           <AdminManagementPage embedded />
         </TabPanel>
         <TabPanel value="workers">
-          <FlexBox justifyContent="flex-end" style={{ marginBottom: 16 }}>
+          <FlexBox className="app-page-toolbar" justifyContent="flex-end" style={{ marginBottom: 16 }}>
             <Button
               variant="solid"
               color="primary"
@@ -193,6 +193,7 @@ export default function WorkManagementPage() {
         </TabPanel>
         <TabPanel value="schedule">
           <FlexBox
+            className="app-page-toolbar"
             justifyContent="flex-end"
             alignItems="center"
             style={{ gap: 12, marginBottom: 16 }}

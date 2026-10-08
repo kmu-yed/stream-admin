@@ -3,6 +3,7 @@ import { Button, DatePicker, FlexBox, TextField, Typography, useToast, type Date
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
+import FormSection from '../../components/common/FormSection'
 import { useStudentCouncil } from '../studentCouncil/store'
 import { useAdminManagement } from '../adminManagement/store'
 import { useRentals } from './store'
@@ -73,28 +74,26 @@ function RentalRecordFormPage() {
     <>
       <PageHeader title="대여 추가하기" description="대여자와 물품, 대여 정보를 등록해요." />
       <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 720 }}>
-        <FlexBox flexDirection="column" style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 14 }}>
-          <Typography variant="label1" weight="bold">대여 정보</Typography>
+        <FormSection title="대여 정보">
           <FormItem label="대여자" error={errors.borrower}>
             <SearchSelect value={borrowerValue} onChange={setBorrowerValue} options={borrowerOptions} placeholder="이름 또는 학번으로 검색해 선택하세요" />
           </FormItem>
           <FormItem label="대여 물품" error={errors.item}>
             <SearchSelect value={itemValue} onChange={setItemValue} options={itemOptions} placeholder="물품명 또는 카테고리로 검색해 선택하세요" />
           </FormItem>
-        </FlexBox>
+        </FormSection>
 
-        <FlexBox flexDirection="column" style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 14 }}>
-          <Typography variant="label1" weight="bold">처리 정보</Typography>
-          <FlexBox style={{ gap: 16 }}>
+        <FormSection title="처리 정보">
+          <FlexBox className="app-form-inline" style={{ gap: 16 }}>
             <FlexBox style={{ flex: 1 }}><FormItem label="대여 날짜" error={errors.rentalAt}><DatePicker format="YYYY-MM-DD" width="100%" value={rentalDate ? new Date(`${rentalDate}T00:00:00`) : undefined} onChange={(value) => setRentalDate(toPickerDateValue(value))} /></FormItem></FlexBox>
             <FlexBox style={{ flex: 1 }}><FormItem label="대여 시간" error={errors.rentalAt}><TextField type="time" value={rentalTime} onChange={(event) => setRentalTime(event.target.value)} /></FormItem></FlexBox>
           </FlexBox>
           <FormItem label="근무자" error={errors.worker}>
             <SearchSelect value={workerValue} onChange={setWorkerValue} options={workerOptions} placeholder="이름 또는 학번으로 검색해 선택하세요" />
           </FormItem>
-        </FlexBox>
+        </FormSection>
 
-        <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
+        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
           <Button variant="outlined" color="assistive" onClick={() => navigate('/rentals?tab=records')}>취소</Button>
           <Button variant="solid" color="primary" onClick={submit}>대여 추가</Button>
         </FlexBox>

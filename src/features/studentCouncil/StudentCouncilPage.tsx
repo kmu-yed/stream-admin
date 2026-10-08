@@ -132,7 +132,7 @@ function PaymentMemberList() {
 
   return (
     <>
-      <FlexBox justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
+      <FlexBox className="app-page-toolbar" justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
         <FlexBox alignItems="center" style={{ gap: 12 }}>
           <SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" />
           <ExcelExportButton onClick={handleExport} />

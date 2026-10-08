@@ -21,6 +21,7 @@ import {
 } from "@wanteddev/wds";
 import PageHeader from "../../components/common/PageHeader";
 import FormItem from "../../components/common/FormItem";
+import FormSection from "../../components/common/FormSection";
 import ImageUploadField from "../../components/common/ImageUploadField";
 import { useHomeBanner } from "./store";
 import { useBoards } from "../boards/store";
@@ -155,15 +156,7 @@ function HomeBannerFormPage() {
       />
 
       <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
-        <FlexBox
-          flexDirection="column"
-          style={{
-            gap: 20,
-            padding: 24,
-            border: "1px solid var(--semantic-line-normal-normal)",
-            borderRadius: 16,
-          }}
-        >
+        <FormSection>
           <FormItem label="배너 제목" required error={errors.title}>
             <FlexBox flexDirection="column" style={{ gap: 6 }}>
               <TextArea
@@ -226,25 +219,9 @@ function HomeBannerFormPage() {
               {form.subtitle || "여긴 부제목이 들어가요"}
             </Typography>
           </FlexBox>
-        </FlexBox>
+        </FormSection>
 
-        <FlexBox
-          flexDirection="column"
-          style={{
-            gap: 16,
-            padding: 24,
-            border: "1px solid var(--semantic-line-normal-normal)",
-            borderRadius: 16,
-          }}
-        >
-          <FlexBox flexDirection="column" style={{ gap: 4 }}>
-            <Typography variant="label1" weight="bold">
-              배너 이미지
-            </Typography>
-            <Typography variant="caption1" color="semantic.label.alternative">
-              직접 업로드 시 PNG 가로 355 × 세로 261px
-            </Typography>
-          </FlexBox>
+        <FormSection title="배너 이미지" description="직접 업로드 시 PNG 가로 355 × 세로 261px">
           <FlexBox style={{ gap: 10, flexWrap: "wrap" }}>
             {bannerImagePresets.map((preset) => {
               const selected =
@@ -347,21 +324,10 @@ function HomeBannerFormPage() {
               </Button>
             </FlexBox>
           )}
-        </FlexBox>
+        </FormSection>
 
-        <FlexBox
-          flexDirection="column"
-          style={{
-            gap: 16,
-            padding: 24,
-            border: "1px solid var(--semantic-line-normal-normal)",
-            borderRadius: 16,
-          }}
-        >
-          <Typography variant="label1" weight="bold">
-            노출 기간
-          </Typography>
-          <FlexBox style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)", gap: 12, alignItems: "end", width: "100%" }}>
+        <FormSection title="노출 기간">
+          <FlexBox className="app-date-range" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)", gap: 12, alignItems: "end", width: "100%" }}>
             <FlexBox style={{ minWidth: 0 }}>
               <FormItem label="시작일" required error={errors.period} style={{ width: "100%" }}>
                 <DatePicker
@@ -378,7 +344,7 @@ function HomeBannerFormPage() {
                 />
               </FormItem>
             </FlexBox>
-            <FlexBox alignItems="center" justifyContent="center" style={{ height: 48 }}>
+            <FlexBox className="app-date-range-separator" alignItems="center" justifyContent="center" style={{ height: 48 }}>
               <Typography variant="body1" color="semantic.label.alternative">~</Typography>
             </FlexBox>
             <FlexBox style={{ minWidth: 0 }}>
@@ -398,20 +364,9 @@ function HomeBannerFormPage() {
               </FormItem>
             </FlexBox>
           </FlexBox>
-        </FlexBox>
+        </FormSection>
 
-        <FlexBox
-          flexDirection="column"
-          style={{
-            gap: 16,
-            padding: 24,
-            border: "1px solid var(--semantic-line-normal-normal)",
-            borderRadius: 16,
-          }}
-        >
-          <Typography variant="label1" weight="bold">
-            클릭 시 랜딩 처리
-          </Typography>
+        <FormSection title="클릭 시 랜딩 처리">
           <RadioGroup
             value={form.landingType}
             onValueChange={(v) =>
@@ -456,7 +411,7 @@ function HomeBannerFormPage() {
                 </Typography>
               </FlexBox>
               {form.landingType === "external" && (
-                <FlexBox style={{ paddingLeft: 28, width: 400 }}>
+                <FlexBox style={{ paddingLeft: 28, width: "100%", boxSizing: "border-box" }}>
                   <TextField
                     placeholder="https://"
                     value={form.externalUrl ?? ""}
@@ -473,9 +428,9 @@ function HomeBannerFormPage() {
               {errors.landing}
             </Typography>
           )}
-        </FlexBox>
+        </FormSection>
 
-        <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
+        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
           <Button variant="solid" color="primary" onClick={handleSubmit}>
             {isEdit ? "수정 완료" : "등록하기"}
           </Button>

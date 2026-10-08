@@ -35,6 +35,7 @@ type DataTableProps<T> = {
   className?: string
   rowNumberPosition?: 'first' | 'after-first-column'
   showRowNumber?: boolean
+  minWidth?: number | string
 }
 
 function DataTable<T>({
@@ -48,11 +49,15 @@ function DataTable<T>({
   className,
   rowNumberPosition = 'first',
   showRowNumber = true,
+  minWidth,
 }: DataTableProps<T>) {
   // 선택 체크박스가 있는 표는 항상 선택 열 다음에 NO가 오도록 고정한다.
   const numberAfterFirstColumn = columns[0]?.key === 'select' || rowNumberPosition === 'after-first-column'
   return (
-    <div className={`data-table-scroll${className ? ` ${className}` : ''}`} style={style}>
+    <div
+      className={`data-table-scroll${className ? ` ${className}` : ''}`}
+      style={{ ...style, '--app-data-table-min-width': typeof minWidth === 'number' ? `${minWidth}px` : minWidth } as CSSProperties}
+    >
       <Table
         className="data-table"
         pagination={

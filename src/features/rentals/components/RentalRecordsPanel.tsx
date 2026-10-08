@@ -117,8 +117,8 @@ function RentalRecordsPanel() {
 
   return (
     <>
-      <FlexBox justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
-        <FlexBox style={{ gap: 12 }}>
+      <FlexBox className="app-page-toolbar" justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
+        <FlexBox className="app-page-toolbar" style={{ gap: 12 }}>
           <SearchField value={search} onChange={setSearch} placeholder="대여자 이름 또는 학번 검색" height={40} />
           <Button variant="solid" color="primary" size="medium" onClick={() => navigate('/rentals/records/new')}>+ 대여 추가하기</Button>
         </FlexBox>
@@ -128,6 +128,7 @@ function RentalRecordsPanel() {
         rows={filtered}
         rowKey={(row) => row.id}
         emptyMessage="대여 기록이 없어요."
+        minWidth={980}
         style={{ width: '100%', tableLayout: 'fixed' }}
         className="rental-records-table"
       />

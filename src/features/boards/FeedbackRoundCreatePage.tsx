@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button, DatePicker, FlexBox, Typography, useToast, type DateType } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
+import FormSection from '../../components/common/FormSection'
 import { useBoards } from './store'
 
 function toDateValue(value: DateType) {
@@ -38,19 +39,15 @@ export default function FeedbackRoundCreatePage() {
     <>
       <PageHeader title="새 회차 등록" />
       <FlexBox flexDirection="column" style={{ maxWidth: 720, gap: 20 }}>
-        <FlexBox flexDirection="column" style={{ gap: 20, padding: 24, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16 }}>
-          <FlexBox flexDirection="column" style={{ gap: 4 }}>
-            <Typography variant="body1" weight="bold">질문 접수 설정</Typography>
-            <Typography variant="body2" color="semantic.label.alternative">{nextRound}차 열린 피드백으로 등록돼요.</Typography>
-          </FlexBox>
+        <FormSection title="질문 접수 설정" description={`${nextRound}차 열린 피드백으로 등록돼요.`}>
           <FormItem label="질문 접수 기간" required error={error}>
-            <FlexBox alignItems="center" style={{ gap: 8 }}>
+            <FlexBox className="app-date-range" alignItems="center" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: 8, width: '100%' }}>
               <DatePicker value={openDate ? new Date(`${openDate}T00:00:00`) : undefined} onChange={(value) => { setOpenDate(toDateValue(value)); setError('') }} format="YYYY-MM-DD" width="100%" />
-              <Typography variant="body2" color="semantic.label.alternative">~</Typography>
+              <Typography className="app-date-range-separator" variant="body2" color="semantic.label.alternative">~</Typography>
               <DatePicker value={closeDate ? new Date(`${closeDate}T00:00:00`) : undefined} onChange={(value) => { setCloseDate(toDateValue(value)); setError('') }} format="YYYY-MM-DD" width="100%" />
             </FlexBox>
           </FormItem>
-        </FlexBox>
+        </FormSection>
         <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
           <Button variant="outlined" color="assistive" onClick={() => navigate('/feedback?tab=rounds')}>취소</Button>
           <Button variant="solid" color="primary" onClick={submit}>회차 등록</Button>

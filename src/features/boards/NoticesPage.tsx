@@ -63,7 +63,7 @@ function NoticesPage() {
     <>
       <PageHeader title="공지 관리" description="게시판에 노출되는 공지를 관리해요." />
 
-      <FlexBox justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
+      <FlexBox className="app-page-toolbar" justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
         <SearchField value={search} onChange={setSearch} placeholder="제목 검색" />
         <Button variant="solid" color="primary" onClick={() => navigate('/notices/new')}>+ 새 공지 등록</Button>
       </FlexBox>

@@ -44,11 +44,14 @@ function TopBar({
       justifyContent="space-between"
       style={{
         flexShrink: 0,
+        position: compact ? 'relative' : 'sticky',
+        top: compact ? undefined : 0,
+        zIndex: 20,
         padding: "12px 96px 12px 80px",
-        background: "rgba(255, 255, 255, 0.78)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        borderBottom: scrolled
+        background: compact ? 'transparent' : "rgba(255, 255, 255, 0.78)",
+        backdropFilter: compact ? 'none' : "blur(14px)",
+        WebkitBackdropFilter: compact ? 'none' : "blur(14px)",
+        borderBottom: !compact && scrolled
           ? "1px solid rgba(20, 35, 60, 0.05)"
           : "1px solid transparent",
       }}
