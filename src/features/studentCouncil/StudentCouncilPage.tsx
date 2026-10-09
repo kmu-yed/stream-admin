@@ -151,7 +151,7 @@ function AccountManagement() {
         <FlexBox className="account-card-header" justifyContent="space-between" alignItems="flex-start"><FlexBox flexDirection="column" style={{ gap: 4 }}><Typography variant="body1" weight="bold">학생회비 납부계좌</Typography><Typography variant="body2" color="semantic.label.alternative">`(8학기 - 수강한 학기) × 학기당 회비`로 납부 금액이 계산돼요.</Typography></FlexBox>{!editing && <Button variant="outlined" color="primary" onClick={() => setEditing(true)}>수정</Button>}</FlexBox>
         {editing ? <>
           <FormItem label="은행"><Select value={form.bank} onChange={(value) => setForm({ ...form, bank: value as BankName })}>{BANKS.map((bank) => <Option key={bank} value={bank}>{bank}</Option>)}</Select></FormItem>
-          <FormItem label="계좌번호"><TextField value={form.accountNumber} inputMode="numeric" pattern="[0-9]*" placeholder="계좌번호를 숫자만 입력해주세요" onChange={(event) => setForm({ ...form, accountNumber: event.target.value.replace(/\D/g, '') })} /></FormItem>
+          <FormItem label="계좌번호"><TextField value={form.accountNumber} inputMode="numeric" pattern="[0-9]*" placeholder="하이픈(-) 제외한 숫자만 입력해 주세요" onChange={(event) => setForm({ ...form, accountNumber: event.target.value.replace(/\D/g, '') })} /></FormItem>
           <FormItem label="학기당 학생회비"><TextField type="number" value={String(form.feePerSemester)} onChange={(event) => setForm({ ...form, feePerSemester: Number(event.target.value) || 0 })} /></FormItem>
           <FlexBox justifyContent="flex-end" style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => { setForm(toAccountForm(current)); setEditing(false) }}>취소</Button><Button variant="solid" color="primary" onClick={save}>저장</Button></FlexBox>
         </> : <FlexBox flexDirection="column" style={{ gap: 16 }}>
