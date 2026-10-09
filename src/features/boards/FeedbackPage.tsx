@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Tab, TabList, TabListItem, TabPanel, Typography } from '@wanteddev/wds'
-import { IconChevronDownSmall, IconChevronLeft, IconChevronRight } from '@wanteddev/wds-icon'
+import { Button, FlexBox, IconButton, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Tab, TabList, TabListItem, TabPanel, Typography } from '@wanteddev/wds'
+import { IconChevronLeft, IconChevronRight } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
@@ -9,6 +9,7 @@ import { useBoards } from './store'
 import type { FeedbackQuestion, FeedbackQuestionStatus, FeedbackRound, FeedbackRoundStatus } from './types'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import BoldMarkupText from '../../components/common/BoldMarkupText'
+import StatusBadgeDropdown from '../../components/common/StatusBadgeDropdown'
 
 const questionStatuses: FeedbackQuestionStatus[] = ['답변대기', '답변작성중', '개별답변완료', '공개답변완료']
 const questionTone: Record<FeedbackQuestionStatus, BadgeTone> = { 답변대기: 'neutral', 답변작성중: 'cautionary', 개별답변완료: 'positive', 공개답변완료: 'info' }
@@ -54,6 +55,6 @@ function RoundsPanel() {
   </>
 }
 
-function QuestionsPanel() { const navigate = useNavigate(); const { questions, updateFeedbackQuestionStatus } = useBoards(); const [search, setSearch] = useState(''); const filtered = questions.filter((question) => !search.trim() || question.content.includes(search.trim()) || question.studentName.includes(search.trim())); const columns: DataTableColumn<FeedbackQuestion>[] = [{ key: 'content', header: '질문', render: (row) => row.content }, { key: 'student', header: '작성자', width: 100, render: (row) => row.studentName }, { key: 'date', header: '등록일', width: 120, render: (row) => row.createdAt }, { key: 'status', header: '답변 상태', width: 180, render: (row) => <Menu><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={row.status} tone={questionTone[row.status]} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-end" offset={8}><MenuList>{questionStatuses.map((status) => <MenuItem key={status} value={status} onClick={() => updateFeedbackQuestionStatus(row.id, status)}><StatusBadge label={status} tone={questionTone[status]} /></MenuItem>)}</MenuList></MenuContent></Menu> }]; return <><FlexBox className="app-page-toolbar" justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}><SearchField value={search} onChange={setSearch} placeholder="질문 또는 작성자 검색" /><Button variant="solid" color="primary" onClick={() => navigate('/feedback/answers/new')}>+ 피드백 답변 등록</Button></FlexBox><DataTable columns={columns} rows={filtered} rowKey={(row) => row.id} emptyMessage="등록된 질문이 없어요." /></> }
+function QuestionsPanel() { const navigate = useNavigate(); const { questions, updateFeedbackQuestionStatus } = useBoards(); const [search, setSearch] = useState(''); const filtered = questions.filter((question) => !search.trim() || question.content.includes(search.trim()) || question.studentName.includes(search.trim())); const columns: DataTableColumn<FeedbackQuestion>[] = [{ key: 'content', header: '질문', render: (row) => row.content }, { key: 'student', header: '작성자', width: 100, render: (row) => row.studentName }, { key: 'date', header: '등록일', width: 120, render: (row) => row.createdAt }, { key: 'status', header: '답변 상태', width: 180, render: (row) => <StatusBadgeDropdown value={row.status} options={questionStatuses.map((status) => ({ value: status, label: status, tone: questionTone[status] }))} onChange={(status) => updateFeedbackQuestionStatus(row.id, status)} /> }]; return <><FlexBox className="app-page-toolbar" justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}><SearchField value={search} onChange={setSearch} placeholder="질문 또는 작성자 검색" /><Button variant="solid" color="primary" onClick={() => navigate('/feedback/answers/new')}>+ 피드백 답변 등록</Button></FlexBox><DataTable columns={columns} rows={filtered} rowKey={(row) => row.id} emptyMessage="등록된 질문이 없어요." /></> }
 
 export default function FeedbackPage() { const [params, setParams] = useSearchParams(); const tab = params.get('tab') ?? 'questions'; return <><PageHeader title="열린피드백 관리" description="회차를 열고 질문을 접수한 뒤 답변을 작성·공개하는 흐름을 관리해요." /><Summary /><Tab value={tab} onValueChange={(value) => setParams({ tab: value })}><TabList size="medium" style={{ marginBottom: 20 }}><TabListItem value="questions">현재 회차 질문</TabListItem><TabListItem value="rounds">회차 관리</TabListItem></TabList><TabPanel value="questions"><QuestionsPanel /></TabPanel><TabPanel value="rounds"><RoundsPanel /></TabPanel></Tab></> }

@@ -1,12 +1,12 @@
 import { useState, type DragEvent } from 'react'
-import { FlexBox, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Tab, TabList, TabListItem, TabPanel, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Typography } from '@wanteddev/wds'
-import { IconChevronDownSmall, IconMenu } from '@wanteddev/wds-icon'
+import { FlexBox, Tab, TabList, TabListItem, TabPanel, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Typography } from '@wanteddev/wds'
+import { IconMenu } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import { useEvents } from '../events/store'
 import { useLockers } from '../lockers/store'
 import { getSemesterStatus } from '../lockers/types'
 import HomeBannerListPage from './HomeBannerListPage'
-import StatusBadge from '../../components/common/StatusBadge'
+import StatusBadgeDropdown from '../../components/common/StatusBadgeDropdown'
 
 type HomeItem = { id: string; title: string; description: string; visible: boolean }
 
@@ -20,7 +20,6 @@ function HomeSectionSettings() {
   ])
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
-  const [openStatusId, setOpenStatusId] = useState<string | null>(null)
   const reorder = (draggedId: string, targetId: string) => setItems((prev) => {
     const from = prev.findIndex((item) => item.id === draggedId)
     const to = prev.findIndex((item) => item.id === targetId)
@@ -41,7 +40,7 @@ function HomeSectionSettings() {
     <Typography variant="body2" color="semantic.label.alternative">현재 진행 중인 행사와 사물함 신청 기간만 홈 화면 섹션 후보로 표시됩니다. 노출 여부와 순서를 설정하세요.</Typography>
     {items.length === 0 ? <FlexBox alignItems="center" justifyContent="center" style={{ minHeight: 180, border: '1px dashed var(--semantic-line-normal-normal)', borderRadius: 16 }}><Typography variant="body2" color="semantic.label.alternative">현재 노출할 행사 또는 사물함 신청 기간이 없어요.</Typography></FlexBox> : <Table className="data-table"><TableHead><TableRow><TableHeadCell style={{ width: 40 }} /><TableHeadCell style={{ width: 60 }}>순서</TableHeadCell><TableHeadCell>제목</TableHeadCell><TableHeadCell style={{ width: 220 }}>신청 기간</TableHeadCell><TableHeadCell style={{ width: 100 }}>상태</TableHeadCell></TableRow></TableHead><TableBody>
       {items.map((item, index) => <TableRow key={item.id} onDragOver={(event) => { event.preventDefault(); setDragOverId(item.id) }} onDragLeave={() => setDragOverId((current) => current === item.id ? null : current)} onDrop={(event) => handleDrop(event, item.id)} style={{ background: dragOverId === item.id && draggingId !== item.id ? 'var(--semantic-fill-normal)' : undefined }}>
-        <TableCell><FlexBox draggable onDragStart={(event) => { event.dataTransfer.setData('text/plain', item.id); event.dataTransfer.effectAllowed = 'move'; setDraggingId(item.id) }} onDragEnd={() => { setDraggingId(null); setDragOverId(null) }} alignItems="center" justifyContent="center" style={{ cursor: 'grab', width: 24, height: 24 }}><IconMenu width={16} height={16} style={{ color: 'var(--semantic-label-alternative)' }} /></FlexBox></TableCell><TableCell><Typography variant="body2">{index + 1}</Typography></TableCell><TableCell><Typography variant="body1" weight="medium">{item.title}</Typography></TableCell><TableCell><Typography variant="body2" color="semantic.label.alternative">{item.description.split(' · ')[0]}</Typography></TableCell><TableCell><Menu open={openStatusId === item.id} onOpenChange={(open) => setOpenStatusId(open ? item.id : null)}><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={item.visible ? '노출' : '미노출'} tone={item.visible ? 'positive' : 'neutral'} trailingContent={<IconChevronDownSmall width={16} height={16} />} /></span></MenuTrigger><MenuContent position="bottom-start" offset={8}><MenuList><MenuItem value="visible" onClick={() => { setItems((previous) => previous.map((current) => current.id === item.id ? { ...current, visible: true } : current)); setOpenStatusId(null) }}>노출</MenuItem><MenuItem value="hidden" onClick={() => { setItems((previous) => previous.map((current) => current.id === item.id ? { ...current, visible: false } : current)); setOpenStatusId(null) }}>미노출</MenuItem></MenuList></MenuContent></Menu></TableCell>
+        <TableCell><FlexBox draggable onDragStart={(event) => { event.dataTransfer.setData('text/plain', item.id); event.dataTransfer.effectAllowed = 'move'; setDraggingId(item.id) }} onDragEnd={() => { setDraggingId(null); setDragOverId(null) }} alignItems="center" justifyContent="center" style={{ cursor: 'grab', width: 24, height: 24 }}><IconMenu width={16} height={16} style={{ color: 'var(--semantic-label-alternative)' }} /></FlexBox></TableCell><TableCell><Typography variant="body2">{index + 1}</Typography></TableCell><TableCell><Typography variant="body1" weight="medium">{item.title}</Typography></TableCell><TableCell><Typography variant="body2" color="semantic.label.alternative">{item.description.split(' · ')[0]}</Typography></TableCell><TableCell><StatusBadgeDropdown value={item.visible ? 'visible' : 'hidden'} options={[{ value: 'visible', label: '노출', tone: 'positive' }, { value: 'hidden', label: '미노출', tone: 'neutral' }]} onChange={(value) => setItems((previous) => previous.map((current) => current.id === item.id ? { ...current, visible: value === 'visible' } : current))} /></TableCell>
       </TableRow>)}
     </TableBody></Table>}
   </FlexBox>

@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Typography, useToast } from '@wanteddev/wds'
-import { IconChevronDownSmall, IconMoreVertical } from '@wanteddev/wds-icon'
+import { IconMoreVertical } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import StatusBadgeDropdown from '../../components/common/StatusBadgeDropdown'
 import { useEvents } from './store'
 import { getEventStatus, type EventRecord, type EventStatus } from './types'
 
@@ -28,7 +29,6 @@ function EventListPage() {
   const [deleteTarget, setDeleteTarget] = useState<EventRecord | null>(null)
   const [visibilityTarget, setVisibilityTarget] = useState<VisibilityChangeTarget | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-  const [openVisibilityId, setOpenVisibilityId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
   const filtered = events.filter((event) => event.title.includes(search.trim()))
@@ -62,7 +62,7 @@ function EventListPage() {
       key: 'visibility',
       header: '공개 상태',
       width: 120,
-      render: (event) => <Menu value={[event.isPublic ? 'public' : 'private']} onValueChange={() => undefined} open={openVisibilityId === event.id} onOpenChange={(open) => setOpenVisibilityId(open ? event.id : null)}><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={event.isPublic ? '공개' : '비공개'} tone={event.isPublic ? 'positive' : 'neutral'} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-start" offset={8}><MenuList><MenuItem variant="checkbox" value="public" onClick={() => { if (!event.isPublic) setVisibilityTarget({ event, nextIsPublic: true }); setOpenVisibilityId(null) }}>공개</MenuItem><MenuItem variant="checkbox" value="private" onClick={() => { if (event.isPublic) setVisibilityTarget({ event, nextIsPublic: false }); setOpenVisibilityId(null) }}>비공개</MenuItem></MenuList></MenuContent></Menu>,
+      render: (event) => <StatusBadgeDropdown value={event.isPublic ? 'public' : 'private'} options={[{ value: 'public', label: '공개', tone: 'positive' }, { value: 'private', label: '비공개', tone: 'neutral' }]} onChange={(value) => setVisibilityTarget({ event, nextIsPublic: value === 'public' })} />,
     },
     {
       key: 'period',

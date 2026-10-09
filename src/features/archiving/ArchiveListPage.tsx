@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Checkbox, FlexBox, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Typography, useToast } from '@wanteddev/wds'
-import { IconChevronDownSmall } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
@@ -9,8 +8,8 @@ import ConfirmModal from '../../components/common/ConfirmModal'
 import RowMoreMenu from '../../components/common/RowMoreMenu'
 import { useArchiving } from './store'
 import type { ArchivePost } from './types'
-import StatusBadge from '../../components/common/StatusBadge'
 import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
+import StatusBadgeDropdown from '../../components/common/StatusBadgeDropdown'
 
 type SlangjeFilter = 'all' | 'visible' | 'hidden'
 
@@ -30,7 +29,7 @@ function ArchiveListPage() {
 
   const columns: DataTableColumn<ArchivePost>[] = [
     { key: 'select', header: <Checkbox checked={sorted.length > 0 && sorted.every((post) => selectedIds.includes(post.id))} onCheckedChange={(checked) => setSelectedIds(checked ? sorted.map((post) => post.id) : [])} />, width: 48, align: 'center', render: (row) => <Checkbox checked={selectedIds.includes(row.id)} onCheckedChange={(checked) => setSelectedIds((prev) => checked ? [...prev, row.id] : prev.filter((id) => id !== row.id))} /> },
-    { key: 'slangje', header: <TableCheckboxFilter label="슬랑제 페이지 여부" ariaLabel="슬랑제 페이지 여부 필터" options={[{ value: 'visible', label: '노출' }, { value: 'hidden', label: '비노출' }]} value={slangjeFilters} onChange={(value) => setSlangjeFilters(value as SlangjeFilter[])} />, width: 180, render: (row) => <Menu><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={row.includeInSlangje ? '노출' : '비노출'} tone={row.includeInSlangje ? 'positive' : 'neutral'} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-end" offset={8}><MenuList><MenuItem value="visible" onClick={() => updateSlangjeInclusion(row.id, true)}><StatusBadge label="노출" tone="positive" /></MenuItem><MenuItem value="hidden" onClick={() => updateSlangjeInclusion(row.id, false)}><StatusBadge label="비노출" tone="neutral" /></MenuItem></MenuList></MenuContent></Menu> },
+    { key: 'slangje', header: <TableCheckboxFilter label="슬랑제 페이지 여부" ariaLabel="슬랑제 페이지 여부 필터" options={[{ value: 'visible', label: '노출' }, { value: 'hidden', label: '비노출' }]} value={slangjeFilters} onChange={(value) => setSlangjeFilters(value as SlangjeFilter[])} />, width: 180, render: (row) => <StatusBadgeDropdown value={row.includeInSlangje ? 'visible' : 'hidden'} options={[{ value: 'visible', label: '노출', tone: 'positive' }, { value: 'hidden', label: '비노출', tone: 'neutral' }]} onChange={(value) => updateSlangjeInclusion(row.id, value === 'visible')} /> },
     {
       key: 'title',
       header: '제목',
