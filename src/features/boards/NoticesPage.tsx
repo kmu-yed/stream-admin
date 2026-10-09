@@ -33,11 +33,11 @@ function NoticesPage() {
       key: 'title',
       header: '제목',
       render: (row) => (
-        <FlexBox alignItems="center" style={{ gap: 6 }}>
+        <FlexBox className="notice-title-cell" alignItems="center" style={{ gap: 6 }}>
           {row.pinned && (
             <img src="/icons/Shape.svg" alt="고정 공지" style={{ width: 14, height: 14, objectFit: 'contain' }} />
           )}
-          <Typography variant="body1" weight="medium">
+          <Typography className="notice-title-text" variant="body1" weight="medium">
             {row.title}
           </Typography>
         </FlexBox>
@@ -65,7 +65,7 @@ function NoticesPage() {
 
       <FlexBox className="app-page-toolbar" justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
         <SearchField value={search} onChange={setSearch} placeholder="제목 검색" />
-        <Button variant="solid" color="primary" onClick={() => navigate('/notices/new')}>+ 새 공지 등록</Button>
+        <Button variant="solid" color="primary" size="medium" onClick={() => navigate('/notices/new')}>+ 새 공지 등록</Button>
       </FlexBox>
 
       <DataTable
@@ -74,6 +74,7 @@ function NoticesPage() {
         rowKey={(row) => row.id}
         onRowClick={(row) => navigate(`/notices/${row.id}`)}
         emptyMessage="등록된 공지가 없어요."
+        className="notices-table"
       />
 
       <ConfirmModal

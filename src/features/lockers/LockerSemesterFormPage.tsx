@@ -103,8 +103,9 @@ function LockerSemesterFormPage() {
       {isApplying && <InfoNotice>신청이 진행 중이라 학기와 신청 시작일은 수정할 수 없어요. 신청 마감일은 연장만 가능하며, 사용 가능 기간은 수정할 수 있어요.</InfoNotice>}
       {isEnded && <InfoNotice>신청이 종료된 일정은 읽기 전용이에요.</InfoNotice>}
 
-      <fieldset disabled={isEnded} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
+      <fieldset disabled={isEnded} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox className="locker-semester-form" flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
         <FlexBox
+          className="locker-semester-section"
           flexDirection="column"
           style={{
             gap: 12,
@@ -116,8 +117,8 @@ function LockerSemesterFormPage() {
           <Typography variant="body1" weight="bold">
             학기 설정
           </Typography>
-          <fieldset disabled={isEdit} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox style={{ gap: 16 }}>
-            <FlexBox style={{ width: 160 }}>
+          <fieldset disabled={isEdit} style={{ margin: 0, padding: 0, border: 0 }}><FlexBox className="locker-semester-term-fields" style={{ gap: 16 }}>
+            <FlexBox className="locker-semester-term-field" style={{ width: 160 }}>
               <FormItem
                 label="연도"
                 required
@@ -137,7 +138,7 @@ function LockerSemesterFormPage() {
                 />
               </FormItem>
             </FlexBox>
-            <FlexBox style={{ width: 160 }}>
+            <FlexBox className="locker-semester-term-field" style={{ width: 160 }}>
               <FormItem
                 label="학기"
                 required
@@ -160,6 +161,7 @@ function LockerSemesterFormPage() {
         </FlexBox>
 
         <FlexBox
+          className="locker-semester-section"
           flexDirection="column"
           style={{
             gap: 12,
@@ -172,6 +174,7 @@ function LockerSemesterFormPage() {
             신청 기간
           </Typography>
           <FlexBox
+            className="locker-semester-date-range"
             style={{
               display: "grid",
               gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
@@ -199,6 +202,7 @@ function LockerSemesterFormPage() {
               </FormItem>
             </FlexBox></fieldset>
             <FlexBox
+              className="locker-semester-date-separator"
               alignItems="center"
               justifyContent="center"
               style={{ height: 48 }}
@@ -228,6 +232,7 @@ function LockerSemesterFormPage() {
         </FlexBox>
 
         <FlexBox
+          className="locker-semester-section"
           flexDirection="column"
           style={{
             gap: 12,
@@ -240,6 +245,7 @@ function LockerSemesterFormPage() {
             사용 가능 기간
           </Typography>
           <FlexBox
+            className="locker-semester-date-range"
             style={{
               display: "grid",
               gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
@@ -267,6 +273,7 @@ function LockerSemesterFormPage() {
               </FormItem>
             </FlexBox>
             <FlexBox
+              className="locker-semester-date-separator"
               alignItems="center"
               justifyContent="center"
               style={{ height: 48 }}

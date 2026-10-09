@@ -62,7 +62,7 @@ function EventListPage() {
       key: 'visibility',
       header: '공개 상태',
       width: 120,
-      render: (event) => <StatusBadgeDropdown value={event.isPublic ? 'public' : 'private'} options={[{ value: 'public', label: '공개', tone: 'positive' }, { value: 'private', label: '비공개', tone: 'neutral' }]} onChange={(value) => setVisibilityTarget({ event, nextIsPublic: value === 'public' })} />,
+      render: (event) => <span onClick={(clickEvent) => clickEvent.stopPropagation()}><StatusBadgeDropdown value={event.isPublic ? 'public' : 'private'} options={[{ value: 'public', label: '공개', tone: 'positive' }, { value: 'private', label: '비공개', tone: 'neutral' }]} onChange={(value) => setVisibilityTarget({ event, nextIsPublic: value === 'public' })} /></span>,
     },
     {
       key: 'period',
@@ -75,7 +75,7 @@ function EventListPage() {
       width: 150,
       align: 'right',
       render: (event) => (
-        <FlexBox alignItems="center" justifyContent="flex-end" style={{ gap: 8 }}>
+        <FlexBox alignItems="center" justifyContent="flex-end" onClick={(clickEvent) => clickEvent.stopPropagation()} style={{ gap: 8 }}>
           <Button variant="outlined" color="primary" size="small" onClick={() => navigate(`/events/${event.id}/applicants`)}>신청 현황</Button>
           <Menu open={openMenuId === event.id} onOpenChange={(open) => setOpenMenuId(open ? event.id : null)}>
             <MenuTrigger>
@@ -108,13 +108,14 @@ function EventListPage() {
 
       <FlexBox className="app-page-toolbar" justifyContent="flex-end" style={{ gap: 12, marginBottom: 16 }}>
         <SearchField value={search} onChange={setSearch} placeholder="행사명 검색" />
-        <Button variant="solid" color="primary" onClick={() => navigate('/events/new')}>+ 새 행사 등록</Button>
+        <Button variant="solid" color="primary" size="medium" onClick={() => navigate('/events/new')}>+ 새 행사 등록</Button>
       </FlexBox>
 
       <DataTable
         columns={columns}
         rows={filtered}
         rowKey={(event) => event.id}
+        onRowClick={(event) => navigate(`/events/${event.id}`)}
         emptyMessage="등록된 행사가 없어요."
       />
       <ConfirmModal

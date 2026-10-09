@@ -70,8 +70,9 @@ function LockerSchedulePanel() {
 
   return (
     <FlexBox flexDirection="column" style={{ gap: 24 }}>
-      <FlexBox justifyContent="space-between" alignItems="flex-start">
+      <FlexBox className="locker-schedule-overview" justifyContent="space-between" alignItems="flex-start">
         <FlexBox
+          className="locker-current-card"
           flexDirection="column"
           style={{
             gap: 4,
@@ -111,7 +112,7 @@ function LockerSchedulePanel() {
           )}
         </FlexBox>
 
-        <Button variant="solid" color="primary" onClick={() => navigate('/lockers/schedule/new')}>
+        <Button className="locker-schedule-add" variant="solid" color="primary" onClick={() => navigate('/lockers/schedule/new')}>
           + 새 학기 신청일정 등록
         </Button>
       </FlexBox>

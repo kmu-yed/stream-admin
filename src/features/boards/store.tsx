@@ -39,6 +39,15 @@ const initialNotices: Notice[] = [
     pinned: false,
     createdAt: addDays(-10),
   },
+  {
+    id: 'ntc_4',
+    category: '일반',
+    title: '2026학년도 2학기 학생회비 납부 기간과 방법, 자주 묻는 질문 및 유의사항 안내',
+    content: '학생회비 납부 기간과 방법, 자주 묻는 질문을 안내드립니다.',
+    images: [],
+    pinned: false,
+    createdAt: addDays(-2),
+  },
 ]
 
 const initialQuestions: FeedbackQuestion[] = [

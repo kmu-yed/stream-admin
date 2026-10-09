@@ -44,7 +44,7 @@ function FaqPanel() {
         </Button>
       </FlexBox>
 
-      <DataTable columns={columns} rows={sorted} rowKey={(row) => row.id} emptyMessage="등록된 FAQ가 없어요." />
+      <DataTable columns={columns} rows={sorted} rowKey={(row) => row.id} emptyMessage="등록된 FAQ가 없어요." className="faq-table" />
 
       <ConfirmModal
         open={Boolean(deleteTarget)}

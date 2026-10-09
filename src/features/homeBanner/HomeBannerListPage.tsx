@@ -78,7 +78,7 @@ function HomeBannerListPage() {
       header: '',
       width: 56,
       align: 'right',
-      render: (row) => <RowMoreMenu label={row.title} onEdit={() => navigate(`/home-banner/${row.id}/edit`)} onDelete={() => setDeleteTarget(row)} />,
+      render: (row) => <span onClick={(event) => event.stopPropagation()}><RowMoreMenu label={row.title} onEdit={() => navigate(`/home-banner/${row.id}/edit`)} onDelete={() => setDeleteTarget(row)} /></span>,
     },
   ]
 
@@ -129,6 +129,7 @@ function HomeBannerListPage() {
               return (
                 <TableRow
                   key={banner.id}
+                  onClick={() => navigate(`/home-banner/${banner.id}`)}
                   onDragOver={(e) => {
                     e.preventDefault()
                     setDragOverId(banner.id)
@@ -136,6 +137,7 @@ function HomeBannerListPage() {
                   onDragLeave={() => setDragOverId((prev) => (prev === banner.id ? null : prev))}
                   onDrop={(e) => handleDrop(e, banner.id)}
                   style={{
+                    cursor: 'pointer',
                     background:
                       dragOverId === banner.id && draggingId !== banner.id
                         ? 'var(--semantic-fill-normal)'
@@ -145,6 +147,7 @@ function HomeBannerListPage() {
                   <TableCell>
                     <FlexBox
                       draggable
+                      onClick={(event) => event.stopPropagation()}
                       onDragStart={(e) => {
                         e.dataTransfer.setData('text/plain', banner.id)
                         e.dataTransfer.effectAllowed = 'move'
@@ -187,7 +190,7 @@ function HomeBannerListPage() {
                     <StatusBadge label={status} tone={exposureTone[status]} />
                   </TableCell>
                   <TableCell align="right">
-                    <RowMoreMenu label={banner.title} onEdit={() => navigate(`/home-banner/${banner.id}/edit`)} onDelete={() => setDeleteTarget(banner)} />
+                    <span onClick={(event) => event.stopPropagation()}><RowMoreMenu label={banner.title} onEdit={() => navigate(`/home-banner/${banner.id}/edit`)} onDelete={() => setDeleteTarget(banner)} /></span>
                   </TableCell>
                 </TableRow>
               )
@@ -203,6 +206,7 @@ function HomeBannerListPage() {
             columns={pastColumns}
             rows={pastBanners}
             rowKey={(row) => row.id}
+            onRowClick={(row) => navigate(`/home-banner/${row.id}`)}
             emptyMessage="노출이 종료된 배너가 없어요."
           />
       )}

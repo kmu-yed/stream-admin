@@ -204,11 +204,12 @@ export default function WorkManagementPage() {
               onChange={setScheduleSearch}
               placeholder="근무자 이름 검색"
             />
-            <Button variant="solid" color="primary" onClick={openCreateShift}>
+            <Button variant="solid" color="primary" size="medium" onClick={openCreateShift}>
               + 근무 시간 등록
             </Button>
           </FlexBox>
           <div
+            className="work-schedule-scroll"
             style={{
               overflowX: "auto",
               border: "1px solid var(--semantic-line-normal-normal)",
@@ -216,6 +217,7 @@ export default function WorkManagementPage() {
             }}
           >
             <div
+              className="work-schedule-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "72px repeat(5, minmax(156px, 1fr))",
@@ -231,6 +233,7 @@ export default function WorkManagementPage() {
               />
               {weekdays.map((day) => (
                 <div
+                  className="work-schedule-day"
                   key={day}
                   style={{
                     padding: 12,
@@ -247,6 +250,7 @@ export default function WorkManagementPage() {
               ))}
               {timeSlots.flatMap((time) => [
                 <div
+                  className="work-schedule-time"
                   key={`${time}-time`}
                   style={{
                     minHeight: 54,
@@ -269,6 +273,7 @@ export default function WorkManagementPage() {
                   );
                   return (
                     <div
+                      className="work-schedule-cell"
                       key={`${time}-${weekday}`}
                       style={{
                         minHeight: 54,
@@ -290,6 +295,7 @@ export default function WorkManagementPage() {
                           worker?.studentId.includes(scheduleSearch.trim());
                         return (
                           <button
+                            className="work-schedule-person"
                             key={shift.id}
                             type="button"
                             onClick={() => openEditShift(shift)}

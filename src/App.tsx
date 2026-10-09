@@ -3,6 +3,7 @@ import AdminLayout from './layouts/AdminLayout'
 import DashboardPage from './features/dashboard/DashboardPage'
 import { EventsProvider } from './features/events/store'
 import EventListPage from './features/events/EventListPage'
+import EventDetailPage from './features/events/EventDetailPage'
 import EventFormPage from './features/events/EventFormPage'
 import EventApplicantsPage from './features/events/EventApplicantsPage'
 import { LockersProvider } from './features/lockers/store'
@@ -17,9 +18,11 @@ import FeedbackRoundFormPage from './features/boards/FeedbackRoundFormPage'
 import FeedbackRoundCreatePage from './features/boards/FeedbackRoundCreatePage'
 import { ArchivingProvider } from './features/archiving/store'
 import ArchiveListPage from './features/archiving/ArchiveListPage'
+import ArchiveDetailPage from './features/archiving/ArchiveDetailPage'
 import ArchiveFormPage from './features/archiving/ArchiveFormPage'
 import { HomeBannerProvider } from './features/homeBanner/store'
 import HomeManagementPage from './features/homeBanner/HomeManagementPage'
+import HomeBannerDetailPage from './features/homeBanner/HomeBannerDetailPage'
 import HomeBannerFormPage from './features/homeBanner/HomeBannerFormPage'
 import { RentalsProvider } from './features/rentals/store'
 import RentalsPage from './features/rentals/RentalsPage'
@@ -52,6 +55,7 @@ function EventsRoutes() {
       <Route path="new" element={<EventFormPage />} />
       <Route path=":id/edit" element={<EventFormPage />} />
       <Route path=":id/applicants" element={<EventApplicantsPage />} />
+      <Route path=":id" element={<EventDetailPage />} />
     </Routes>
   )
 }
@@ -95,6 +99,7 @@ function ArchivingRoutes() {
         <Route index element={<ArchiveListPage />} />
         <Route path="new" element={<ArchiveFormPage />} />
         <Route path=":id/edit" element={<ArchiveFormPage />} />
+        <Route path=":id" element={<ArchiveDetailPage />} />
       </Routes>
     </ArchivingProvider>
   )
@@ -107,6 +112,7 @@ function HomeBannerRoutes() {
         <Route index element={<HomeManagementPage />} />
         <Route path="new" element={<HomeBannerFormPage />} />
         <Route path=":id/edit" element={<HomeBannerFormPage />} />
+        <Route path=":id" element={<HomeBannerDetailPage />} />
       </Routes>
     </HomeBannerProvider>
   )

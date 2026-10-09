@@ -59,9 +59,9 @@ function LockerCell({
 function LegendItem({ status }: { status: LockerDisplayStatus }) {
   const style = statusStyle[status]
   return (
-    <FlexBox alignItems="center" style={{ gap: 6 }}>
-      <FlexBox style={{ width: 16, height: 16, borderRadius: 4, background: style.background, border: style.border }} />
-      <Typography variant="label2" color="semantic.label.alternative">{status}</Typography>
+    <FlexBox className="locker-legend-item" alignItems="center" style={{ gap: 6 }}>
+      <FlexBox className="locker-legend-swatch" style={{ width: 16, height: 16, borderRadius: 4, background: style.background, border: style.border }} />
+      <Typography className="locker-legend-label" variant="label2" color="semantic.label.alternative">{status}</Typography>
     </FlexBox>
   )
 }
@@ -120,7 +120,7 @@ function LockerLayoutPanel() {
 
   return (
     <FlexBox flexDirection="column" style={{ gap: 28 }}>
-      <FlexBox flexWrap="wrap" style={{ gap: 12 }}>
+      <FlexBox className="locker-zone-grid" flexWrap="wrap" style={{ gap: 12 }}>
         {LOCKER_ZONES.map((zone) => {
           const zoneItems = lockers.filter((locker) => locker.zone === zone)
           const available = zoneItems.filter((locker) => getLockerDisplayStatus(locker) === '선택가능').length
@@ -129,7 +129,7 @@ function LockerLayoutPanel() {
           return (
             <FlexBox
               key={zone}
-              className="app-hoverable"
+              className="app-hoverable locker-zone-card"
               flexDirection="column"
               onClick={() => handleSelectZone(zone)}
               style={{ width: 180, gap: 8, padding: 16, borderRadius: 12, cursor: 'pointer', background: isSelected ? 'rgba(var(--semantic-primary-normal-rgb), 0.06)' : 'var(--semantic-background-normal-normal)', border: isSelected ? '1px solid rgba(var(--semantic-primary-normal-rgb), 0.32)' : '1px solid var(--semantic-line-normal-normal)' }}
@@ -138,18 +138,18 @@ function LockerLayoutPanel() {
                 <Typography variant="label1" weight="bold">{zone} 구역</Typography>
                 <StatusBadge label={`${zoneItems.length}개`} tone={isSelected ? 'info' : 'neutral'} />
               </FlexBox>
-              <Typography variant="caption1" color="semantic.label.alternative">선택가능 {available} · 배정됨 {assigned}</Typography>
+              <Typography className="locker-zone-card-meta" variant="caption1" color="semantic.label.alternative">선택가능 {available} · 배정됨 {assigned}</Typography>
             </FlexBox>
           )
         })}
       </FlexBox>
 
       <FlexBox flexDirection="column" style={{ gap: 16, paddingTop: 4 }}>
-        <FlexBox justifyContent="space-between" alignItems="center" style={{ gap: 16 }}>
-          <FlexBox alignItems="center" style={{ gap: 8 }}>
+        <FlexBox className="locker-zone-toolbar" justifyContent="space-between" alignItems="center" style={{ gap: 16 }}>
+          <FlexBox className="locker-zone-heading" alignItems="center" style={{ gap: 8 }}>
             <Typography variant="title3" weight="bold">{selectedZone} 구역</Typography>
             <Typography variant="body2" color="semantic.label.alternative">총 {zoneLockers.length}개</Typography>
-            <FlexBox alignItems="center" style={{ gap: 12, marginLeft: 12 }}>
+            <FlexBox className="locker-zone-legend" alignItems="center" style={{ gap: 12, marginLeft: 12 }}>
               <LegendItem status="선택가능" />
               <LegendItem status="선택불가" />
               <LegendItem status="배정됨" />

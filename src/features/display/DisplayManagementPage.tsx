@@ -99,7 +99,7 @@ function DisplayManagementPage() {
             </FlexBox>
             <Typography className="display-calendar-help" variant="body2" color="semantic.label.alternative">날짜를 눌러 일정을 관리하세요.</Typography>
           </FlexBox>
-          <div style={{ border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16, overflowX: 'auto' }}>
+          <div className="display-calendar-frame" style={{ border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 16, overflowX: 'auto' }}>
             <div className="display-calendar-grid">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', borderBottom: '1px solid var(--semantic-line-normal-normal)' }}>
               {weekDays.map((day, index) => <FlexBox className="display-calendar-weekday" key={day} justifyContent="center"><Typography variant="body1" weight="bold" style={{ color: index === 0 ? 'var(--semantic-status-negative)' : index === 6 ? 'var(--semantic-primary-normal)' : undefined }}>{day}</Typography></FlexBox>)}

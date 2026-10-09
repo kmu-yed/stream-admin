@@ -58,9 +58,19 @@ body {
   border-radius: 16px;
 }
 
+.app-detail-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+
 .app-search-field {
   min-width: 0;
   max-width: 100%;
+}
+
+.app-search-trigger {
+  display: none !important;
 }
 
 .display-calendar-navigation {
@@ -258,17 +268,80 @@ body {
   }
 
   .app-page-toolbar {
-    gap: 12px !important;
+    gap: 8px !important;
   }
 
-  .app-page-toolbar > .app-search-field {
-    flex: 1 1 100%;
+  .app-page-toolbar:has(.app-search-field) {
+    position: relative;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    align-items: center;
+  }
+
+  .app-page-toolbar > :has(.app-search-field) {
+    width: 100%;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+
+  .app-page-toolbar .app-search-field {
+    width: 40px !important;
+    flex: 0 0 40px !important;
+    height: 40px;
+  }
+
+  .app-page-toolbar .app-search-field.app-search-open {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    z-index: 2;
     width: 100% !important;
+    flex-basis: auto !important;
+    background: var(--semantic-background-normal-normal);
+  }
+
+  .app-page-toolbar .app-search-trigger {
+    display: inline-flex !important;
+    width: 40px;
+    height: 40px;
+  }
+
+  .app-page-toolbar .app-search-input {
+    display: none;
+  }
+
+  .app-page-toolbar .app-search-open .app-search-trigger {
+    display: none !important;
+  }
+
+  .app-page-toolbar .app-search-open .app-search-input {
+    display: flex;
+  }
+
+  .app-page-toolbar:has(.app-search-field) button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .app-page-toolbar .app-search-field input,
+  .app-page-toolbar .app-search-field input::placeholder {
+    font-size: 13px !important;
+  }
+
+  .app-page-toolbar .app-search-has-value:not(.app-search-open) .app-search-trigger {
+    border-color: var(--semantic-primary-normal);
+    color: var(--semantic-primary-normal);
   }
 
   .app-form-section {
     gap: 16px;
     padding: 20px;
+  }
+
+  .app-detail-info-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
 
   .app-page-toolbar,
@@ -373,7 +446,7 @@ body {
   }
 
   .topbar-account-trigger {
-    gap: 0 !important;
+    gap: 6px !important;
   }
 
   .account-menu-profile { display: flex !important; }
@@ -538,6 +611,38 @@ body {
     flex-shrink: 1 !important;
   }
 
+  .dashboard-event-row {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .dashboard-event-main {
+    width: 100%;
+    min-width: 0;
+    align-items: center !important;
+  }
+
+  .dashboard-event-main > :first-child {
+    flex-shrink: 0;
+  }
+
+  .dashboard-event-title {
+    min-width: 0;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+
+  .dashboard-event-rate {
+    width: 100%;
+    max-width: none !important;
+  }
+
   .feedback-summary {
     grid-template-columns: minmax(0, 1fr) !important;
     margin-bottom: 20px !important;
@@ -581,7 +686,7 @@ body {
 
   .data-table table,
   .data-table-scroll .data-table table {
-    min-width: var(--app-data-table-min-width, 720px);
+    min-width: var(--app-data-table-min-width, 600px);
   }
 
 
@@ -595,6 +700,8 @@ body {
     word-break: keep-all;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
 
   .data-table th *,
@@ -605,6 +712,207 @@ body {
 
   .data-table-scroll.student-payment-table .data-table table {
     min-width: 980px;
+  }
+
+  .notices-table .data-table table {
+    width: 560px;
+    min-width: 560px !important;
+    table-layout: fixed;
+  }
+
+  .notices-table .notice-title-cell {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .notices-table .notice-title-cell img {
+    flex: 0 0 14px;
+  }
+
+  .notices-table .notice-title-text {
+    display: -webkit-box;
+    min-width: 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal !important;
+    word-break: keep-all;
+    line-height: 1.4;
+  }
+
+  .faq-table .data-table table {
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  .faq-table .data-table td:nth-child(2) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .faq-table .data-table th:last-child,
+  .faq-table .data-table td:last-child {
+    width: 40px !important;
+  }
+
+  .locker-zone-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+  }
+
+  .locker-zone-card {
+    width: auto !important;
+    min-width: 0;
+    gap: 6px !important;
+    padding: 10px !important;
+  }
+
+  .locker-zone-card-meta {
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+
+  .locker-zone-toolbar {
+    flex-wrap: wrap;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .locker-zone-heading {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+
+  .locker-zone-legend {
+    order: 1;
+    width: 100%;
+    margin-left: 0 !important;
+    gap: 9px !important;
+    flex-wrap: nowrap;
+  }
+
+  .locker-legend-item {
+    gap: 4px !important;
+    flex-shrink: 0;
+  }
+
+  .locker-legend-swatch {
+    width: 12px !important;
+    height: 12px !important;
+    flex-shrink: 0;
+  }
+
+  .locker-legend-label {
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+
+  .locker-schedule-overview {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .locker-current-card {
+    width: 100%;
+    max-width: none !important;
+    padding: 16px !important;
+  }
+
+  .locker-current-card > div {
+    min-width: 0;
+  }
+
+  .locker-current-card svg {
+    flex-shrink: 0;
+  }
+
+  .locker-current-card p {
+    font-size: 12px !important;
+  }
+
+  .locker-schedule-add {
+    align-self: flex-end;
+  }
+
+  .locker-semester-form {
+    gap: 12px !important;
+  }
+
+  .locker-semester-section {
+    gap: 10px !important;
+    padding: 16px !important;
+    border-radius: 12px !important;
+  }
+
+  .locker-semester-term-fields {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px !important;
+  }
+
+  .locker-semester-term-field {
+    width: auto !important;
+    min-width: 0;
+  }
+
+  .locker-semester-date-range {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .locker-semester-date-separator {
+    display: none !important;
+  }
+
+  .locker-json-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .locker-json-controls {
+    flex-wrap: wrap;
+  }
+
+  .locker-json-layout > * {
+    min-width: 0;
+  }
+
+  .work-schedule-scroll {
+    overflow-x: hidden !important;
+  }
+
+  .work-schedule-grid {
+    width: 100%;
+    min-width: 0 !important;
+    grid-template-columns: 42px repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  .work-schedule-day {
+    padding: 8px 2px !important;
+    font-size: 12px;
+  }
+
+  .work-schedule-time {
+    padding: 8px 2px !important;
+    font-size: 10px !important;
+    text-align: center;
+  }
+
+  .work-schedule-cell {
+    padding: 3px 2px !important;
+  }
+
+  .work-schedule-person {
+    padding: 3px 1px !important;
+    font-size: 10px !important;
+    text-align: center !important;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .display-calendar-toolbar {
@@ -630,7 +938,12 @@ body {
   }
 
   .display-calendar-grid {
-    min-width: 700px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .display-calendar-frame {
+    overflow-x: hidden !important;
   }
 
   .display-calendar-weekday {
@@ -638,35 +951,35 @@ body {
   }
 
   .display-calendar-weekday > * {
-    font-size: 13px !important;
+    font-size: 11px !important;
   }
 
   .display-calendar-day {
-    height: 112px;
+    height: 88px;
   }
 
   .display-calendar-date {
-    top: 10px;
-    left: 10px;
-    font-size: 13px !important;
+    top: 6px;
+    left: 6px;
+    font-size: 11px !important;
   }
 
   .display-calendar-events {
-    top: 38px;
-    right: 5px;
-    left: 5px;
-    gap: 5px;
+    top: 26px;
+    right: 2px;
+    left: 2px;
+    gap: 3px;
   }
 
   .display-calendar-event {
-    min-height: 22px;
-    padding: 4px 5px;
-    font-size: 11px;
-    line-height: 1.3;
+    min-height: 18px;
+    padding: 3px 2px;
+    font-size: 9px;
+    line-height: 1.25;
   }
 
   .display-calendar-more {
-    font-size: 11px !important;
+    font-size: 9px !important;
   }
 
   .display-poster-toolbar {
