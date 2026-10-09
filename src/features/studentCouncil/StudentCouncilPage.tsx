@@ -15,6 +15,15 @@ import { BANKS, type BankName, type PaymentStatus, type StreamMembershipStatus, 
 type Filter = 'all' | PaymentStatus
 type AccountForm = Omit<StudentCouncilFeeAccount, 'id'>
 
+function toAccountForm(account: StudentCouncilFeeAccount): AccountForm {
+  return {
+    year: account.year,
+    bank: account.bank,
+    accountNumber: account.accountNumber.replace(/\D/g, ''),
+    feePerSemester: account.feePerSemester,
+  }
+}
+
 const paymentStatuses: PaymentStatus[] = ['납부 전', '납부확인중', '납부완료', '확인필요']
 const defaultMessage = '입금자 정보를 확인하지 못했어요. 문제가 있을 경우 학생회에 문의해 주세요.'
 
@@ -128,11 +137,11 @@ function AccountManagement() {
   const { accounts, saveAccount } = useStudentCouncil()
   const toast = useToast()
   const current = accounts[0]
-  const [form, setForm] = useState<AccountForm>({ year: current.year, bank: current.bank, accountNumber: current.accountNumber, accountHolder: current.accountHolder, feePerSemester: current.feePerSemester })
+  const [form, setForm] = useState<AccountForm>(() => toAccountForm(current))
   const [editing, setEditing] = useState(false)
   const save = () => {
-    if (!form.accountNumber.trim() || !form.accountHolder.trim() || form.feePerSemester < 1) return
-    saveAccount({ ...form, accountNumber: form.accountNumber.trim(), accountHolder: form.accountHolder.trim() })
+    if (!/^\d+$/.test(form.accountNumber) || form.feePerSemester < 1) return
+    saveAccount(form)
     toast({ content: `${form.year}학년도 납부계좌를 저장했어요.`, variant: 'positive' })
     setEditing(false)
   }
@@ -142,12 +151,11 @@ function AccountManagement() {
         <FlexBox className="account-card-header" justifyContent="space-between" alignItems="flex-start"><FlexBox flexDirection="column" style={{ gap: 4 }}><Typography variant="body1" weight="bold">학생회비 납부계좌</Typography><Typography variant="body2" color="semantic.label.alternative">`(8학기 - 수강한 학기) × 학기당 회비`로 납부 금액이 계산돼요.</Typography></FlexBox>{!editing && <Button variant="outlined" color="primary" onClick={() => setEditing(true)}>수정</Button>}</FlexBox>
         {editing ? <>
           <FormItem label="은행"><Select value={form.bank} onChange={(value) => setForm({ ...form, bank: value as BankName })}>{BANKS.map((bank) => <Option key={bank} value={bank}>{bank}</Option>)}</Select></FormItem>
-          <FormItem label="계좌번호"><TextField value={form.accountNumber} placeholder="계좌번호를 입력해주세요" onChange={(event) => setForm({ ...form, accountNumber: event.target.value })} /></FormItem>
-          <FormItem label="예금주"><TextField value={form.accountHolder} placeholder="예금주를 입력해주세요" onChange={(event) => setForm({ ...form, accountHolder: event.target.value })} /></FormItem>
+          <FormItem label="계좌번호"><TextField value={form.accountNumber} inputMode="numeric" pattern="[0-9]*" placeholder="계좌번호를 숫자만 입력해주세요" onChange={(event) => setForm({ ...form, accountNumber: event.target.value.replace(/\D/g, '') })} /></FormItem>
           <FormItem label="학기당 학생회비"><TextField type="number" value={String(form.feePerSemester)} onChange={(event) => setForm({ ...form, feePerSemester: Number(event.target.value) || 0 })} /></FormItem>
-          <FlexBox justifyContent="flex-end" style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => { setForm({ year: current.year, bank: current.bank, accountNumber: current.accountNumber, accountHolder: current.accountHolder, feePerSemester: current.feePerSemester }); setEditing(false) }}>취소</Button><Button variant="solid" color="primary" onClick={save}>저장</Button></FlexBox>
+          <FlexBox justifyContent="flex-end" style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => { setForm(toAccountForm(current)); setEditing(false) }}>취소</Button><Button variant="solid" color="primary" onClick={save}>저장</Button></FlexBox>
         </> : <FlexBox flexDirection="column" style={{ gap: 16 }}>
-          {[['은행', form.bank], ['계좌번호', form.accountNumber], ['예금주', form.accountHolder], ['학기당 학생회비', `${form.feePerSemester.toLocaleString()}원`]].map(([label, value]) => <FlexBox className="account-info-row" key={label} justifyContent="space-between" alignItems="center"><Typography variant="body2" color="semantic.label.alternative">{label}</Typography><Typography variant="body1" weight="medium">{value}</Typography></FlexBox>)}
+          {[['은행', form.bank], ['계좌번호', form.accountNumber], ['학기당 학생회비', `${form.feePerSemester.toLocaleString()}원`]].map(([label, value]) => <FlexBox className="account-info-row" key={label} justifyContent="space-between" alignItems="center"><Typography variant="body2" color="semantic.label.alternative">{label}</Typography><Typography variant="body1" weight="medium">{value}</Typography></FlexBox>)}
         </FlexBox>}
       </FormSection>
     </FlexBox>

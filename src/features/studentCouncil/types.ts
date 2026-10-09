@@ -10,7 +10,6 @@ export type StudentCouncilFeeAccount = {
   year: number
   bank: BankName
   accountNumber: string
-  accountHolder: string
   feePerSemester: number
 }
 

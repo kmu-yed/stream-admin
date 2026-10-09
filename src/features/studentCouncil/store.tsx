@@ -16,7 +16,7 @@ const initialMembers: StudentMember[] = [
 ]
 
 const initialAccounts: StudentCouncilFeeAccount[] = [
-  { id: 'account_2026', year: 2026, bank: '카카오뱅크', accountNumber: '3333-01-1234567', accountHolder: 'STREAM 학생회', feePerSemester: 20000 },
+  { id: 'account_2026', year: 2026, bank: '카카오뱅크', accountNumber: '3333011234567', feePerSemester: 20000 },
 ]
 
 type StudentCouncilContextValue = {
