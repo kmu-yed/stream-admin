@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button, FlexBox, Typography } from '@wanteddev/wds'
 import DetailInfoGrid from '../../components/common/DetailInfoGrid'
 import FormSection from '../../components/common/FormSection'
+import NotFoundState from '../../components/common/NotFoundState'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import { useBoards } from '../boards/store'
 import { useHomeBanner } from './store'
@@ -21,10 +22,7 @@ function HomeBannerDetailPage() {
   const banner = banners.find((item) => item.id === id)
 
   if (!banner) {
-    return <FormSection style={{ maxWidth: 800 }}>
-      <Typography variant="body1" color="semantic.label.alternative">배너를 찾을 수 없어요.</Typography>
-      <Button variant="outlined" color="assistive" onClick={() => navigate('/home-banner')}>목록으로</Button>
-    </FormSection>
+    return <NotFoundState entity="배너" onBack={() => navigate('/home-banner')} />
   }
 
   const status = getBannerExposureStatus(banner)

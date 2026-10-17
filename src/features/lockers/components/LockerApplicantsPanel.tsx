@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import {
   Button,
   FlexBox,
-  Menu, MenuContent, MenuItem, MenuList, MenuTrigger, IconButton,
   Modal, ModalContainer, ModalContent, ModalContentItem, ModalDescription, ModalHeading,
   TextField,
   Typography,
@@ -13,9 +12,9 @@ import SearchField from '../../../components/common/SearchField'
 import StatusBadge from '../../../components/common/StatusBadge'
 import ConfirmModal from '../../../components/common/ConfirmModal'
 import RowMoreMenu from '../../../components/common/RowMoreMenu'
+import TableCheckboxFilter from '../../../components/common/TableCheckboxFilter'
 import { useLockers } from '../store'
 import { LOCKER_PHYSICAL_LAYOUTS, LOCKER_ZONES, type LockerApplication, type LockerZone } from '../types'
-import { IconChevronDown } from '@wanteddev/wds-icon'
 import FormItem from '../../../components/common/FormItem'
 import { useStudentCouncil } from '../../studentCouncil/store'
 
@@ -26,6 +25,8 @@ function LockerApplicantsPanel() {
   const { members } = useStudentCouncil()
   const toast = useToast()
   const [filters, setFilters] = useState<StatusFilter[]>(['all'])
+  const [gradeFilters, setGradeFilters] = useState<string[]>(['all'])
+  const [assignmentFilters, setAssignmentFilters] = useState<string[]>(['all'])
   const [cancelTarget, setCancelTarget] = useState<LockerApplication | null>(null)
   const [search, setSearch] = useState('')
   const [manualAssignOpen, setManualAssignOpen] = useState(false)
@@ -41,6 +42,8 @@ function LockerApplicantsPanel() {
 
   const filtered = applications.filter((a) => {
     if (!filters.includes('all') && !filters.includes(a.status)) return false
+    if (!gradeFilters.includes('all') && !gradeFilters.includes(String(a.grade))) return false
+    if (!assignmentFilters.includes('all') && !assignmentFilters.includes(a.lockerId ? 'assigned' : 'unassigned')) return false
     const keyword = search.trim()
     if (!keyword) return true
     return a.name.includes(keyword) || a.studentId.includes(keyword)
@@ -72,11 +75,11 @@ function LockerApplicantsPanel() {
   const columns: DataTableColumn<LockerApplication>[] = [
     { key: 'name', header: '이름', width: 100, render: (row) => row.name },
     { key: 'studentId', header: '학번', width: 140, render: (row) => row.studentId },
-    { key: 'grade', header: '학년', width: 80, render: (row) => `${row.grade}학년` },
+    { key: 'grade', header: <TableCheckboxFilter label="학년" ariaLabel="신청자 학년 필터" options={[1, 2, 3, 4].map((grade) => ({ value: String(grade), label: `${grade}학년` }))} value={gradeFilters} onChange={setGradeFilters} />, width: 80, render: (row) => `${row.grade}학년` },
     { key: 'appliedAt', header: '신청일시', width: 140, render: (row) => row.appliedAt },
     {
       key: 'locker',
-      header: '배정 사물함',
+      header: <TableCheckboxFilter label="배정 사물함" ariaLabel="사물함 배정 여부 필터" options={[{ value: 'assigned', label: '배정됨' }, { value: 'unassigned', label: '미배정' }]} value={assignmentFilters} onChange={setAssignmentFilters} />,
       width: 120,
       render: (row) =>
         row.lockerId ? (
@@ -91,7 +94,7 @@ function LockerApplicantsPanel() {
     },
     {
       key: 'status',
-      header: <Menu value={filters} onValueChange={(value) => { if (!Array.isArray(value)) return; if (value.length === 0) { setFilters(['all']); return }; if (value.includes('all')) { setFilters(filters.includes('all') ? value.filter((item) => item !== 'all') as StatusFilter[] : ['all']); return }; setFilters(value as StatusFilter[]) }}><FlexBox alignItems="center" style={{ gap: 4 }}><span>상태</span><MenuTrigger><IconButton variant="normal" size="small" aria-label="사물함 신청 상태 필터" style={{ width: 12, height: 12 }}><IconChevronDown width={6} height={6} /></IconButton></MenuTrigger></FlexBox><MenuContent position="bottom-start" offset={4}><MenuList><MenuItem variant="checkbox" value="all">전체 상태</MenuItem><MenuItem variant="checkbox" value="신청완료">신청완료</MenuItem><MenuItem variant="checkbox" value="취소">취소</MenuItem></MenuList></MenuContent></Menu>,
+      header: <TableCheckboxFilter label="상태" ariaLabel="사물함 신청 상태 필터" allLabel="전체 상태" options={['신청완료', '취소']} value={filters} onChange={(value) => setFilters(value as StatusFilter[])} />,
       width: 100,
       render: (row) => <StatusBadge label={row.status} tone={row.status === '취소' ? 'negative' : 'positive'} />,
     },
@@ -129,7 +132,8 @@ function LockerApplicantsPanel() {
         columns={columns}
         rows={filtered}
         rowKey={(row) => row.id}
-        emptyMessage="신청자가 없어요."
+        emptyMessage={applications.length === 0 ? '신청자가 없어요.' : '조건에 맞는 신청자가 없어요.'}
+        emptyDescription={applications.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined}
         style={{ width: '100%', tableLayout: 'fixed' }}
       />
 

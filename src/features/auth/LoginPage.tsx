@@ -30,9 +30,9 @@ function LoginPage() {
     <FlexBox className="login-page" alignItems="center" justifyContent="center" style={{ minHeight: '100vh', padding: 24 }}>
       <FlexBox as="form" onSubmit={submit} flexDirection="column" style={{ width: '100%', maxWidth: 420, gap: 28, padding: 36, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 20, background: 'var(--semantic-background-normal-normal)', boxShadow: '0 18px 48px rgba(20, 35, 60, .12)' }}>
         <FlexBox flexDirection="column" alignItems="center" style={{ gap: 12, textAlign: 'center' }}>
-          <img src="/brand/favicon.png" alt="Stream" style={{ width: 48, height: 48, objectFit: 'contain' }} />
+          <img src="/brand/favicon.png" alt="stream" style={{ width: 48, height: 48, objectFit: 'contain' }} />
           <FlexBox flexDirection="column" style={{ gap: 6 }}>
-            <Typography variant="heading2" weight="bold">Stream 관리자</Typography>
+            <Typography variant="heading2" weight="bold">stream 관리자</Typography>
           </FlexBox>
         </FlexBox>
 

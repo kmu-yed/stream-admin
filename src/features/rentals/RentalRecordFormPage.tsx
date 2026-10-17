@@ -63,7 +63,7 @@ function RentalRecordFormPage() {
 
     const borrowedAt = `${rentalDate} ${rentalTime}`
     const due = new Date(`${rentalDate}T${rentalTime}`)
-    due.setDate(due.getDate() + getReturnPolicyDays(item.returnPolicy))
+    due.setDate(due.getDate() + (item.returnPolicy ? getReturnPolicyDays(item.returnPolicy) : 0))
     const dueDate = `${toDateValue(due)} ${due.toTimeString().slice(0, 5)}`
     addRentalRecord({ itemId: item.id, itemName: item.name, borrowerName: borrower.name, borrowerStudentId: borrower.studentId, borrowedAt, dueDate, workerName: worker.name, status: '대여중' })
     toast({ content: '대여 내역을 추가했어요.', variant: 'positive' })

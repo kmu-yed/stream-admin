@@ -8,8 +8,9 @@ import SearchField from '../../components/common/SearchField'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import StatusBadgeDropdown from '../../components/common/StatusBadgeDropdown'
+import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
 import { useEvents } from './store'
-import { getEventStatus, type EventRecord, type EventStatus } from './types'
+import { formatEventDateTime, getEventStatus, type EventRecord, type EventStatus } from './types'
 
 const statusTone: Record<EventStatus, BadgeTone> = {
   모집예정: 'cautionary',
@@ -30,15 +31,23 @@ function EventListPage() {
   const [visibilityTarget, setVisibilityTarget] = useState<VisibilityChangeTarget | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [statusFilters, setStatusFilters] = useState<string[]>(['all'])
+  const [visibilityFilters, setVisibilityFilters] = useState<string[]>(['all'])
 
-  const filtered = events.filter((event) => event.title.includes(search.trim()))
+  const filtered = events.filter((event) =>
+    event.title.includes(search.trim())
+    && (statusFilters.includes('all') || statusFilters.includes(getEventStatus(event)))
+    && (visibilityFilters.includes('all') || visibilityFilters.includes(event.isPublic ? 'public' : 'private')),
+  )
 
   const columns: DataTableColumn<EventRecord>[] = [
     {
       key: 'title',
       header: '행사명',
       render: (event) => (
-        <FlexBox flexDirection="column" style={{ gap: 2 }}>
+        <FlexBox alignItems="center" style={{ gap: 12 }}>
+          {event.thumbnailUrl && <img src={event.thumbnailUrl} alt="" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />}
+          <FlexBox flexDirection="column" style={{ gap: 2 }}>
           <Typography variant="body1" weight="medium">
             {event.title}
           </Typography>
@@ -46,12 +55,13 @@ function EventListPage() {
             신청자 {getApplicants(event.id).filter((a) => a.status === '신청완료').length}명
             {event.capacity ? ` / 정원 ${event.capacity}명` : ' / 인원 제한 없음'}
           </Typography>
+          </FlexBox>
         </FlexBox>
       ),
     },
     {
       key: 'status',
-      header: '상태',
+      header: <TableCheckboxFilter label="상태" ariaLabel="행사 상태 필터" options={['모집예정', '모집중', '모집종료']} value={statusFilters} onChange={setStatusFilters} />,
       width: 100,
       render: (event) => {
         const status = getEventStatus(event)
@@ -60,14 +70,14 @@ function EventListPage() {
     },
     {
       key: 'visibility',
-      header: '공개 상태',
+      header: <TableCheckboxFilter label="공개 상태" ariaLabel="행사 공개 상태 필터" options={[{ value: 'public', label: '공개' }, { value: 'private', label: '비공개' }]} value={visibilityFilters} onChange={setVisibilityFilters} />,
       width: 120,
       render: (event) => <span onClick={(clickEvent) => clickEvent.stopPropagation()}><StatusBadgeDropdown value={event.isPublic ? 'public' : 'private'} options={[{ value: 'public', label: '공개', tone: 'positive' }, { value: 'private', label: '비공개', tone: 'neutral' }]} onChange={(value) => setVisibilityTarget({ event, nextIsPublic: value === 'public' })} /></span>,
     },
     {
       key: 'period',
-      header: '신청 오픈일 ~ 신청 마감일',
-      render: (event) => `${event.openDate} ~ ${event.deadline}`,
+      header: '신청 기간',
+      render: (event) => `${formatEventDateTime(event.openDate, event.openTime)} ~ ${formatEventDateTime(event.deadline, event.deadlineTime)}`,
     },
     {
       key: 'actions',
@@ -116,7 +126,8 @@ function EventListPage() {
         rows={filtered}
         rowKey={(event) => event.id}
         onRowClick={(event) => navigate(`/events/${event.id}`)}
-        emptyMessage="등록된 행사가 없어요."
+        emptyMessage={events.length === 0 ? '등록된 행사가 없어요.' : '조건에 맞는 행사가 없어요.'}
+        emptyDescription={events.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined}
       />
       <ConfirmModal
         open={Boolean(deleteTarget)}

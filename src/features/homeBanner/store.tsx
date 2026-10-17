@@ -16,7 +16,7 @@ const initialBanners: Banner[] = [
     id: 'bnr_1',
     category: '제휴',
     title: '교내 카페 제휴 할인 이벤트',
-    subtitle: 'Stream 학생회와 함께하는 제휴 혜택',
+    subtitle: 'stream 학생회와 함께하는 제휴 혜택',
     landingType: 'notice',
     noticeId: 'ntc_2',
     startDate: addDays(-1),

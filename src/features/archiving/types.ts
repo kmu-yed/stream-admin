@@ -4,6 +4,7 @@ export type ArchivePost = {
   coverImageUrl?: string
   photos: string[]
   date: string
+  endDate?: string
   location: string
   department: string
   content: string
@@ -13,3 +14,7 @@ export type ArchivePost = {
 }
 
 export type ArchivePostInput = Omit<ArchivePost, 'id' | 'createdAt'>
+
+export function formatArchivePeriod(post: Pick<ArchivePost, 'date' | 'endDate'>) {
+  return post.endDate ? `${post.date} ~ ${post.endDate}` : post.date
+}

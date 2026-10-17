@@ -7,6 +7,7 @@ import SearchField from '../../components/common/SearchField'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import RowMoreMenu from '../../components/common/RowMoreMenu'
+import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
 import { useBoards } from './store'
 import type { Notice, NoticeCategory } from './types'
 
@@ -20,9 +21,11 @@ function NoticesPage() {
   const { notices, deleteNotice } = useBoards()
   const [deleteTarget, setDeleteTarget] = useState<Notice | null>(null)
   const [search, setSearch] = useState('')
+  const [categoryFilters, setCategoryFilters] = useState<string[]>(['all'])
 
   const sorted = [...notices]
     .filter((notice) => notice.title.includes(search.trim()))
+    .filter((notice) => categoryFilters.includes('all') || categoryFilters.includes(notice.category))
     .sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
       return b.createdAt.localeCompare(a.createdAt)
@@ -45,7 +48,7 @@ function NoticesPage() {
     },
     {
       key: 'category',
-      header: '카테고리',
+      header: <TableCheckboxFilter label="카테고리" ariaLabel="공지 카테고리 필터" options={['일반', '제휴']} value={categoryFilters} onChange={setCategoryFilters} />,
       width: 100,
       render: (row) => <StatusBadge label={row.category} tone={categoryTone[row.category]} />,
     },
@@ -73,7 +76,8 @@ function NoticesPage() {
         rows={sorted}
         rowKey={(row) => row.id}
         onRowClick={(row) => navigate(`/notices/${row.id}`)}
-        emptyMessage="등록된 공지가 없어요."
+        emptyMessage={notices.length === 0 ? '등록된 공지가 없어요.' : '조건에 맞는 공지가 없어요.'}
+        emptyDescription={notices.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined}
         className="notices-table"
       />
 

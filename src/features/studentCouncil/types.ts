@@ -19,6 +19,7 @@ export type StudentMember = {
   studentId: string
   department: string
   paidAt?: string
+  proofImageUrl?: string
   managerMessage?: string
   status: PaymentStatus
   streamMembershipStatus: StreamMembershipStatus

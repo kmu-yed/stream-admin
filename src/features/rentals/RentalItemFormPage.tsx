@@ -5,6 +5,7 @@ import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
 import ImageUploadField from '../../components/common/ImageUploadField'
+import NotFoundState from '../../components/common/NotFoundState'
 import { useRentals } from './store'
 import { RENTAL_CATEGORIES, RENTAL_RETURN_POLICIES, type RentalCategory, type RentalItemInput } from './types'
 
@@ -52,6 +53,8 @@ function RentalItemFormPage() {
     goToList()
   }
 
+  if (isEdit && !existing) return <NotFoundState entity="물품" onBack={goToList} />
+
   return (
     <>
       <PageHeader title={isEdit ? '물품 수정' : '물품 등록'} description="등록한 물품 종류를 선택하고 수량을 입력해요." />
@@ -76,7 +79,7 @@ function RentalItemFormPage() {
         </FormItem>
 
         <FormItem label="물품 구분">
-          <Select value={form.itemKind} onChange={(value) => setForm({ ...form, itemKind: value as RentalItemInput['itemKind'] })}>
+          <Select value={form.itemKind} onChange={(value) => setForm({ ...form, itemKind: value as RentalItemInput['itemKind'], returnPolicy: value === '소모품' ? null : form.returnPolicy ?? '7일 후 반납' })}>
             <Option value="대여품">대여품</Option>
             <Option value="소모품">소모품</Option>
           </Select>
@@ -90,11 +93,11 @@ function RentalItemFormPage() {
           />
         </FormItem>
 
-        <FormItem label="반납 정책">
-          <Select value={form.returnPolicy} onChange={(value) => setForm({ ...form, returnPolicy: value as RentalItemInput['returnPolicy'] })}>
+        {form.itemKind === '대여품' && <FormItem label="반납 정책">
+          <Select value={form.returnPolicy ?? '7일 후 반납'} onChange={(value) => setForm({ ...form, returnPolicy: value as NonNullable<RentalItemInput['returnPolicy']> })}>
             {RENTAL_RETURN_POLICIES.map((policy) => <Option key={policy} value={policy}>{policy}</Option>)}
           </Select>
-        </FormItem>
+        </FormItem>}
 
         <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
           <Button variant="solid" color="primary" onClick={handleSubmit}>

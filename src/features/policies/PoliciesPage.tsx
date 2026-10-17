@@ -3,29 +3,33 @@ import { Button, FlexBox, TextArea, Typography, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import EmptyState from '../../components/common/EmptyState'
 import { usePolicies } from './store'
 import type { PolicyDocId } from './types'
 
 function DocumentEditor({ docId }: { docId: PolicyDocId }) {
   const { documents, updateDocument } = usePolicies()
   const toast = useToast()
-  const doc = documents.find((d) => d.id === docId)!
-  const [content, setContent] = useState(doc.content)
+  const doc = documents.find((d) => d.id === docId)
+  const [content, setContent] = useState(doc?.content ?? '')
   const [editing, setEditing] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-  const dirty = content !== doc.content
+  const dirty = content !== doc?.content
 
   const handleCancelEdit = () => {
-    setContent(doc.content)
+    setContent(doc?.content ?? '')
     setEditing(false)
   }
 
   const handleSave = () => {
+    if (!doc) return
     updateDocument(docId, content)
     setEditing(false)
     toast({ content: `${doc.title}이(가) 저장되었어요.`, variant: 'positive' })
   }
+
+  if (!doc) return <EmptyState message="등록된 문서가 없어요." description="문서 설정을 확인해 주세요." style={{ maxWidth: 720 }} />
 
   return (
     <FlexBox flexDirection="column" style={{ maxWidth: 720 }}>

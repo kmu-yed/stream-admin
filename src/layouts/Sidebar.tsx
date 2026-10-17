@@ -52,8 +52,8 @@ function Sidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobile }: Si
       >
         {!collapsed && (
           <FlexBox alignItems="center" style={{ gap: 5, minWidth: 0 }}>
-            <img src="/brand/favicon.png" alt="Stream" style={{ width: 22, height: 22, flexShrink: 0, objectFit: 'contain' }} />
-            <img src="/brand/stream-watermark.svg" alt="Stream" style={{ width: 75, height: 16.2, flexShrink: 0, objectFit: 'contain' }} />
+            <img src="/brand/favicon.png" alt="stream" style={{ width: 22, height: 22, flexShrink: 0, objectFit: 'contain' }} />
+            <img src="/brand/stream-watermark.svg" alt="stream" style={{ width: 75, height: 16.2, flexShrink: 0, objectFit: 'contain' }} />
             <FlexBox alignItems="center" style={{ height: 32 }}>
               <Typography variant="label2" weight="medium" color="semantic.label.alternative" style={{ whiteSpace: "nowrap", transform: 'translateY(2px)' }}>
                 관리자

@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button, FlexBox, Typography } from '@wanteddev/wds'
 import FormSection from '../../components/common/FormSection'
 import StatusBadge from '../../components/common/StatusBadge'
+import NotFoundState from '../../components/common/NotFoundState'
 import { useBoards } from './store'
 
 function NoticeDetailPage() {
@@ -11,13 +12,12 @@ function NoticeDetailPage() {
   const notice = notices.find((item) => item.id === id)
 
   if (!notice) {
-    return <>
-      <FormSection style={{ maxWidth: 800 }}>
-        <Typography variant="body1" color="semantic.label.alternative">공지를 찾을 수 없어요.</Typography>
-        <Button variant="outlined" color="assistive" onClick={() => navigate('/notices')}>목록으로</Button>
-      </FormSection>
-    </>
+    return <NotFoundState entity="공지" onBack={() => navigate('/notices')} />
   }
+
+  const images = notice.thumbnailUrl && notice.images.includes(notice.thumbnailUrl)
+    ? [notice.thumbnailUrl, ...notice.images.filter((src) => src !== notice.thumbnailUrl)]
+    : notice.images
 
   return <>
     <FormSection style={{ maxWidth: 800 }}>
@@ -30,8 +30,8 @@ function NoticeDetailPage() {
       <div style={{ borderTop: '1px solid var(--semantic-line-normal-normal)', paddingTop: 24, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.7 }}>
         <Typography variant="body1">{notice.content}</Typography>
       </div>
-      {notice.images.length > 0 && <FlexBox flexDirection="column" style={{ gap: 12 }}>
-        {notice.images.map((src, index) => <img key={`${src}-${index}`} src={src} alt={`공지 이미지 ${index + 1}`} style={{ display: 'block', width: '100%', maxWidth: 640, height: 'auto', borderRadius: 12 }} />)}
+      {images.length > 0 && <FlexBox flexDirection="column" style={{ gap: 12 }}>
+        {images.map((src, index) => <img key={`${src}-${index}`} src={src} alt={`공지 이미지 ${index + 1}`} style={{ display: 'block', width: '100%', maxWidth: 640, height: 'auto', borderRadius: 12 }} />)}
       </FlexBox>}
       <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
         <Button variant="outlined" color="assistive" onClick={() => navigate('/notices')}>목록으로</Button>

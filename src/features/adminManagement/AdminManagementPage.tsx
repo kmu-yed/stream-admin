@@ -8,6 +8,7 @@ import FormItem from '../../components/common/FormItem'
 import SearchField from '../../components/common/SearchField'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import MultiPersonPicker from '../../components/common/MultiPersonPicker'
+import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
 import { type Admin, type AdminRole, type StudentCouncilDepartment, useAdminManagement } from './store'
 import { useStudentCouncil } from '../studentCouncil/store'
 
@@ -19,6 +20,8 @@ export default function AdminManagementPage({ embedded = false }: { embedded?: b
   const { admins, setAdmins } = useAdminManagement()
   const { members } = useStudentCouncil()
   const [search, setSearch] = useState('')
+  const [roleFilters, setRoleFilters] = useState<string[]>(['all'])
+  const [departmentFilters, setDepartmentFilters] = useState<string[]>(['all'])
   const [addOpen, setAddOpen] = useState(false)
   const [memberSearch, setMemberSearch] = useState('')
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([])
@@ -32,7 +35,11 @@ export default function AdminManagementPage({ embedded = false }: { embedded?: b
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [bulkRole, setBulkRole] = useState<AdminRole>('학생')
 
-  const filtered = admins.filter((admin) => !search.trim() || admin.name.includes(search.trim()) || admin.studentId.includes(search.trim()))
+  const filtered = admins.filter((admin) =>
+    (!search.trim() || admin.name.includes(search.trim()) || admin.studentId.includes(search.trim()))
+    && (roleFilters.includes('all') || roleFilters.includes(admin.role))
+    && (departmentFilters.includes('all') || departmentFilters.includes(admin.councilDepartment ?? 'none')),
+  )
   const memberResults = members.filter((member) => {
     const keyword = memberSearch.trim()
     return !keyword || member.name.includes(keyword) || member.studentId.includes(keyword)
@@ -57,17 +64,17 @@ export default function AdminManagementPage({ embedded = false }: { embedded?: b
     { key: 'select', header: <Checkbox checked={filtered.length > 0 && filtered.every((admin) => selectedIds.includes(admin.id))} onCheckedChange={(checked) => setSelectedIds(checked ? filtered.map((admin) => admin.id) : [])} />, width: 48, align: 'center', render: (admin) => <Checkbox checked={selectedIds.includes(admin.id)} onCheckedChange={(checked) => setSelectedIds((previous) => checked ? [...previous, admin.id] : previous.filter((id) => id !== admin.id))} /> },
     { key: 'name', header: '이름', render: (admin) => admin.name },
     { key: 'studentId', header: '학번', width: 160, render: (admin) => admin.studentId },
-    { key: 'role', header: '권한', width: 120, render: (admin) => <StatusBadge label={admin.role} tone={roleTone[admin.role]} /> },
-    { key: 'department', header: '학생회 부서', width: 150, render: (admin) => admin.councilDepartment ?? '-' },
+    { key: 'role', header: <TableCheckboxFilter label="권한" ariaLabel="관리자 권한 필터" options={['학생', '관리자']} value={roleFilters} onChange={setRoleFilters} />, width: 120, render: (admin) => <StatusBadge label={admin.role} tone={roleTone[admin.role]} /> },
+    { key: 'department', header: <TableCheckboxFilter label="학생회 부서" ariaLabel="학생회 부서 필터" options={[...departments, { value: 'none', label: '소속 없음' }]} value={departmentFilters} onChange={setDepartmentFilters} />, width: 150, render: (admin) => admin.councilDepartment ?? '-' },
     { key: 'edit', header: '', width: 156, align: 'right', render: (admin) => <FlexBox alignItems="center" justifyContent="flex-end"><Button variant="outlined" color="assistive" size="small" leadingContent={<IconPencil width={18} height={18} style={{ display: 'block' }} />} onClick={() => openEdit(admin)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', verticalAlign: 'middle' }}>수정</Button></FlexBox> },
   ]
 
   return <>
-    {!embedded && <PageHeader title="관리자 및 근무 관리" description="관리자 권한과 근무자를 관리해요." />}
+    {!embedded && <PageHeader title="회원 및 근무 관리" description="관리자 권한과 근무자를 관리해요." />}
     <FlexBox className="app-page-toolbar" justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}><SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" /><Button variant="solid" color="primary" size="medium" onClick={() => setAddOpen(true)}>+ 관리자 추가</Button></FlexBox>
     <FlexBox style={{ position: 'relative', width: '100%' }}>
       {selectedIds.length > 0 && <FlexBox alignItems="center" style={{ position: 'absolute', zIndex: 2, bottom: 'calc(100% + 12px)', height: 48, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 12, background: 'var(--semantic-background-elevated-normal)', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,.12)' }}><Typography variant="body2" weight="bold" style={{ padding: '0 16px', color: 'var(--semantic-primary-normal)' }}>{selectedIds.length}개 선택됨</Typography><button type="button" onClick={() => setBulkOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: '100%', padding: '0 16px', border: 0, borderLeft: '1px solid var(--semantic-line-normal-normal)', background: 'transparent', color: 'var(--semantic-label-normal)', font: 'inherit', fontWeight: 600, cursor: 'pointer' }}><IconPencil width={16} height={16} />권한 수정</button><button type="button" aria-label="선택한 관리자 삭제" onClick={() => setDeleteOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 48, height: '100%', padding: 0, border: 0, borderLeft: '1px solid var(--semantic-line-normal-normal)', background: 'transparent', color: 'var(--semantic-status-negative)', cursor: 'pointer' }}><IconTrash width={16} height={16} /></button></FlexBox>}
-      <DataTable columns={columns} rows={filtered} rowKey={(admin) => admin.id} emptyMessage="등록된 관리자가 없어요." style={{ width: '100%' }} />
+      <DataTable columns={columns} rows={filtered} rowKey={(admin) => admin.id} emptyMessage={admins.length === 0 ? '등록된 관리자가 없어요.' : '조건에 맞는 관리자가 없어요.'} emptyDescription={admins.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined} style={{ width: '100%' }} />
     </FlexBox>
     <Modal open={addOpen} onOpenChange={(open) => !open && closeAdd()}><ModalContainer size="medium"><ModalContent>
       <ModalContentItem><ModalHeading>관리자 추가</ModalHeading></ModalContentItem>

@@ -16,6 +16,7 @@ import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
 import ImageUploadField from '../../components/common/ImageUploadField'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import NotFoundState from '../../components/common/NotFoundState'
 import { useBoards } from './store'
 import type { NoticeCategory, NoticeInput } from './types'
 
@@ -24,6 +25,7 @@ const emptyForm: NoticeInput = {
   title: '',
   content: '',
   images: [],
+  thumbnailUrl: undefined,
   pinned: false,
 }
 
@@ -42,6 +44,7 @@ function NoticeFormPage() {
           title: existing.title,
           content: existing.content,
           images: existing.images,
+          thumbnailUrl: existing.thumbnailUrl ?? existing.images[0],
           pinned: existing.pinned,
         }
       : emptyForm,
@@ -51,6 +54,14 @@ function NoticeFormPage() {
   const navigatingAwayRef = useRef(false)
 
   const goToList = () => navigate('/notices')
+
+  const updateImages = (images: string[]) => {
+    setForm((current) => ({
+      ...current,
+      images,
+      thumbnailUrl: images.includes(current.thumbnailUrl ?? '') ? current.thumbnailUrl : images[0],
+    }))
+  }
 
   const handleSubmit = () => {
     const nextErrors: Record<string, string> = {}
@@ -68,6 +79,8 @@ function NoticeFormPage() {
       setCreatedId(notice.id)
     }
   }
+
+  if (isEdit && !existing) return <NotFoundState entity="공지" onBack={goToList} />
 
   return (
     <>
@@ -106,13 +119,17 @@ function NoticeFormPage() {
           />
         </FormItem>
 
-        <FormItem label="공지 이미지 (복수 등록 가능)">
+        <FormItem label="이미지 업로드">
           <ImageUploadField
             value={form.images}
-            onChange={(images) => setForm({ ...form, images })}
+            onChange={updateImages}
             multiple
+            previewSize={120}
+            selectedIndex={form.images.indexOf(form.thumbnailUrl ?? '')}
+            onSelect={(index) => setForm((current) => ({ ...current, thumbnailUrl: current.images[index] }))}
           />
         </FormItem>
+        <Typography variant="caption1" color="semantic.label.alternative">사진 왼쪽 위의 원을 눌러 썸네일을 변경할 수 있어요.</Typography>
 
         <FlexBox
           as="label"

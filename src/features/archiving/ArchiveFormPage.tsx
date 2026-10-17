@@ -5,6 +5,8 @@ import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
 import ImageUploadField from '../../components/common/ImageUploadField'
+import NotFoundState from '../../components/common/NotFoundState'
+import FormInfoRow from '../../components/common/FormInfoRow'
 import { useArchiving } from './store'
 import type { ArchivePostInput } from './types'
 import { useBoards } from '../boards/store'
@@ -40,9 +42,12 @@ function ArchiveFormPage() {
     existing
       ? {
           title: existing.title,
-          coverImageUrl: existing.coverImageUrl,
-          photos: existing.photos,
+          coverImageUrl: existing.coverImageUrl ?? existing.photos[0],
+          photos: existing.coverImageUrl && !existing.photos.includes(existing.coverImageUrl)
+            ? [existing.coverImageUrl, ...existing.photos]
+            : existing.photos,
           date: existing.date,
+          endDate: existing.endDate,
           location: existing.location,
           department: existing.department,
           content: existing.content,
@@ -52,13 +57,24 @@ function ArchiveFormPage() {
       : emptyForm,
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [hasPeriod, setHasPeriod] = useState(Boolean(existing?.endDate))
 
   const goToList = () => navigate('/archiving')
+
+  const updatePhotos = (photos: string[]) => {
+    setForm((current) => ({
+      ...current,
+      photos,
+      coverImageUrl: photos.includes(current.coverImageUrl ?? '') ? current.coverImageUrl : photos[0],
+    }))
+  }
 
   const handleSubmit = () => {
     const nextErrors: Record<string, string> = {}
     if (!form.title.trim()) nextErrors.title = '제목을 입력해주세요.'
-    if (!form.date) nextErrors.date = '일시를 입력해주세요.'
+    if (!form.date) nextErrors.date = '날짜를 선택해주세요.'
+    if (hasPeriod && !form.endDate) nextErrors.endDate = '종료일을 선택해주세요.'
+    if (hasPeriod && form.endDate && form.date > form.endDate) nextErrors.endDate = '종료일은 시작일 이후여야 해요.'
     if (!form.location.trim()) nextErrors.location = '장소를 입력해주세요.'
     if (!form.department.trim()) nextErrors.department = '담당부서를 입력해주세요.'
     if (!form.content.trim()) nextErrors.content = '활동내용을 입력해주세요.'
@@ -75,6 +91,8 @@ function ArchiveFormPage() {
     goToList()
   }
 
+  if (isEdit && !existing) return <NotFoundState entity="게시물" onBack={goToList} />
+
   return (
     <>
       <PageHeader
@@ -82,50 +100,62 @@ function ArchiveFormPage() {
         description="학생회 활동 기록을 아카이빙해요."
       />
 
-      <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 720 }}>
+      <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 760 }}>
         <FormSection title="기본 정보">
-        <FormItem label="제목" required error={errors.title}>
-          <TextField
-            placeholder="게시물 제목을 입력하세요"
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-          />
-        </FormItem>
-
-        <FlexBox className="app-form-inline" style={{ gap: 16 }}>
-          <FlexBox style={{ flex: 1 }}><FormItem label="일시" required error={errors.date}>
-            <DatePicker value={form.date ? new Date(`${form.date}T00:00:00`) : undefined} onChange={(value) => setForm({ ...form, date: toDateValue(value) })} format="YYYY-MM-DD" width="100%" />
-          </FormItem></FlexBox>
-          <FlexBox style={{ flex: 1 }}><FormItem label="장소" required error={errors.location}>
+          <FormInfoRow label="제목" error={errors.title}>
+            <TextField placeholder="게시물 제목을 입력하세요" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          </FormInfoRow>
+          <div style={{ height: 1, background: 'var(--semantic-line-normal-normal)', opacity: 0.45 }} />
+          <FormInfoRow label="일시" error={errors.date ?? errors.endDate}>
+            <FlexBox flexDirection="column" style={{ gap: 12, width: '100%' }}>
+              <FlexBox className={hasPeriod ? 'app-date-range' : undefined} alignItems="end" style={{ display: 'grid', gridTemplateColumns: hasPeriod ? 'minmax(0, 1fr) auto minmax(0, 1fr)' : 'minmax(0, 1fr)', gap: 12, width: '100%', maxWidth: hasPeriod ? 580 : 280 }}>
+                <FlexBox flexDirection="column" style={{ gap: 6, minWidth: 0 }}>
+                  {hasPeriod && <Typography variant="caption1" color="semantic.label.alternative">시작일</Typography>}
+                  <DatePicker value={form.date ? new Date(`${form.date}T00:00:00`) : undefined} onChange={(value) => setForm({ ...form, date: toDateValue(value) })} format="YYYY-MM-DD" width="100%" />
+                </FlexBox>
+                {hasPeriod && <>
+                  <FlexBox className="app-date-range-separator" alignItems="center" style={{ height: 48 }}><Typography variant="body2" color="semantic.label.alternative">~</Typography></FlexBox>
+                  <FlexBox flexDirection="column" style={{ gap: 6, minWidth: 0 }}>
+                    <Typography variant="caption1" color="semantic.label.alternative">종료일</Typography>
+                    <DatePicker value={form.endDate ? new Date(`${form.endDate}T00:00:00`) : undefined} onChange={(value) => setForm({ ...form, endDate: toDateValue(value) })} format="YYYY-MM-DD" width="100%" />
+                  </FlexBox>
+                </>}
+              </FlexBox>
+              <FlexBox as="label" alignItems="center" style={{ gap: 8, cursor: 'pointer', width: 'fit-content' }}>
+                <Checkbox checked={hasPeriod} onCheckedChange={(checked) => { setHasPeriod(checked); if (!checked) setForm((prev) => ({ ...prev, endDate: undefined })) }} />
+                <Typography variant="body2">기간 설정</Typography>
+              </FlexBox>
+            </FlexBox>
+          </FormInfoRow>
+          <div style={{ height: 1, background: 'var(--semantic-line-normal-normal)', opacity: 0.45 }} />
+          <FormInfoRow label="장소" error={errors.location}>
             <TextField placeholder="예: 중앙광장" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-          </FormItem></FlexBox>
-          <FlexBox style={{ flex: 1 }}><FormItem label="담당부서" required error={errors.department}>
+          </FormInfoRow>
+          <div style={{ height: 1, background: 'var(--semantic-line-normal-normal)', opacity: 0.45 }} />
+          <FormInfoRow label="담당부서" error={errors.department}>
             <TextField placeholder="예: 문화기획국" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
-          </FormItem></FlexBox>
-        </FlexBox>
-        <FlexBox as="label" alignItems="center" style={{ gap: 8, cursor: 'pointer', width: 'fit-content' }}>
-          <Checkbox checked={form.includeInSlangje} onCheckedChange={(checked) => setForm({ ...form, includeInSlangje: checked })} />
-          <Typography variant="body2">슬랑제 페이지에 포함</Typography>
-        </FlexBox>
+          </FormInfoRow>
+          <div style={{ height: 1, background: 'var(--semantic-line-normal-normal)', opacity: 0.45 }} />
+          <FormInfoRow label="노출 설정">
+            <FlexBox as="label" alignItems="center" style={{ gap: 8, minHeight: 48, cursor: 'pointer', width: 'fit-content' }}>
+              <Checkbox checked={form.includeInSlangje} onCheckedChange={(checked) => setForm({ ...form, includeInSlangje: checked })} />
+              <Typography variant="body2">슬랑제 페이지에 포함</Typography>
+            </FlexBox>
+          </FormInfoRow>
         </FormSection>
 
         <FormSection title="이미지">
-        <FormItem label="대표이미지">
-          <ImageUploadField
-            value={form.coverImageUrl ? [form.coverImageUrl] : []}
-            onChange={(urls) => setForm({ ...form, coverImageUrl: urls[0] })}
-            multiple={false}
-            maxCount={1}
-          />
-        </FormItem>
-
-        <FormItem label="활동사진 (복수 등록 가능)">
+        <FormItem label="이미지 업로드">
           <ImageUploadField
             value={form.photos}
-            onChange={(urls) => setForm({ ...form, photos: urls })}
+            onChange={updatePhotos}
             multiple
+            previewSize={120}
+            selectedIndex={form.photos.indexOf(form.coverImageUrl ?? '')}
+            onSelect={(index) => setForm((current) => ({ ...current, coverImageUrl: current.photos[index] }))}
           />
         </FormItem>
+        <Typography variant="caption1" color="semantic.label.alternative">사진 왼쪽 위의 원을 눌러 썸네일을 변경할 수 있어요.</Typography>
         </FormSection>
 
         <FormSection title="상세 내용">

@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Button, DatePicker, FlexBox, IconButton, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Tab, TabList, TabListItem, TabPanel, TextField, Typography, useToast } from '@wanteddev/wds'
-import { IconChevronLeft, IconChevronRight, IconImage, IconTrash } from '@wanteddev/wds-icon'
+import { IconChevronLeft, IconChevronRight, IconTrash } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import ImageUploadField from '../../components/common/ImageUploadField'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import EmptyState from '../../components/common/EmptyState'
 
 type CalendarEvent = { id: string; startDate: string; endDate: string; title: string }
 type Poster = { id: string; title: string; image: string }
@@ -128,7 +129,7 @@ function DisplayManagementPage() {
             <Button variant="solid" color="primary" onClick={() => { setEditingPoster(null); setPosterTitle(''); setPosterImage([]); setPosterModalOpen(true) }}>+ 포스터 추가하기</Button>
           </FlexBox>
           {posters.length === 0 ? (
-            <FlexBox className="display-poster-empty" flexDirection="column" alignItems="center" justifyContent="center" style={{ minHeight: 400, gap: 12, border: '1px dashed var(--semantic-line-normal-normal)', borderRadius: 16 }}><IconImage width={40} height={40} style={{ color: 'var(--semantic-label-alternative)' }} /><Typography variant="body1" color="semantic.label.alternative">등록된 포스터가 없습니다.</Typography></FlexBox>
+            <EmptyState message="등록된 포스터가 없어요." description="포스터를 추가하면 여기에 표시돼요." style={{ minHeight: 220 }} />
           ) : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>{posters.map((poster) => <FlexBox key={poster.id} flexDirection="column" style={{ gap: 8 }}><img src={poster.image} alt={poster.title} style={{ width: '100%', aspectRatio: '3 / 4', objectFit: 'cover', borderRadius: 12 }} /><FlexBox justifyContent="space-between" alignItems="center"><Typography variant="body1" weight="medium">{poster.title}</Typography><FlexBox style={{ gap: 6 }}><Button size="small" variant="outlined" color="assistive" onClick={() => { setEditingPoster(poster); setPosterTitle(poster.title); setPosterImage([poster.image]); setPosterModalOpen(true) }}>수정</Button><Button size="small" variant="outlined" color="assistive" onClick={() => setDeletePosterTarget(poster)}>삭제</Button></FlexBox></FlexBox></FlexBox>)}</div>}
         </TabPanel>
       </Tab>

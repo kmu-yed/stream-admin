@@ -128,7 +128,8 @@ function RentalRecordsPanel() {
         columns={columns}
         rows={filtered}
         rowKey={(row) => row.id}
-        emptyMessage="대여 기록이 없어요."
+        emptyMessage={records.length === 0 ? '대여 기록이 없어요.' : '조건에 맞는 대여 기록이 없어요.'}
+        emptyDescription={records.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined}
         minWidth={980}
         style={{ width: '100%', tableLayout: 'fixed' }}
         className="rental-records-table"

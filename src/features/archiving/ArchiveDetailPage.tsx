@@ -2,9 +2,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button, FlexBox, Typography } from '@wanteddev/wds'
 import DetailInfoGrid from '../../components/common/DetailInfoGrid'
 import FormSection from '../../components/common/FormSection'
+import NotFoundState from '../../components/common/NotFoundState'
 import StatusBadge from '../../components/common/StatusBadge'
 import { useBoards } from '../boards/store'
 import { useArchiving } from './store'
+import { formatArchivePeriod } from './types'
 
 function ArchiveDetailPage() {
   const { id } = useParams()
@@ -14,13 +16,11 @@ function ArchiveDetailPage() {
   const post = posts.find((item) => item.id === id)
 
   if (!post) {
-    return <FormSection style={{ maxWidth: 800 }}>
-      <Typography variant="body1" color="semantic.label.alternative">게시물을 찾을 수 없어요.</Typography>
-      <Button variant="outlined" color="assistive" onClick={() => navigate('/archiving')}>목록으로</Button>
-    </FormSection>
+    return <NotFoundState entity="게시물" onBack={() => navigate('/archiving')} />
   }
 
   const linkedNotice = notices.find((notice) => `/notices/${notice.id}` === post.linkedPageUrl)
+  const activityPhotos = post.photos.filter((src) => src !== post.coverImageUrl)
 
   return <FormSection style={{ maxWidth: 800 }}>
     <StatusBadge label={post.includeInSlangje ? '슬랑제 페이지 노출' : '슬랑제 페이지 비노출'} tone={post.includeInSlangje ? 'positive' : 'neutral'} />
@@ -29,7 +29,7 @@ function ArchiveDetailPage() {
 
     <div style={{ borderTop: '1px solid var(--semantic-line-normal-normal)', paddingTop: 24 }}>
       <DetailInfoGrid items={[
-        { label: '일시', value: post.date },
+        { label: '일시', value: formatArchivePeriod(post) },
         { label: '장소', value: post.location },
         { label: '담당부서', value: post.department },
       ]} />
@@ -45,9 +45,9 @@ function ArchiveDetailPage() {
       <Typography variant="body1" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.7 }}>{post.content}</Typography>
     </FlexBox>
 
-    {post.photos.length > 0 && <FlexBox flexDirection="column" style={{ gap: 12 }}>
+    {activityPhotos.length > 0 && <FlexBox flexDirection="column" style={{ gap: 12 }}>
       <Typography variant="body1" weight="bold">활동사진</Typography>
-      {post.photos.map((src, index) => <img key={`${src}-${index}`} src={src} alt={`${post.title} 활동사진 ${index + 1}`} style={{ display: 'block', width: '100%', maxWidth: 640, height: 'auto', borderRadius: 12 }} />)}
+      {activityPhotos.map((src, index) => <img key={`${src}-${index}`} src={src} alt={`${post.title} 활동사진 ${index + 1}`} style={{ display: 'block', width: '100%', maxWidth: 640, height: 'auto', borderRadius: 12 }} />)}
     </FlexBox>}
 
     {post.linkedPageUrl && <FlexBox flexDirection="column" alignItems="flex-start" style={{ gap: 8, borderTop: '1px solid var(--semantic-line-normal-normal)', paddingTop: 20 }}>

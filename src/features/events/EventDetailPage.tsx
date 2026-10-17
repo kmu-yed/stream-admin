@@ -2,9 +2,10 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button, FlexBox, Typography } from '@wanteddev/wds'
 import DetailInfoGrid from '../../components/common/DetailInfoGrid'
 import FormSection from '../../components/common/FormSection'
+import NotFoundState from '../../components/common/NotFoundState'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import { useEvents } from './store'
-import { getEventStatus, type EventStatus } from './types'
+import { formatEventDateTime, getEventStatus, type EventStatus } from './types'
 
 const statusTone: Record<EventStatus, BadgeTone> = {
   모집예정: 'cautionary',
@@ -21,17 +22,12 @@ function EventDetailPage() {
   const event = id ? getEvent(id) : undefined
 
   if (!event) {
-    return <FormSection style={{ maxWidth: 800 }}>
-      <Typography variant="body1" color="semantic.label.alternative">행사를 찾을 수 없어요.</Typography>
-      <Button variant="outlined" color="assistive" onClick={() => navigate('/events')}>목록으로</Button>
-    </FormSection>
+    return <NotFoundState entity="행사" onBack={() => navigate('/events')} />
   }
 
   const status = getEventStatus(event)
   const applicantCount = getApplicants(event.id).filter((applicant) => applicant.status === '신청완료').length
-  const eventPeriod = event.eventStartDate === event.eventEndDate
-    ? event.eventStartDate
-    : `${event.eventStartDate} ~ ${event.eventEndDate}`
+  const eventPeriod = `${formatEventDateTime(event.eventStartDate, event.eventStartTime)} ~ ${formatEventDateTime(event.eventEndDate, event.eventEndTime)}`
 
   return <FormSection style={{ maxWidth: 800 }}>
     <FlexBox alignItems="center" flexWrap="wrap" style={{ gap: 8 }}>
@@ -41,11 +37,16 @@ function EventDetailPage() {
     <Typography variant="title2" weight="bold" style={{ overflowWrap: 'anywhere' }}>{event.title}</Typography>
     <Typography variant="body2" color="semantic.label.alternative">등록일 {event.createdAt}</Typography>
 
+    {event.images.length > 0 && <FlexBox flexDirection="column" style={{ gap: 12 }}>
+      <img src={event.thumbnailUrl ?? event.images[0]} alt={`${event.title} 썸네일`} style={{ display: 'block', width: '100%', maxWidth: 640, maxHeight: 360, objectFit: 'cover', borderRadius: 12 }} />
+      {event.images.length > 1 && <FlexBox flexWrap="wrap" style={{ gap: 8 }}>{event.images.filter((image) => image !== (event.thumbnailUrl ?? event.images[0])).map((image, index) => <img key={`${image}-${index}`} src={image} alt={`${event.title} 이미지 ${index + 2}`} style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 8 }} />)}</FlexBox>}
+    </FlexBox>}
+
     <div style={{ borderTop: '1px solid var(--semantic-line-normal-normal)', paddingTop: 24 }}>
       <DetailInfoGrid items={[
         { label: '행사 일시', value: eventPeriod },
         { label: '장소', value: event.venue || '-' },
-        { label: '신청 기간', value: `${event.openDate} ~ ${event.deadline}` },
+        { label: '신청 기간', value: `${formatEventDateTime(event.openDate, event.openTime)} ~ ${formatEventDateTime(event.deadline, event.deadlineTime)}` },
         { label: '신청 현황', value: `${applicantCount}명 / ${event.capacity ? `정원 ${event.capacity}명` : '인원 제한 없음'}` },
         { label: '모집 방식', value: event.isFirstCome ? '선착순' : '일반 모집' },
         { label: '신청 대상', value: event.requiresFeePayment ? '학생회비 납부자' : '전체 학생' },

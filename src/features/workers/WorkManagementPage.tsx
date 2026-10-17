@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { forwardRef, useState, type MouseEventHandler } from "react";
 import {
   Button,
+  DatePicker,
   FlexBox,
+  IconButton,
   Modal,
   ModalContainer,
   ModalContent,
@@ -15,18 +17,22 @@ import {
   TabPanel,
   Typography,
   useToast,
+  type DatePickerFieldProps,
 } from "@wanteddev/wds";
+import {
+  IconCaretDown,
+  IconChevronLeft,
+  IconChevronRight,
+} from "@wanteddev/wds-icon";
 import PageHeader from "../../components/common/PageHeader";
 import FormItem from "../../components/common/FormItem";
-import AdminManagementPage from "../adminManagement/AdminManagementPage";
-import { type Admin, useAdminManagement } from "../adminManagement/store";
-import DataTable, {
-  type DataTableColumn,
-} from "../../components/common/DataTable";
 import SearchField from "../../components/common/SearchField";
-import MultiPersonPicker from "../../components/common/MultiPersonPicker";
+import ConfirmModal from "../../components/common/ConfirmModal";
+import EmptyState from "../../components/common/EmptyState";
+import AdminManagementPage from "../adminManagement/AdminManagementPage";
+import StreamMemberList from "./StreamMemberList";
+import { useAdminManagement } from "../adminManagement/store";
 
-type Worker = { adminId: string };
 type Shift = {
   id: string;
   workerId: string;
@@ -36,83 +42,168 @@ type Shift = {
 };
 type ShiftRange = Pick<Shift, "weekday" | "start" | "end">;
 type ShiftDraft = { workerId: string; ranges: ShiftRange[] };
+
 const weekdays = ["월", "화", "수", "목", "금"];
-const timeSlots = Array.from({ length: 18 }, (_, index) => 9 + index / 2);
-const initialWorkers: Worker[] = [
-  { adminId: "admin_1" },
-  { adminId: "admin_3" },
-  { adminId: "admin_4" },
-  { adminId: "admin_5" },
-  { adminId: "admin_6" },
-];
-const initialShifts: Shift[] = [
-  { id: "shift_1", workerId: "admin_1", weekday: 0, start: 9, end: 12 },
-  { id: "shift_2", workerId: "admin_3", weekday: 0, start: 9, end: 11.5 },
-  { id: "shift_3", workerId: "admin_4", weekday: 0, start: 9.5, end: 12 },
-  { id: "shift_4", workerId: "admin_3", weekday: 1, start: 13, end: 16 },
-  { id: "shift_5", workerId: "admin_5", weekday: 1, start: 13, end: 15 },
-  { id: "shift_6", workerId: "admin_6", weekday: 2, start: 10, end: 13 },
-  { id: "shift_7", workerId: "admin_1", weekday: 3, start: 15, end: 18 },
-  { id: "shift_8", workerId: "admin_4", weekday: 3, start: 15, end: 17 },
-  { id: "shift_9", workerId: "admin_3", weekday: 4, start: 9, end: 12 },
-  { id: "shift_10", workerId: "admin_5", weekday: 4, start: 9.5, end: 12 },
-];
+const workingHours = [10, 11, 13, 14, 15, 16];
+const timeRows = [10, 11, 12, 13, 14, 15, 16];
+const startOptions = workingHours;
+const endOptions = [11, 12, 14, 15, 16, 17];
+
+function getMonday(date: Date) {
+  const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  return monday;
+}
+
+function addDays(date: Date, amount: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + amount);
+  return next;
+}
+
+function toDateValue(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatShortDate(date: Date) {
+  return `${date.getMonth() + 1}.${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatWeekLabel(week: Date) {
+  const firstDayOffset =
+    (new Date(week.getFullYear(), week.getMonth(), 1).getDay() + 6) % 7;
+  const weekOfMonth = Math.ceil((week.getDate() + firstDayOffset) / 7);
+  return `${week.getMonth() + 1}월 ${weekOfMonth}주차`;
+}
+
+const WeekPickerTrigger = forwardRef<HTMLDivElement, DatePickerFieldProps>(
+  function WeekPickerTrigger(
+    { onClick, disabled, "aria-expanded": expanded },
+    ref,
+  ) {
+    return (
+      <div
+        ref={ref}
+        onClick={onClick as unknown as MouseEventHandler<HTMLDivElement>}
+        style={{ display: "inline-flex" }}
+      >
+        <button
+          type="button"
+          aria-label="날짜를 선택해 해당 주 시간표 보기"
+          aria-haspopup="dialog"
+          aria-expanded={expanded}
+          disabled={disabled}
+          style={{
+            width: 28,
+            height: 28,
+            padding: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            background: "transparent",
+            border: 0,
+            color: "var(--semantic-label-normal)",
+            cursor: "pointer",
+          }}
+        >
+          <IconCaretDown width={20} height={20} />
+        </button>
+      </div>
+    );
+  },
+);
+
+function createDemoShifts(week: Date, adminIds: string[]): Shift[] {
+  if (adminIds.length === 0) return [];
+  const weekNumber = Math.floor(
+    Date.UTC(week.getFullYear(), week.getMonth(), week.getDate()) / 604800000,
+  );
+  const people = Array.from(
+    { length: Math.min(5, adminIds.length) },
+    (_, index) => adminIds[(weekNumber * 5 + index) % adminIds.length],
+  );
+  return weekdays.flatMap((_, weekday) =>
+    workingHours.flatMap((hour, hourIndex) => {
+      // 빈 시간도 일부 남겨 두어 새 근무 시간을 등록해 볼 수 있게 한다.
+      if ((weekday + hourIndex + weekNumber) % workingHours.length === 0)
+        return [];
+      return [
+        {
+          id: `demo_${toDateValue(week)}_${weekday}_${hour}`,
+          workerId:
+            people[(weekday * 2 + hourIndex + weekNumber) % people.length],
+          weekday,
+          start: hour,
+          end: hour + 1,
+        },
+      ];
+    }),
+  );
+}
 
 export default function WorkManagementPage() {
   const toast = useToast();
   const { admins } = useAdminManagement();
-  const [tab, setTab] = useState("admins");
-  const [workers, setWorkers] = useState<Worker[]>(initialWorkers);
-  const [shifts, setShifts] = useState<Shift[]>(initialShifts);
-  const [workerOpen, setWorkerOpen] = useState(false);
-  const [selectedAdminIds, setSelectedAdminIds] = useState<string[]>([]);
-  const [workerSearch, setWorkerSearch] = useState("");
+  const [tab, setTab] = useState("members");
+  const [selectedWeek, setSelectedWeek] = useState(() => getMonday(new Date()));
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [shiftsByWeek, setShiftsByWeek] = useState<Record<string, Shift[]>>({});
+  const [scheduleSearch, setScheduleSearch] = useState("");
   const [shiftOpen, setShiftOpen] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Shift | null>(null);
   const [draft, setDraft] = useState<ShiftDraft>({
     workerId: "",
-    ranges: [{ weekday: 0, start: 9, end: 10 }],
+    ranges: [{ weekday: 0, start: 10, end: 11 }],
   });
-  const [scheduleSearch, setScheduleSearch] = useState("");
-  const workerAdmins = workers
-    .map((worker) => admins.find((admin) => admin.id === worker.adminId))
-    .filter(Boolean);
-  const availableAdmins = admins.filter(
-    (admin) => !workers.some((worker) => worker.adminId === admin.id),
-  );
-  const workerSearchResults = availableAdmins.filter(
-    (admin) =>
-      !workerSearch.trim() ||
-      admin.name.includes(workerSearch.trim()) ||
-      admin.studentId.includes(workerSearch.trim()),
-  );
-  const workerRows = workerAdmins.filter((admin): admin is Admin =>
-    Boolean(admin),
-  );
-  const workerColumns: DataTableColumn<Admin>[] = [
-    { key: "name", header: "이름", render: (row) => row.name },
-    {
-      key: "studentId",
-      header: "학번",
-      width: 160,
-      render: (row) => row.studentId,
-    },
-    {
-      key: "department",
-      header: "학생회 부서",
-      width: 180,
-      render: (row) => row.councilDepartment ?? "-",
-    },
-  ];
-  const openCreateShift = () => {
+
+  const weekKey = toDateValue(selectedWeek);
+  const shifts =
+    shiftsByWeek[weekKey] ??
+    createDemoShifts(
+      selectedWeek,
+      admins.map((admin) => admin.id),
+    );
+  const weekLabel = formatWeekLabel(selectedWeek);
+  const weekDates = `${String(selectedWeek.getFullYear()).slice(-2)}.${formatShortDate(selectedWeek)} ~ ${formatShortDate(addDays(selectedWeek, 4))}`;
+  const currentWeekStart = getMonday(new Date()).getTime();
+  const isPastWeek = selectedWeek.getTime() < currentWeekStart;
+
+  const changeWeek = (date: Date) => {
+    setSelectedWeek(getMonday(date));
+    setCalendarOpen(false);
+    setShiftOpen(false);
+  };
+
+  const openCreateShift = (slot?: { weekday: number; hour: number }) => {
+    if (isPastWeek) return;
+    const firstFree = weekdays
+      .flatMap((_, weekday) => workingHours.map((hour) => ({ weekday, hour })))
+      .find(
+        ({ weekday, hour }) =>
+          !shifts.some(
+            (shift) =>
+              shift.weekday === weekday &&
+              shift.start <= hour &&
+              shift.end > hour,
+          ),
+      );
     setEditingShift(null);
     setDraft({
-      workerId: workers[0]?.adminId ?? "",
-      ranges: [{ weekday: 0, start: 9, end: 9.5 }],
+      workerId: admins[0]?.id ?? "",
+      ranges: [
+        {
+          weekday: slot?.weekday ?? firstFree?.weekday ?? 0,
+          start: slot?.hour ?? firstFree?.hour ?? 10,
+          end: (slot?.hour ?? firstFree?.hour ?? 10) + 1,
+        },
+      ],
     });
     setShiftOpen(true);
   };
+
   const openEditShift = (shift: Shift) => {
+    if (isPastWeek) return;
     setEditingShift(shift);
     setDraft({
       workerId: shift.workerId,
@@ -120,34 +211,64 @@ export default function WorkManagementPage() {
     });
     setShiftOpen(true);
   };
+
   const saveShift = () => {
+    if (selectedWeek.getTime() < getMonday(new Date()).getTime()) return;
     if (
       !draft.workerId ||
-      draft.ranges.some((range) => range.end <= range.start)
+      draft.ranges.length === 0 ||
+      draft.ranges.some(
+        ({ start, end }) =>
+          start < 10 ||
+          end > 17 ||
+          end <= start ||
+          !Number.isInteger(start) ||
+          !Number.isInteger(end) ||
+          (start < 13 && end > 12),
+      )
     ) {
       toast({
-        content: "근무자와 올바른 근무 시간을 입력해주세요.",
+        content:
+          "10~17시 사이의 근무 시간을 1시간 단위로 선택해 주세요. 12~13시는 점심시간이에요.",
         variant: "negative",
       });
       return;
     }
-    if (editingShift)
-      setShifts((previous) =>
-        previous.map((shift) =>
-          shift.id === editingShift.id
-            ? { ...draft.ranges[0], workerId: draft.workerId, id: shift.id }
-            : shift,
-        ),
-      );
-    else
-      setShifts((previous) => [
-        ...previous,
-        ...draft.ranges.map((range, index) => ({
-          ...range,
-          workerId: draft.workerId,
-          id: `shift_${Date.now()}_${index}`,
-        })),
-      ]);
+    const otherShifts = shifts.filter((shift) => shift.id !== editingShift?.id);
+    const allRanges = [...otherShifts, ...draft.ranges];
+    const hasOverlap = weekdays.some((_, weekday) =>
+      workingHours.some(
+        (hour) =>
+          allRanges.filter(
+            (range) =>
+              range.weekday === weekday &&
+              range.start <= hour &&
+              range.end > hour,
+          ).length > 1,
+      ),
+    );
+    if (hasOverlap) {
+      toast({
+        content:
+          "이미 근무자가 배정된 시간이에요. 한 시간에는 한 명만 등록할 수 있어요.",
+        variant: "negative",
+      });
+      return;
+    }
+    const nextShifts: Shift[] = editingShift
+      ? [
+          ...otherShifts,
+          { ...draft.ranges[0], workerId: draft.workerId, id: editingShift.id },
+        ]
+      : [
+          ...shifts,
+          ...draft.ranges.map((range, index) => ({
+            ...range,
+            workerId: draft.workerId,
+            id: `shift_${Date.now()}_${index}`,
+          })),
+        ];
+    setShiftsByWeek((previous) => ({ ...previous, [weekKey]: nextShifts }));
     toast({
       content: editingShift
         ? "근무 시간을 수정했어요."
@@ -156,58 +277,111 @@ export default function WorkManagementPage() {
     });
     setShiftOpen(false);
   };
+
   return (
     <>
       <PageHeader
-        title="관리자 및 근무 관리"
-        description="관리자 권한·근무자·시간표를 관리해요."
+        title="회원 및 근무 관리"
+        description="stream 회원과 관리자 권한, 주차별 근무 시간표를 관리해요."
       />
       <Tab value={tab} onValueChange={setTab}>
         <TabList size="medium" style={{ marginBottom: 20 }}>
+          <TabListItem value="members">stream 회원 목록</TabListItem>
           <TabListItem value="admins">관리자 관리</TabListItem>
-          <TabListItem value="workers">근무자 목록</TabListItem>
           <TabListItem value="schedule">근무 시간표 관리</TabListItem>
         </TabList>
+        <TabPanel value="members">
+          <StreamMemberList onAdminsAdded={() => setTab("admins")} />
+        </TabPanel>
         <TabPanel value="admins">
           <AdminManagementPage embedded />
         </TabPanel>
-        <TabPanel value="workers">
-          <FlexBox className="app-page-toolbar" justifyContent="flex-end" style={{ marginBottom: 16 }}>
-            <Button
-              variant="solid"
-              color="primary"
-              onClick={() => {
-                setWorkerSearch("");
-                setSelectedAdminIds([]);
-                setWorkerOpen(true);
-              }}
-            >
-              + 근무자 등록
-            </Button>
-          </FlexBox>
-          <DataTable
-            columns={workerColumns}
-            rows={workerRows}
-            rowKey={(row) => row.id}
-            emptyMessage="등록된 근무자가 없어요."
-          />
-        </TabPanel>
         <TabPanel value="schedule">
           <FlexBox
-            className="app-page-toolbar"
-            justifyContent="flex-end"
+            className="app-page-toolbar work-week-toolbar"
+            justifyContent="space-between"
             alignItems="center"
             style={{ gap: 12, marginBottom: 16 }}
           >
-            <SearchField
-              value={scheduleSearch}
-              onChange={setScheduleSearch}
-              placeholder="근무자 이름 검색"
-            />
-            <Button variant="solid" color="primary" size="medium" onClick={openCreateShift}>
-              + 근무 시간 등록
-            </Button>
+            <FlexBox alignItems="center" style={{ gap: 4, minWidth: 0 }}>
+              <IconButton
+                variant="outlined"
+                size="medium"
+                aria-label="이전 주"
+                style={{ flexShrink: 0 }}
+                onClick={() => changeWeek(addDays(selectedWeek, -7))}
+              >
+                <IconChevronLeft width={20} height={20} />
+              </IconButton>
+              <FlexBox
+                flexDirection="column"
+                style={{ width: 110, flexShrink: 0 }}
+              >
+                <FlexBox
+                  alignItems="center"
+                  style={{ width: "100%", gap: 4 }}
+                >
+                  <Typography
+                    variant="body1"
+                    weight="bold"
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    {weekLabel}
+                  </Typography>
+                  <DatePicker
+                    input={WeekPickerTrigger}
+                    value={selectedWeek}
+                    open={calendarOpen}
+                    onOpenChange={setCalendarOpen}
+                    onClick={() => setCalendarOpen((open) => !open)}
+                    onChange={(value) =>
+                      value &&
+                      changeWeek(
+                        typeof value === "string"
+                          ? new Date(`${value.slice(0, 10)}T00:00:00`)
+                          : value,
+                      )
+                    }
+                    format="YYYY-MM-DD"
+                  />
+                </FlexBox>
+                <Typography
+                  variant="caption1"
+                  color="semantic.label.alternative"
+                  style={{ whiteSpace: "nowrap" }}
+                >
+                  {weekDates}
+                </Typography>
+              </FlexBox>
+              <IconButton
+                variant="outlined"
+                size="medium"
+                aria-label="다음 주"
+                style={{ flexShrink: 0 }}
+                onClick={() => changeWeek(addDays(selectedWeek, 7))}
+              >
+                <IconChevronRight width={20} height={20} />
+              </IconButton>
+            </FlexBox>
+            <FlexBox alignItems="center" style={{ gap: 12 }}>
+              <SearchField
+                value={scheduleSearch}
+                onChange={setScheduleSearch}
+                placeholder="근무자 이름 검색"
+              />
+              <Button
+                variant="solid"
+                color="primary"
+                size="medium"
+                disabled={admins.length === 0 || isPastWeek}
+                onClick={() => openCreateShift()}
+              >
+                + 근무 시간 등록
+              </Button>
+            </FlexBox>
           </FlexBox>
+          {admins.length === 0 && <EmptyState message="등록된 관리자가 없어요." description="관리자 관리 탭에서 관리자를 먼저 등록해 주세요." variant="compact" />}
+          {admins.length > 0 && shifts.length === 0 && <EmptyState message="선택한 주차에 등록된 근무 시간이 없어요." description={isPastWeek ? "다른 주차의 시간표를 확인해 보세요." : "근무 시간을 등록하거나 다른 주차를 확인해 보세요."} variant="compact" />}
           <div
             className="work-schedule-scroll"
             style={{
@@ -231,7 +405,7 @@ export default function WorkManagementPage() {
                   borderBottom: "1px solid var(--semantic-line-normal-normal)",
                 }}
               />
-              {weekdays.map((day) => (
+              {weekdays.map((day, weekday) => (
                 <div
                   className="work-schedule-day"
                   key={day}
@@ -246,151 +420,138 @@ export default function WorkManagementPage() {
                   }}
                 >
                   {day}
+                  <Typography
+                    variant="caption1"
+                    color="semantic.label.alternative"
+                    style={{ display: "block" }}
+                  >
+                    {formatShortDate(addDays(selectedWeek, weekday))}
+                  </Typography>
                 </div>
               ))}
-              {timeSlots.flatMap((time) => [
+              {timeRows.flatMap((hour) => [
                 <div
                   className="work-schedule-time"
-                  key={`${time}-time`}
+                  key={`${hour}-time`}
                   style={{
-                    minHeight: 54,
+                    minHeight: 60,
                     padding: 10,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     fontSize: 13,
                     color: "var(--semantic-label-alternative)",
                     borderBottom:
                       "1px solid var(--semantic-line-normal-normal)",
+                    background:
+                      hour === 12 ? "var(--semantic-fill-normal)" : undefined,
                   }}
                 >
-                  {String(Math.floor(time)).padStart(2, "0")}:
-                  {time % 1 ? "30" : "00"}
+                  {String(hour).padStart(2, "0")}:00
                 </div>,
-                ...weekdays.map((_, weekday) => {
-                  const cellShifts = shifts.filter(
-                    (shift) =>
-                      shift.weekday === weekday &&
-                      shift.start <= time &&
-                      shift.end > time,
+                ...(hour === 12
+                  ? [
+                      <div
+                        key="lunch"
+                        style={{
+                          gridColumn: "2 / -1",
+                          minHeight: 60,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderLeft: "1px solid var(--semantic-line-normal-normal)",
+                          borderBottom: "1px solid var(--semantic-line-normal-normal)",
+                          background: "var(--semantic-fill-normal)",
+                        }}
+                      >
+                        <Typography variant="caption1" color="semantic.label.alternative">
+                          점심시간
+                        </Typography>
+                      </div>,
+                    ]
+                  : weekdays.map((_, weekday) => {
+                  const shift = shifts.find(
+                    (item) => item.weekday === weekday && item.start <= hour && item.end > hour,
                   );
+                  const worker = admins.find(
+                    (admin) => admin.id === shift?.workerId,
+                  );
+                  const isSearching = Boolean(scheduleSearch.trim());
+                  const matched =
+                    isSearching &&
+                    Boolean(
+                      worker?.name.includes(scheduleSearch.trim()) ||
+                      worker?.studentId.includes(scheduleSearch.trim()),
+                    );
                   return (
-                    <div
-                      className="work-schedule-cell"
-                      key={`${time}-${weekday}`}
+                    <button
+                      className={`work-schedule-cell${!isPastWeek && admins.length > 0 ? " work-schedule-cell--editable" : ""}`}
+                      key={`${hour}-${weekday}`}
+                      type="button"
+                      disabled={isPastWeek || admins.length === 0}
+                      aria-label={shift
+                        ? `${weekdays[weekday]}요일 ${String(hour).padStart(2, "0")}시 ${worker?.name ?? "알 수 없음"} 근무 시간 수정`
+                        : `${weekdays[weekday]}요일 ${String(hour).padStart(2, "0")}시 근무 시간 등록`}
+                      onClick={() => shift ? openEditShift(shift) : openCreateShift({ weekday, hour })}
                       style={{
-                        minHeight: 54,
+                        minHeight: 60,
+                        minWidth: 0,
+                        width: "100%",
                         padding: 5,
+                        borderTop: 0,
+                        borderRight: 0,
                         borderLeft:
                           "1px solid var(--semantic-line-normal-normal)",
                         borderBottom:
                           "1px solid var(--semantic-line-normal-normal)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        font: "inherit",
+                        color: "inherit",
+                        textAlign: "center",
+                        cursor: isPastWeek || admins.length === 0 ? "default" : "pointer",
                       }}
                     >
-                      {cellShifts.map((shift) => {
-                        const worker = admins.find(
-                          (admin) => admin.id === shift.workerId,
-                        );
-                        const isSearching = Boolean(scheduleSearch.trim());
-                        const matched =
-                          !isSearching ||
-                          worker?.name.includes(scheduleSearch.trim()) ||
-                          worker?.studentId.includes(scheduleSearch.trim());
-                        return (
-                          <button
-                            className="work-schedule-person"
-                            key={shift.id}
-                            type="button"
-                            onClick={() => openEditShift(shift)}
-                            style={{
-                              width: "100%",
-                              padding: "5px 7px",
-                              marginBottom: 3,
-                              border: 0,
-                              borderRadius: 6,
-                              background: isSearching && matched
-                                ? "rgba(0, 102, 255, 0.09)"
-                                : "var(--semantic-background-normal-normal)",
-                              color: isSearching && matched
-                                ? "var(--semantic-primary-normal)"
+                      {shift ? (
+                        <span
+                          className="work-schedule-person"
+                          style={{
+                            width: "100%",
+                            padding: "8px 7px",
+                            borderRadius: 6,
+                            background: matched
+                              ? "rgba(0, 102, 255, 0.09)"
+                              : "transparent",
+                            color: matched
+                              ? "var(--semantic-primary-normal)"
+                              : isSearching
+                                ? "var(--semantic-label-alternative)"
                                 : "var(--semantic-label-normal)",
-                              textAlign: "left",
-                              cursor: "pointer",
-                              font: "inherit",
-                              fontSize: 12,
-                              fontWeight: 600,
-                              transition:
-                                "background-color .16s ease, color .16s ease",
-                            }}
-                          >
-                            {worker?.name ?? "알 수 없음"}
-                          </button>
-                        );
-                      })}
-                    </div>
+                            textAlign: "center",
+                            fontSize: 12,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {worker?.name ?? "알 수 없음"}
+                        </span>
+                      ) : (
+                        <Typography
+                          variant="caption1"
+                          color="semantic.label.alternative"
+                        >
+                          -
+                        </Typography>
+                      )}
+                    </button>
                   );
-                }),
+                })),
               ])}
             </div>
           </div>
         </TabPanel>
       </Tab>
-      <Modal open={workerOpen} onOpenChange={(open) => { setWorkerOpen(open); if (!open) setSelectedAdminIds([]) }}>
-        <ModalContainer size="medium">
-          <ModalContent>
-            <ModalContentItem>
-              <ModalHeading>근무자 등록</ModalHeading>
-            </ModalContentItem>
-            <ModalContentItem style={{ gap: 16 }}>
-              <FormItem label="관리자 목록 검색">
-                <SearchField
-                  value={workerSearch}
-                  onChange={setWorkerSearch}
-                  placeholder="이름 또는 학번 검색"
-                  width="100%"
-                />
-              </FormItem>
-              <MultiPersonPicker
-                items={workerSearchResults.map((admin) => ({ id: admin.id, name: admin.name, detail: `${admin.studentId} · ${admin.councilDepartment ?? '소속 없음'}` }))}
-                selectedItems={admins.filter((admin) => selectedAdminIds.includes(admin.id)).map((admin) => ({ id: admin.id, name: admin.name, detail: `${admin.studentId} · ${admin.councilDepartment ?? '소속 없음'}` }))}
-                selectedIds={selectedAdminIds}
-                onToggle={(id) => setSelectedAdminIds((previous) => previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id])}
-                onClear={() => setSelectedAdminIds([])}
-              />
-            </ModalContentItem>
-            <ModalContentItem
-              style={{
-                flexDirection: "row",
-                justifyContent: "flex-end",
-                gap: 8,
-              }}
-            >
-              <Button
-                variant="outlined"
-                color="assistive"
-                onClick={() => setWorkerOpen(false)}
-              >
-                취소
-              </Button>
-              <Button
-                variant="solid"
-                color="primary"
-                disabled={selectedAdminIds.length === 0}
-                onClick={() => {
-                  const ids = selectedAdminIds.filter((id) => !workers.some((worker) => worker.adminId === id));
-                  if (ids.length === 0) return;
-                  setWorkers((previous) => [...previous, ...ids.map((adminId) => ({ adminId }))]);
-                  setWorkerOpen(false);
-                  setSelectedAdminIds([]);
-                  toast({
-                    content: `${ids.length}명을 근무자로 등록했어요.`,
-                    variant: "positive",
-                  });
-                }}
-              >
-                {selectedAdminIds.length ? `${selectedAdminIds.length}명 등록` : '등록'}
-              </Button>
-            </ModalContentItem>
-          </ModalContent>
-        </ModalContainer>
-      </Modal>
+
       <Modal open={shiftOpen} onOpenChange={setShiftOpen}>
         <ModalContainer
           size="xlarge"
@@ -401,6 +562,9 @@ export default function WorkManagementPage() {
               <ModalHeading>
                 {editingShift ? "근무 시간 수정" : "근무 시간 등록"}
               </ModalHeading>
+              <Typography variant="caption1" color="semantic.label.alternative">
+                {weekLabel} · {weekDates}
+              </Typography>
             </ModalContentItem>
             <ModalContentItem style={{ gap: 16 }}>
               <FormItem label="근무자">
@@ -408,16 +572,11 @@ export default function WorkManagementPage() {
                   value={draft.workerId}
                   onChange={(value) => setDraft({ ...draft, workerId: value })}
                 >
-                  {workers.map((worker) => {
-                    const admin = admins.find(
-                      (item) => item.id === worker.adminId,
-                    );
-                    return admin ? (
-                      <Option key={admin.id} value={admin.id}>
-                        {admin.name} · {admin.studentId}
-                      </Option>
-                    ) : null;
-                  })}
+                  {admins.map((admin) => (
+                    <Option key={admin.id} value={admin.id}>
+                      {admin.name} · {admin.studentId}
+                    </Option>
+                  ))}
                 </Select>
               </FormItem>
               <FormItem label="근무 시간대">
@@ -435,51 +594,46 @@ export default function WorkManagementPage() {
                         width: "100%",
                       }}
                     >
-                      <FlexBox style={{ flex: 1, minWidth: 0 }}>
-                        <Select
-                          style={{ width: "100%" }}
-                          value={String(range.weekday)}
-                          onChange={(value) =>
-                            setDraft((previous) => ({
-                              ...previous,
-                              ranges: previous.ranges.map((item, itemIndex) =>
-                                itemIndex === index
-                                  ? { ...item, weekday: Number(value) }
-                                  : item,
-                              ),
-                            }))
-                          }
-                        >
-                          {weekdays.map((day, weekday) => (
-                            <Option key={day} value={String(weekday)}>
-                              {day}요일
-                            </Option>
-                          ))}
-                        </Select>
-                      </FlexBox>
-                      <FlexBox style={{ flex: 1, minWidth: 0 }}>
-                        <Select
-                          style={{ width: "100%" }}
-                          value={String(range.start)}
-                          onChange={(value) =>
-                            setDraft((previous) => ({
-                              ...previous,
-                              ranges: previous.ranges.map((item, itemIndex) =>
-                                itemIndex === index
-                                  ? { ...item, start: Number(value) }
-                                  : item,
-                              ),
-                            }))
-                          }
-                        >
-                          {timeSlots.map((time) => (
-                            <Option key={time} value={String(time)}>
-                              {String(Math.floor(time)).padStart(2, "0")}:
-                              {time % 1 ? "30" : "00"}
-                            </Option>
-                          ))}
-                        </Select>
-                      </FlexBox>
+                      <Select
+                        style={{ width: "100%" }}
+                        value={String(range.weekday)}
+                        onChange={(value) =>
+                          setDraft((previous) => ({
+                            ...previous,
+                            ranges: previous.ranges.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, weekday: Number(value) }
+                                : item,
+                            ),
+                          }))
+                        }
+                      >
+                        {weekdays.map((day, weekday) => (
+                          <Option key={day} value={String(weekday)}>
+                            {day}요일
+                          </Option>
+                        ))}
+                      </Select>
+                      <Select
+                        style={{ width: "100%" }}
+                        value={String(range.start)}
+                        onChange={(value) =>
+                          setDraft((previous) => ({
+                            ...previous,
+                            ranges: previous.ranges.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, start: Number(value) }
+                                : item,
+                            ),
+                          }))
+                        }
+                      >
+                        {startOptions.map((hour) => (
+                          <Option key={hour} value={String(hour)}>
+                            {String(hour).padStart(2, "0")}:00
+                          </Option>
+                        ))}
+                      </Select>
                       <Typography
                         variant="body2"
                         color="semantic.label.alternative"
@@ -487,29 +641,26 @@ export default function WorkManagementPage() {
                       >
                         ~
                       </Typography>
-                      <FlexBox style={{ flex: 1, minWidth: 0 }}>
-                        <Select
-                          style={{ width: "100%" }}
-                          value={String(range.end)}
-                          onChange={(value) =>
-                            setDraft((previous) => ({
-                              ...previous,
-                              ranges: previous.ranges.map((item, itemIndex) =>
-                                itemIndex === index
-                                  ? { ...item, end: Number(value) }
-                                  : item,
-                              ),
-                            }))
-                          }
-                        >
-                          {[...timeSlots.slice(1), 18].map((time) => (
-                            <Option key={time} value={String(time)}>
-                              {String(Math.floor(time)).padStart(2, "0")}:
-                              {time % 1 ? "30" : "00"}
-                            </Option>
-                          ))}
-                        </Select>
-                      </FlexBox>
+                      <Select
+                        style={{ width: "100%" }}
+                        value={String(range.end)}
+                        onChange={(value) =>
+                          setDraft((previous) => ({
+                            ...previous,
+                            ranges: previous.ranges.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, end: Number(value) }
+                                : item,
+                            ),
+                          }))
+                        }
+                      >
+                        {endOptions.map((hour) => (
+                          <Option key={hour} value={String(hour)}>
+                            {String(hour).padStart(2, "0")}:00
+                          </Option>
+                        ))}
+                      </Select>
                       {!editingShift && draft.ranges.length > 1 && (
                         <Button
                           size="small"
@@ -540,7 +691,7 @@ export default function WorkManagementPage() {
                           ...previous,
                           ranges: [
                             ...previous.ranges,
-                            { weekday: 0, start: 9, end: 9.5 },
+                            { weekday: 0, start: 10, end: 11 },
                           ],
                         }))
                       }
@@ -548,6 +699,12 @@ export default function WorkManagementPage() {
                       + 시간대 추가
                     </Button>
                   )}
+                  <Typography
+                    variant="caption1"
+                    color="semantic.label.alternative"
+                  >
+                    12:00~13:00는 점심시간으로 근무자를 등록할 수 없어요.
+                  </Typography>
                 </FlexBox>
               </FormItem>
             </ModalContentItem>
@@ -559,16 +716,7 @@ export default function WorkManagementPage() {
                   variant="outlined"
                   color="assistive"
                   style={{ color: "var(--semantic-status-negative)" }}
-                  onClick={() => {
-                    setShifts((previous) =>
-                      previous.filter((shift) => shift.id !== editingShift.id),
-                    );
-                    setShiftOpen(false);
-                    toast({
-                      content: "근무 시간을 삭제했어요.",
-                      variant: "positive",
-                    });
-                  }}
+                  onClick={() => setDeleteTarget(editingShift)}
                 >
                   삭제
                 </Button>
@@ -591,6 +739,24 @@ export default function WorkManagementPage() {
           </ModalContent>
         </ModalContainer>
       </Modal>
+      <ConfirmModal
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="근무 시간을 삭제할까요?"
+        description={`${weekLabel}에 등록된 근무 시간만 삭제돼요.`}
+        confirmLabel="삭제"
+        tone="negative"
+        onConfirm={() => {
+          if (!deleteTarget || selectedWeek.getTime() < getMonday(new Date()).getTime()) return;
+          setShiftsByWeek((previous) => ({
+            ...previous,
+            [weekKey]: shifts.filter((shift) => shift.id !== deleteTarget.id),
+          }));
+          setShiftOpen(false);
+          setDeleteTarget(null);
+          toast({ content: "근무 시간을 삭제했어요.", variant: "positive" });
+        }}
+      />
     </>
   );
 }

@@ -9,6 +9,7 @@ import {
   IconPersonsFill,
 } from "@wanteddev/wds-icon";
 import StatusBadge from "../../components/common/StatusBadge";
+import EmptyState from "../../components/common/EmptyState";
 import { useEvents } from "../events/store";
 import { useRentals } from "../rentals/store";
 import { useStudentCouncil } from "../studentCouncil/store";
@@ -494,9 +495,7 @@ function DashboardPage() {
 
         <SectionCard title="연체된 대여 물품">
           {overdueRecords.length === 0 ? (
-            <Typography variant="body2" color="semantic.label.alternative">
-              연체된 대여 물품이 없어요.
-            </Typography>
+            <EmptyState message="연체된 대여 물품이 없어요." variant="compact" />
           ) : (
             <FlexBox flexDirection="column" style={{ gap: 8 }}>
               {visibleOverdueRecords.map(({ record, overdueDays }) => (
@@ -553,9 +552,7 @@ function DashboardPage() {
       <FlexBox flexDirection="column" style={{ gap: 20 }}>
         <SectionCard title="행사 신청 현황">
           {openEvents.length === 0 ? (
-            <Typography variant="body2" color="semantic.label.alternative">
-              현재 모집 중인 행사가 없어요.
-            </Typography>
+            <EmptyState message="현재 모집 중인 행사가 없어요." variant="compact" />
           ) : (
             <FlexBox flexDirection="column" style={{ gap: 8 }}>
               {openEvents.map((event) => {

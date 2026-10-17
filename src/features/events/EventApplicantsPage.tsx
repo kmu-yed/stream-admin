@@ -3,27 +3,23 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   Button,
   FlexBox,
-  IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger,
-  TextButton,
-  Tooltip, TooltipContent, TooltipTrigger,
+  Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading,
   Typography,
   useToast,
 } from '@wanteddev/wds'
-import { IconChevronDownSmall, IconCircleQuestion } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
+import DetailInfoGrid from '../../components/common/DetailInfoGrid'
 import SearchField from '../../components/common/SearchField'
 import StatusBadge from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import ExcelExportButton from '../../components/common/ExcelExportButton'
 import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
+import NotFoundState from '../../components/common/NotFoundState'
 import { useEvents } from './store'
-import { getAttendanceStatus, type Applicant } from './types'
-import type { BadgeTone } from '../../components/common/StatusBadge'
+import type { Applicant } from './types'
 
 type StatusFilter = 'all' | '신청완료' | '취소'
-type AttendanceFilter = 'all' | '미확정' | '참가완료' | '불참'
-const attendanceTone: Record<'미확정' | '참가완료' | '불참', BadgeTone> = { 미확정: 'neutral', 참가완료: 'positive', 불참: 'negative' }
 
 function toCsv(rows: Applicant[], fieldLabels: Record<string, string>) {
   const fieldIds = Object.keys(fieldLabels)
@@ -39,20 +35,18 @@ function toCsv(rows: Applicant[], fieldLabels: Record<string, string>) {
 function EventApplicantsPage() {
   const navigate = useNavigate()
   const { id } = useParams()
-  const { getEvent, getApplicants, cancelApplicant, updateAttendanceStatus } = useEvents()
+  const { getEvent, getApplicants, cancelApplicant } = useEvents()
   const toast = useToast()
 
   const event = id ? getEvent(id) : undefined
   const applicants = id ? getApplicants(id) : []
   const [filters, setFilters] = useState<StatusFilter[]>(['all'])
-  const [attendanceFilters, setAttendanceFilters] = useState<AttendanceFilter[]>(['all'])
   const [cancelTarget, setCancelTarget] = useState<Applicant | null>(null)
+  const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null)
   const [search, setSearch] = useState('')
 
   const filtered = applicants.filter((a) => {
     if (!filters.includes('all') && !filters.includes(a.status)) return false
-    const attendance = getAttendanceStatus(a, event!)
-    if (attendance !== '-' && !attendanceFilters.includes('all') && !attendanceFilters.includes(attendance)) return false
     const keyword = search.trim()
     if (!keyword) return true
     return a.name.includes(keyword) || a.studentId.includes(keyword)
@@ -85,8 +79,9 @@ function EventApplicantsPage() {
     { key: 'appliedAt', header: '신청일시', width: 140, render: (row) => row.appliedAt },
     ...Object.keys(fieldLabels).map<DataTableColumn<Applicant>>((fieldId) => ({
       key: fieldId,
-      header: fieldLabels[fieldId],
-      render: (row) => row.answers[fieldId] ?? '-',
+      header: <span title={fieldLabels[fieldId]} style={{ display: 'block', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fieldLabels[fieldId]}</span>,
+      width: 200,
+      render: (row) => <span style={{ display: 'block', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.answers[fieldId] || '-'}</span>,
     })),
     {
       key: 'status',
@@ -95,21 +90,13 @@ function EventApplicantsPage() {
       render: (row) => <StatusBadge label={row.status} tone={row.status === '취소' ? 'negative' : 'positive'} />,
     },
     {
-      key: 'attendance', header: <TableCheckboxFilter label="참석 여부" ariaLabel="참석 여부 필터" allLabel="전체 참석 여부" options={['미확정', '참가완료', '불참']} value={attendanceFilters} onChange={(value) => setAttendanceFilters(value as AttendanceFilter[])} />, width: 150,
-      render: (row) => {
-        const attendance = getAttendanceStatus(row, event!)
-        if (attendance === '-') return '-'
-        return <Menu><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={attendance} tone={attendanceTone[attendance]} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-end" offset={8}><MenuList>{(['미확정', '불참', '참가완료'] as const).map((status) => <MenuItem key={status} value={status} onClick={() => updateAttendanceStatus(row.id, status)}><StatusBadge label={status} tone={attendanceTone[status]} /></MenuItem>)}</MenuList></MenuContent></Menu>
-      },
-    },
-    {
       key: 'actions',
       header: '',
       width: 100,
       align: 'right',
       render: (row) =>
         row.status === '신청완료' ? (
-          <Button variant="outlined" color="assistive" size="small" style={{ color: 'var(--semantic-status-negative)', borderColor: 'var(--semantic-line-normal-normal)' }} onClick={() => setCancelTarget(row)}>
+          <Button variant="outlined" color="assistive" size="small" style={{ color: 'var(--semantic-status-negative)', borderColor: 'var(--semantic-line-normal-normal)' }} onClick={(clickEvent) => { clickEvent.stopPropagation(); setCancelTarget(row) }}>
             취소 처리
           </Button>
         ) : (
@@ -121,16 +108,7 @@ function EventApplicantsPage() {
   ]
 
   if (!event) {
-    return (
-      <FlexBox flexDirection="column" style={{ gap: 12 }}>
-        <Typography variant="title2" weight="bold">
-          행사를 찾을 수 없어요.
-        </Typography>
-        <FlexBox>
-          <TextButton onClick={() => navigate('/events')}>행사 목록으로 돌아가기</TextButton>
-        </FlexBox>
-      </FlexBox>
-    )
+    return <NotFoundState entity="행사" onBack={() => navigate('/events')} />
   }
 
   return (
@@ -141,25 +119,42 @@ function EventApplicantsPage() {
       />
 
       <FlexBox className="app-page-toolbar" justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
-        <Tooltip mode="hover">
-          <TooltipTrigger>
-            <IconButton variant="normal" size="small" aria-label="참석 여부 안내" style={{ width: 32, height: 32 }}>
-              <IconCircleQuestion width={17} height={17} style={{ color: 'var(--semantic-label-assistive)' }} />
-            </IconButton>
-          </TooltipTrigger>
-          <TooltipContent>행사가 종료되면 자동으로 모두 참가완료 상태로 바뀌어요.</TooltipContent>
-        </Tooltip>
         <SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" />
-        <ExcelExportButton onClick={handleExport} />
+        <ExcelExportButton onClick={handleExport} disabled={filtered.length === 0} />
       </FlexBox>
 
       <DataTable
         columns={columns}
         rows={filtered}
         rowKey={(row) => row.id}
-        emptyMessage="신청자가 없어요."
-        minWidth={1000 + Object.keys(fieldLabels).length * 160}
+        onRowClick={setSelectedApplicant}
+        emptyMessage={applicants.length === 0 ? '신청자가 없어요.' : '조건에 맞는 신청자가 없어요.'}
+        emptyDescription={applicants.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined}
+        minWidth={720 + Object.keys(fieldLabels).length * 200}
       />
+
+      <Modal open={Boolean(selectedApplicant)} onOpenChange={(open) => !open && setSelectedApplicant(null)}>
+        <ModalContainer size="large"><ModalContent>
+          <ModalContentItem><ModalHeading>{selectedApplicant ? `${selectedApplicant.name}님 신청 내역` : '신청 내역'}</ModalHeading></ModalContentItem>
+          {selectedApplicant && <ModalContentItem style={{ gap: 20, maxHeight: '65vh', overflowY: 'auto' }}>
+            <DetailInfoGrid items={[
+              { label: '이름', value: selectedApplicant.name },
+              { label: '학번', value: selectedApplicant.studentId },
+              { label: '전화번호', value: selectedApplicant.phone },
+              { label: '신청일시', value: selectedApplicant.appliedAt },
+              { label: '상태', value: <StatusBadge label={selectedApplicant.status} tone={selectedApplicant.status === '취소' ? 'negative' : 'positive'} /> },
+            ]} />
+            <FlexBox flexDirection="column" style={{ gap: 16, borderTop: '1px solid var(--semantic-line-normal-normal)', paddingTop: 20 }}>
+              <Typography variant="body1" weight="bold">신청 폼 답변</Typography>
+              {event.formFields.length === 0 ? <Typography variant="body2" color="semantic.label.alternative">추가 질문이 없어요.</Typography> : event.formFields.map((field) => <FlexBox key={field.id} flexDirection="column" style={{ gap: 6 }}>
+                <Typography variant="caption1" color="semantic.label.alternative" style={{ overflowWrap: 'anywhere' }}>{field.label || '(이름 없는 항목)'}</Typography>
+                <Typography variant="body2" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{selectedApplicant.answers[field.id] || '-'}</Typography>
+              </FlexBox>)}
+            </FlexBox>
+          </ModalContentItem>}
+          <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'flex-end' }}><Button variant="outlined" color="assistive" onClick={() => setSelectedApplicant(null)}>닫기</Button></ModalContentItem>
+        </ModalContent></ModalContainer>
+      </Modal>
 
       <ConfirmModal
         open={Boolean(cancelTarget)}

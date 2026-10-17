@@ -14,10 +14,13 @@ import {
   Typography,
 } from '@wanteddev/wds'
 import { IconMenu } from '@wanteddev/wds-icon'
-import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
+import DataTable, { DEFAULT_TABLE_PAGE_SIZE, type DataTableColumn } from '../../components/common/DataTable'
+import TablePagination from '../../components/common/TablePagination'
+import EmptyState from '../../components/common/EmptyState'
 import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import RowMoreMenu from '../../components/common/RowMoreMenu'
+import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
 import { useHomeBanner } from './store'
 import { getBannerBadge, getBannerExposureStatus, type Banner, type BannerExposureStatus } from './types'
 
@@ -33,20 +36,30 @@ function HomeBannerListPage() {
   const [deleteTarget, setDeleteTarget] = useState<Banner | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const [activePage, setActivePage] = useState(1)
+  const [categoryFilters, setCategoryFilters] = useState<string[]>(['all'])
+  const [activeStatusFilters, setActiveStatusFilters] = useState<string[]>(['all'])
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = searchParams.get('tab') ?? 'active'
 
-  const activeBanners = banners
+  const activeSource = banners
     .filter((banner) => getBannerExposureStatus(banner) !== '노출종료')
     .sort((a, b) => a.order - b.order)
-  const pastBanners = banners
+  const activeBanners = activeSource.filter((banner) =>
+    (categoryFilters.includes('all') || categoryFilters.includes(getBannerBadge(banner.category)))
+    && (activeStatusFilters.includes('all') || activeStatusFilters.includes(getBannerExposureStatus(banner))),
+  )
+  const pastSource = banners
     .filter((banner) => getBannerExposureStatus(banner) === '노출종료')
     .sort((a, b) => b.endDate.localeCompare(a.endDate))
+  const pastBanners = pastSource.filter((banner) => categoryFilters.includes('all') || categoryFilters.includes(getBannerBadge(banner.category)))
+  const activeTotalPages = Math.ceil(activeBanners.length / DEFAULT_TABLE_PAGE_SIZE)
+  const currentActivePage = Math.min(activePage, Math.max(activeTotalPages, 1))
 
   const pastColumns: DataTableColumn<Banner>[] = [
     {
       key: 'category',
-      header: '카테고리',
+      header: <TableCheckboxFilter label="카테고리" ariaLabel="배너 카테고리 필터" options={['제휴공지', '일반공지']} value={categoryFilters} onChange={setCategoryFilters} />,
       width: 110,
       render: (row) => (
         <StatusBadge label={getBannerBadge(row.category)} tone={row.category === '제휴' ? 'info' : 'neutral'} />
@@ -107,24 +120,22 @@ function HomeBannerListPage() {
           <TableRow>
             <TableHeadCell style={{ width: 40 }} />
             <TableHeadCell style={{ width: 60 }}>순서</TableHeadCell>
-            <TableHeadCell style={{ width: 110 }}>카테고리</TableHeadCell>
+            <TableHeadCell style={{ width: 110 }}><TableCheckboxFilter label="카테고리" ariaLabel="배너 카테고리 필터" options={['제휴공지', '일반공지']} value={categoryFilters} onChange={setCategoryFilters} /></TableHeadCell>
             <TableHeadCell>제목</TableHeadCell>
             <TableHeadCell style={{ width: 220 }}>노출 기간</TableHeadCell>
-            <TableHeadCell style={{ width: 100 }}>상태</TableHeadCell>
+            <TableHeadCell style={{ width: 100 }}><TableCheckboxFilter label="상태" ariaLabel="배너 노출 상태 필터" options={['노출중', '노출예정']} value={activeStatusFilters} onChange={setActiveStatusFilters} /></TableHeadCell>
             <TableHeadCell style={{ width: 56 }} align="right" />
           </TableRow>
         </TableHead>
         <TableBody>
           {activeBanners.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} align="center" style={{ padding: '48px 0' }}>
-                <Typography variant="body2" color="semantic.label.alternative">
-                  등록된 배너가 없어요.
-                </Typography>
+              <TableCell colSpan={7} align="center" style={{ padding: 0 }}>
+                <EmptyState message={activeSource.length === 0 ? '노출 중이거나 노출 예정인 배너가 없어요.' : '조건에 맞는 배너가 없어요.'} description={activeSource.length === 0 ? '새 배너를 등록하면 여기에 표시돼요.' : '필터를 변경해 보세요.'} variant="table" />
               </TableCell>
             </TableRow>
           ) : (
-            activeBanners.map((banner, index) => {
+            activeBanners.slice((currentActivePage - 1) * DEFAULT_TABLE_PAGE_SIZE, currentActivePage * DEFAULT_TABLE_PAGE_SIZE).map((banner, index) => {
               const status = getBannerExposureStatus(banner)
               return (
                 <TableRow
@@ -165,7 +176,7 @@ function HomeBannerListPage() {
                     </FlexBox>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2">{index + 1}</Typography>
+                    <Typography variant="body2">{(currentActivePage - 1) * DEFAULT_TABLE_PAGE_SIZE + index + 1}</Typography>
                   </TableCell>
                   <TableCell>
                     <StatusBadge
@@ -198,6 +209,7 @@ function HomeBannerListPage() {
           )}
         </TableBody>
       </Table>
+      <TablePagination page={currentActivePage} totalPages={activeTotalPages} onChange={(nextPage) => setActivePage(nextPage ?? 1)} />
       </>
       )}
 
@@ -207,7 +219,8 @@ function HomeBannerListPage() {
             rows={pastBanners}
             rowKey={(row) => row.id}
             onRowClick={(row) => navigate(`/home-banner/${row.id}`)}
-            emptyMessage="노출이 종료된 배너가 없어요."
+            emptyMessage={pastSource.length === 0 ? '노출이 종료된 배너가 없어요.' : '조건에 맞는 배너가 없어요.'}
+            emptyDescription={pastSource.length > 0 ? '필터를 변경해 보세요.' : undefined}
           />
       )}
 

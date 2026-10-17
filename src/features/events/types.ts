@@ -21,10 +21,16 @@ export type EventRecord = {
   id: string
   title: string
   isPublic: boolean
+  images: string[]
+  thumbnailUrl?: string
   openDate: string
+  openTime: string
   deadline: string
+  deadlineTime: string
   eventStartDate: string
+  eventStartTime: string
   eventEndDate: string
+  eventEndTime: string
   venue: string
   requiresFeePayment: boolean
   isFirstCome: boolean
@@ -60,9 +66,14 @@ export function getAttendanceStatus(applicant: Pick<Applicant, 'status' | 'atten
 
 export type EventStatus = '모집예정' | '모집중' | '모집종료'
 
-export function getEventStatus(event: Pick<EventRecord, 'openDate' | 'deadline'>): EventStatus {
-  const today = new Date().toISOString().slice(0, 10)
-  if (today < event.openDate) return '모집예정'
-  if (today > event.deadline) return '모집종료'
+export function formatEventDateTime(date: string, time: string) {
+  return `${date} ${time}`
+}
+
+export function getEventStatus(event: Pick<EventRecord, 'openDate' | 'openTime' | 'deadline' | 'deadlineTime'>): EventStatus {
+  const now = new Date()
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  if (today < formatEventDateTime(event.openDate, event.openTime)) return '모집예정'
+  if (today > formatEventDateTime(event.deadline, event.deadlineTime)) return '모집종료'
   return '모집중'
 }

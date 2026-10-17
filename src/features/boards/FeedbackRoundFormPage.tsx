@@ -1,40 +1,52 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Checkbox, FlexBox, TextArea, Typography, useToast } from '@wanteddev/wds'
+import { Button, Checkbox, FlexBox, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, TextArea, Typography, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import BoldMarkupText from '../../components/common/BoldMarkupText'
+import EmptyState from '../../components/common/EmptyState'
+import NotFoundState from '../../components/common/NotFoundState'
 import { useBoards } from './store'
-import type { FeedbackAnswer } from './types'
+import type { FeedbackAnswer, FeedbackAnswerDraft } from './types'
+import { getFeedbackRoundStatus } from './feedbackRoundStatus'
 
 type AnswerDraft = {
   answerText: string
+}
+
+function formatDraftTime(savedAt?: string) {
+  if (!savedAt) return '이전 임시저장'
+  return new Date(savedAt).toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 }
 
 function FeedbackRoundFormPage() {
   const navigate = useNavigate()
   const { id } = useParams()
   const isEdit = Boolean(id)
-  const { questions, feedbackRounds, addFeedbackRound, updateFeedbackRound } = useBoards()
+  const { questions, feedbackRounds, answerDrafts, publishFeedbackRoundAnswers, updateFeedbackRound, saveFeedbackAnswerDraft } = useBoards()
   const toast = useToast()
 
   const existing = id ? feedbackRounds.find((round) => round.id === id) : undefined
+  const activeRound = !id ? [...feedbackRounds].sort((a, b) => b.roundNumber - a.roundNumber).find((round) => ['질문접수중', '답변작성중'].includes(getFeedbackRoundStatus(round, answerDrafts))) : undefined
+  const targetRound = existing ?? activeRound
+  const roundDrafts = answerDrafts.filter((draft) => draft.roundId === targetRound?.id).sort((a, b) => (b.savedAt ?? '').localeCompare(a.savedAt ?? ''))
   const [answers, setAnswers] = useState<Record<string, AnswerDraft>>(() => {
     const initial: Record<string, AnswerDraft> = {}
     existing?.answers.forEach((answer) => {
       initial[answer.questionId] = { answerText: answer.answerText }
     })
-    if (Object.keys(initial).length > 0) return initial
-    try {
-      const saved = localStorage.getItem(`stream-feedback-answer-draft-${id ?? 'new'}`)
-      return saved ? JSON.parse(saved) as Record<string, AnswerDraft> : initial
-    } catch {
-      return initial
-    }
+    return initial
   })
   const [error, setError] = useState<string>()
-  const draftStorageKey = `stream-feedback-answer-draft-${id ?? 'new'}`
+  const [draftPickerOpen, setDraftPickerOpen] = useState(() => !isEdit && roundDrafts.length > 0)
 
   const goToList = () => navigate('/feedback?tab=questions')
+
+  const loadDraft = (draft: FeedbackAnswerDraft) => {
+    const availableIds = new Set(questions.map((question) => question.id))
+    setAnswers(Object.fromEntries(draft.answers.filter((answer) => availableIds.has(answer.questionId)).map((answer) => [answer.questionId, { answerText: answer.answerText }])))
+    setError(undefined)
+    setDraftPickerOpen(false)
+  }
 
   const toggleQuestion = (questionId: string, checked: boolean) => {
     setAnswers((prev) => {
@@ -50,6 +62,7 @@ function FeedbackRoundFormPage() {
   }
 
   const handleSubmit = () => {
+    if (!targetRound) return
     const entries = Object.entries(answers)
     if (entries.length === 0) {
       setError('답변할 질문을 하나 이상 선택해주세요.')
@@ -70,17 +83,20 @@ function FeedbackRoundFormPage() {
       updateFeedbackRound(id, payload)
       toast({ content: '피드백 답변이 수정되었어요.', variant: 'positive' })
     } else {
-      addFeedbackRound(payload)
+      publishFeedbackRoundAnswers(targetRound.id, payload)
       toast({ content: '피드백 답변이 등록되었어요.', variant: 'positive' })
     }
-    localStorage.removeItem(draftStorageKey)
-    goToList()
+    navigate('/feedback?tab=rounds')
   }
 
   const saveDraft = () => {
-    localStorage.setItem(draftStorageKey, JSON.stringify(answers))
+    if (!targetRound || Object.keys(answers).length === 0) return
+    saveFeedbackAnswerDraft(targetRound.id, Object.entries(answers).map(([questionId, draft]) => ({ questionId, answerText: draft.answerText })))
     toast({ content: '현재 답변을 임시저장했어요.', variant: 'positive' })
   }
+
+  if (isEdit && !existing) return <NotFoundState entity="회차" onBack={goToList} />
+  if (!isEdit && !activeRound) return <NotFoundState entity="진행 중인 회차" onBack={goToList} />
 
   return (
     <>
@@ -96,6 +112,7 @@ function FeedbackRoundFormPage() {
       )}
 
       <FlexBox flexDirection="column" style={{ gap: 16, maxWidth: 720 }}>
+        {questions.length === 0 && <EmptyState message="답변할 질문이 없어요." description="질문이 접수되면 이곳에서 답변을 등록할 수 있어요." />}
         {questions.map((question) => {
           const checked = question.id in answers
           const draft = answers[question.id]
@@ -147,8 +164,8 @@ function FeedbackRoundFormPage() {
         })}
 
         <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
-          <Button variant="outlined" color="assistive" onClick={saveDraft}>임시저장</Button>
-          <Button variant="solid" color="primary" onClick={handleSubmit}>
+          <Button variant="outlined" color="assistive" disabled={questions.length === 0 || Object.keys(answers).length === 0} onClick={saveDraft}>임시저장</Button>
+          <Button variant="solid" color="primary" disabled={questions.length === 0} onClick={handleSubmit}>
             {isEdit ? '수정 완료' : '등록하기'}
           </Button>
           <Button variant="outlined" color="assistive" onClick={goToList}>
@@ -156,6 +173,29 @@ function FeedbackRoundFormPage() {
           </Button>
         </FlexBox>
       </FlexBox>
+      <Modal open={draftPickerOpen} onOpenChange={setDraftPickerOpen}>
+        <ModalContainer size="medium"><ModalContent>
+          <ModalContentItem>
+            <ModalHeading>임시저장한 답변을 불러올까요?</ModalHeading>
+            <Typography variant="body2" color="semantic.label.alternative">이어 작성할 답변을 선택해 주세요.</Typography>
+          </ModalContentItem>
+          <ModalContentItem style={{ gap: 8, maxHeight: 320, overflowY: 'auto' }}>
+            {roundDrafts.map((draft) => {
+              const firstQuestion = questions.find((question) => question.id === draft.answers[0]?.questionId)
+              return <FlexBox key={draft.id} alignItems="center" justifyContent="space-between" style={{ gap: 12, minWidth: 0, padding: 12, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 12 }}>
+                <FlexBox flexDirection="column" style={{ gap: 4, minWidth: 0 }}>
+                  <Typography variant="body2" weight="bold">{formatDraftTime(draft.savedAt)} · {draft.answers.length}개 질문</Typography>
+                  <Typography variant="caption1" color="semantic.label.alternative" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{firstQuestion?.content ?? '선택한 질문'}</Typography>
+                </FlexBox>
+                <Button variant="outlined" color="primary" size="small" onClick={() => loadDraft(draft)} style={{ flexShrink: 0 }}>불러오기</Button>
+              </FlexBox>
+            })}
+          </ModalContentItem>
+          <ModalContentItem style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+            <Button variant="outlined" color="assistive" onClick={() => setDraftPickerOpen(false)}>새로 작성</Button>
+          </ModalContentItem>
+        </ModalContent></ModalContainer>
+      </Modal>
     </>
   )
 }

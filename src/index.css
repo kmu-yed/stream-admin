@@ -21,6 +21,29 @@ body {
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease, filter 160ms ease;
 }
 
+.work-schedule-cell {
+  background-color: var(--semantic-background-normal-normal);
+}
+
+.work-schedule-cell--editable {
+  transition: background-color 160ms ease;
+}
+
+@media (hover: hover) {
+  .work-schedule-cell--editable:hover {
+    background-color: rgba(0, 102, 255, 0.08);
+  }
+
+  .work-schedule-cell--editable:hover .work-schedule-person {
+    background-color: transparent !important;
+  }
+}
+
+.work-schedule-cell--editable:focus-visible {
+  outline: 2px solid var(--semantic-primary-normal);
+  outline-offset: -2px;
+}
+
 @media (hover: hover) {
   .app-hoverable:hover:not(:disabled) {
     transform: translateY(-1px);
@@ -45,6 +68,26 @@ body {
   box-shadow: none;
 }
 
+.app-image-thumbnail-indicator {
+  border: 1px solid var(--semantic-line-normal-normal);
+  transition: border-color 160ms ease;
+}
+
+.app-image-thumbnail-control[aria-pressed="true"] .app-image-thumbnail-indicator {
+  border-color: var(--semantic-primary-normal);
+}
+
+@media (hover: hover) {
+  .app-image-thumbnail-control:not(:disabled):hover .app-image-thumbnail-indicator {
+    border-color: var(--semantic-primary-normal);
+  }
+}
+
+.app-image-thumbnail-control:focus-visible {
+  outline: 2px solid var(--semantic-primary-normal);
+  outline-offset: 1px;
+}
+
 .app-search-field input,
 .app-search-field input::placeholder {
   font-size: 15px !important;
@@ -56,6 +99,22 @@ body {
   padding: 24px;
   border: 1px solid var(--semantic-line-normal-normal);
   border-radius: 16px;
+}
+
+.event-application-range {
+  grid-template-columns: minmax(0, 328px) auto minmax(0, 328px);
+  max-width: 696px;
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+  .event-application-range {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 328px;
+  }
+
+  .event-application-range .app-date-range-separator {
+    display: none;
+  }
 }
 
 .app-detail-info-grid {
@@ -158,6 +217,10 @@ body {
 .data-table-scroll .data-table table {
   min-width: var(--app-data-table-min-width, 100%);
   table-layout: auto;
+}
+
+.data-table-scroll.feedback-questions-table .data-table table {
+  table-layout: fixed;
 }
 
 .data-table thead tr {
@@ -356,6 +419,20 @@ body {
   .app-form-inline > * {
     width: 100% !important;
     min-width: 0;
+  }
+
+  .app-info-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .app-info-row > :first-child {
+    width: auto !important;
+    min-height: 0 !important;
+  }
+
+  .app-info-row > :last-child {
+    width: 100%;
   }
 
   .app-date-range {

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button, FlexBox, TextArea, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
+import NotFoundState from '../../components/common/NotFoundState'
 import { useChatbot } from './store'
 import type { FaqInput } from './types'
 
@@ -38,6 +39,8 @@ function FaqFormPage() {
     }
     goToList()
   }
+
+  if (isEdit && !existing) return <NotFoundState entity="FAQ" onBack={goToList} />
 
   return (
     <>

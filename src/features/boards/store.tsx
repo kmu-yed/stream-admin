@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import type { FeedbackAnswer, FeedbackPeriod, FeedbackQuestion, FeedbackRound, Notice, NoticeInput } from './types'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import type { FeedbackAnswer, FeedbackAnswerDraft, FeedbackPeriod, FeedbackQuestion, FeedbackRound, Notice, NoticeInput } from './types'
+import { getLocalDateValue } from './feedbackRoundStatus'
 
 function addDays(days: number) {
   const d = new Date()
@@ -52,12 +53,13 @@ const initialNotices: Notice[] = [
 
 const initialQuestions: FeedbackQuestion[] = [
   { id: 'q_1', content: '학생회관 자판기 고장 신고는 어디로 하나요?', studentName: '김학생', createdAt: addDays(-6), status: '공개답변완료' },
-  { id: 'q_2', content: '중간고사 기간 도서관 연장 운영 계획이 있나요?', studentName: '이대학', createdAt: addDays(-5), status: '개별답변완료' },
+  { id: 'q_2', content: '중간고사 기간 도서관 연장 운영 계획이 있나요?', studentName: '이대학', createdAt: addDays(-5), status: '공개답변완료' },
   { id: 'q_3', content: '체육대회 참가 신청은 언제까지인가요?', studentName: '박새내', createdAt: addDays(-4), status: '답변작성중' },
   { id: 'q_4', content: '학생회비 미납 시 불이익이 있나요?', studentName: '최학번', createdAt: addDays(-2), status: '답변대기' },
   { id: 'q_5', content: '교내 카페 제휴 할인은 언제까지 적용되나요?', studentName: '정학생', createdAt: addDays(-1), status: '답변대기' },
-  { id: 'q_6', content: '축제 부스 참여 신청 방법을 알고 싶어요.', studentName: '한학생', createdAt: addDays(-3), status: '개별답변완료' },
+  { id: 'q_6', content: '축제 부스 참여 신청 방법을 알고 싶어요.', studentName: '한학생', createdAt: addDays(-3), status: '공개답변완료' },
   { id: 'q_7', content: '학생회실 운영 시간은 어떻게 되나요?', studentName: '윤학생', createdAt: addDays(-7), status: '공개답변완료' },
+  { id: 'q_8', content: '이번 학기 중간고사 기간에 도서관 열람실 좌석이 부족해서 학생회관의 빈 강의실이나 스터디 공간을 임시로 개방할 계획이 있는지 궁금합니다. 개방한다면 이용 가능한 날짜와 시간, 사전 예약이 필요한지, 야간에도 이용할 수 있는지, 그리고 시험 기간이 끝난 뒤에도 운영을 계속할 예정인지 함께 안내해 주실 수 있을까요?', studentName: '서민지', createdAt: addDays(0), status: '답변대기' },
 ]
 
 const initialFeedbackRounds: FeedbackRound[] = [
@@ -120,17 +122,69 @@ const initialFeedbackPeriods: FeedbackPeriod[] = [
   { id: 'period_3', openDate: addDays(48), closeDate: addDays(62), createdAt: addDays(-2) },
 ]
 
+const FEEDBACK_ROUNDS_KEY = 'stream-feedback-rounds'
+const ANSWER_DRAFTS_KEY = 'stream-feedback-answer-drafts'
+
+function readFeedbackRounds(): FeedbackRound[] {
+  if (typeof window === 'undefined') return initialFeedbackRounds
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(FEEDBACK_ROUNDS_KEY) ?? 'null') as unknown
+    if (Array.isArray(stored) && stored.every((round) =>
+      typeof round === 'object' && round !== null && typeof round.id === 'string'
+      && typeof round.roundNumber === 'number' && typeof round.openDate === 'string'
+      && typeof round.closeDate === 'string' && Array.isArray(round.answers))) {
+      return stored as FeedbackRound[]
+    }
+  } catch { /* 손상된 회차 데이터는 기본 목록으로 복구한다. */ }
+  return initialFeedbackRounds
+}
+
+function readAnswerDrafts(): FeedbackAnswerDraft[] {
+  if (typeof window === 'undefined') return []
+  let drafts: FeedbackAnswerDraft[] = []
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(ANSWER_DRAFTS_KEY) ?? '[]') as unknown
+    if (Array.isArray(stored)) {
+      drafts = stored.filter((draft): draft is FeedbackAnswerDraft =>
+        typeof draft === 'object' && draft !== null && typeof draft.id === 'string'
+        && typeof draft.roundId === 'string' && Array.isArray(draft.answers)
+        && draft.answers.every((answer: unknown) => typeof answer === 'object' && answer !== null
+          && typeof (answer as FeedbackAnswer).questionId === 'string'
+          && typeof (answer as FeedbackAnswer).answerText === 'string'))
+    }
+  } catch { /* 손상된 임시저장 데이터는 무시한다. */ }
+
+  // 이전 버전에서 URL별로 저장한 답변도 목록에서 다시 열 수 있게 한다.
+  const latestOpenRound = [...initialFeedbackRounds].reverse().find((round) => round.status !== '회차종료')
+  const legacyEntries = [
+    ...(latestOpenRound ? [{ key: 'stream-feedback-answer-draft-new', roundId: latestOpenRound.id }] : []),
+    ...initialFeedbackRounds.map((round) => ({ key: `stream-feedback-answer-draft-${round.id}`, roundId: round.id })),
+  ]
+  for (const { key, roundId } of legacyEntries) {
+    if (drafts.some((draft) => draft.id === `legacy-${key}`)) continue
+    try {
+      const stored = window.localStorage.getItem(key)
+      if (!stored) continue
+      const answers = Object.entries(JSON.parse(stored) as Record<string, { answerText?: string }>).map(([questionId, answer]) => ({ questionId, answerText: answer?.answerText ?? '' }))
+      if (answers.length > 0) drafts.push({ id: `legacy-${key}`, roundId, answers })
+    } catch { /* 손상된 이전 임시저장 데이터는 무시한다. */ }
+  }
+  return drafts
+}
+
 type BoardsContextValue = {
   notices: Notice[]
   questions: FeedbackQuestion[]
   feedbackRounds: FeedbackRound[]
+  answerDrafts: FeedbackAnswerDraft[]
   feedbackPeriods: FeedbackPeriod[]
   addNotice: (input: NoticeInput) => Notice
   updateNotice: (id: string, input: NoticeInput) => void
   deleteNotice: (id: string) => void
   createFeedbackRound: (period: Pick<FeedbackRound, 'openDate' | 'closeDate'>) => void
-  addFeedbackRound: (answers: FeedbackAnswer[]) => void
+  publishFeedbackRoundAnswers: (id: string, answers: FeedbackAnswer[]) => void
   updateFeedbackRound: (id: string, answers: FeedbackAnswer[]) => void
+  saveFeedbackAnswerDraft: (roundId: string, answers: FeedbackAnswer[]) => void
   deleteFeedbackRound: (id: string) => void
   updateFeedbackPeriod: (id: string, period: Pick<FeedbackPeriod, 'openDate' | 'closeDate'>) => void
   updateFeedbackQuestionStatus: (id: string, status: FeedbackQuestion['status']) => void
@@ -142,14 +196,24 @@ const BoardsContext = createContext<BoardsContextValue | null>(null)
 export function BoardsProvider({ children }: { children: ReactNode }) {
   const [notices, setNotices] = useState<Notice[]>(initialNotices)
   const [questions, setQuestions] = useState<FeedbackQuestion[]>(initialQuestions)
-  const [feedbackRounds, setFeedbackRounds] = useState<FeedbackRound[]>(initialFeedbackRounds)
+  const [feedbackRounds, setFeedbackRounds] = useState<FeedbackRound[]>(readFeedbackRounds)
+  const [answerDrafts, setAnswerDrafts] = useState<FeedbackAnswerDraft[]>(readAnswerDrafts)
   const [feedbackPeriods, setFeedbackPeriods] = useState<FeedbackPeriod[]>(initialFeedbackPeriods)
+
+  useEffect(() => {
+    window.localStorage.setItem(ANSWER_DRAFTS_KEY, JSON.stringify(answerDrafts))
+  }, [answerDrafts])
+
+  useEffect(() => {
+    window.localStorage.setItem(FEEDBACK_ROUNDS_KEY, JSON.stringify(feedbackRounds))
+  }, [feedbackRounds])
 
   const value = useMemo<BoardsContextValue>(
     () => ({
       notices,
       questions,
       feedbackRounds,
+      answerDrafts,
       feedbackPeriods,
       addNotice: (input) => {
         const notice: Notice = { ...input, id: makeId('ntc'), createdAt: new Date().toISOString().slice(0, 10) }
@@ -164,7 +228,7 @@ export function BoardsProvider({ children }: { children: ReactNode }) {
       },
       createFeedbackRound: (period) => {
         const nextRoundNumber = feedbackRounds.reduce((max, round) => Math.max(max, round.roundNumber), 0) + 1
-        const today = new Date().toISOString().slice(0, 10)
+        const today = getLocalDateValue()
         setFeedbackRounds((prev) => [
           ...prev,
           {
@@ -178,26 +242,30 @@ export function BoardsProvider({ children }: { children: ReactNode }) {
           },
         ])
       },
-      addFeedbackRound: (answers) => {
-        const nextRoundNumber = feedbackRounds.reduce((max, round) => Math.max(max, round.roundNumber), 0) + 1
-        setFeedbackRounds((prev) => [
-          ...prev,
-          { id: makeId('fb'), roundNumber: nextRoundNumber, createdAt: new Date().toISOString().slice(0, 10), status: '답변작성중', openDate: new Date().toISOString().slice(0, 10), closeDate: new Date().toISOString().slice(0, 10), answers },
-        ])
+      publishFeedbackRoundAnswers: (id, answers) => {
+        setFeedbackRounds((prev) => prev.map((round) => round.id === id ? { ...round, answers, status: '회차종료' } : round))
+        setAnswerDrafts((prev) => prev.filter((draft) => draft.roundId !== id))
+        window.localStorage.removeItem(`stream-feedback-answer-draft-${id}`)
+        window.localStorage.removeItem('stream-feedback-answer-draft-new')
         const answeredIds = new Set(answers.map((a) => a.questionId))
         setQuestions((prev) =>
-          prev.map((question) => (answeredIds.has(question.id) ? { ...question, status: '개별답변완료' } : question)),
+          prev.map((question) => (answeredIds.has(question.id) ? { ...question, status: '공개답변완료' } : question)),
         )
       },
       updateFeedbackRound: (id, answers) => {
-        setFeedbackRounds((prev) => prev.map((round) => (round.id === id ? { ...round, answers } : round)))
+        setFeedbackRounds((prev) => prev.map((round) => (round.id === id ? { ...round, answers, status: '회차종료' } : round)))
+        setAnswerDrafts((prev) => prev.filter((draft) => draft.roundId !== id))
+        window.localStorage.removeItem(`stream-feedback-answer-draft-${id}`)
         const answeredIds = new Set(answers.map((a) => a.questionId))
         setQuestions((prev) =>
-          prev.map((question) => (answeredIds.has(question.id) ? { ...question, status: '개별답변완료' } : question)),
+          prev.map((question) => (answeredIds.has(question.id) ? { ...question, status: '공개답변완료' } : question)),
         )
       },
       deleteFeedbackRound: (id) => {
         setFeedbackRounds((prev) => prev.filter((round) => round.id !== id))
+      },
+      saveFeedbackAnswerDraft: (roundId, answers) => {
+        setAnswerDrafts((prev) => [{ id: makeId('draft'), roundId, savedAt: new Date().toISOString(), answers }, ...prev].slice(0, 20))
       },
       updateFeedbackPeriod: (id, period) => {
         setFeedbackPeriods((prev) => prev.map((item) => (item.id === id ? { ...item, ...period } : item)))
@@ -205,7 +273,7 @@ export function BoardsProvider({ children }: { children: ReactNode }) {
       updateFeedbackQuestionStatus: (id, status) => setQuestions((prev) => prev.map((question) => question.id === id ? { ...question, status } : question)),
       updateFeedbackRoundStatus: (id, status) => setFeedbackRounds((prev) => prev.map((round) => round.id === id ? { ...round, status } : round)),
     }),
-    [notices, questions, feedbackRounds, feedbackPeriods],
+    [notices, questions, feedbackRounds, answerDrafts, feedbackPeriods],
   )
 
   return <BoardsContext.Provider value={value}>{children}</BoardsContext.Provider>

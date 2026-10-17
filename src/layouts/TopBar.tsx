@@ -74,12 +74,12 @@ function TopBar({
         >
           <img
             src="/brand/favicon.png"
-            alt="Stream"
+            alt="stream"
             style={{ width: 21, height: 21, objectFit: "contain" }}
           />
           <img
             src="/brand/stream-watermark.svg"
-            alt="Stream"
+            alt="stream"
             style={{ width: 75, height: 16.2, objectFit: "contain" }}
           />
           <Typography

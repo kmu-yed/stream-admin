@@ -31,7 +31,7 @@ const initialItemSeeds: Omit<RentalItem, 'returnPolicy'>[] = [
 
 const initialItems: RentalItem[] = initialItemSeeds.map((item) => ({
   ...item,
-  returnPolicy: item.name === '우산' ? '7일 후 반납' : '당일 반납',
+  returnPolicy: item.itemKind === '소모품' ? null : item.name === '우산' ? '7일 후 반납' : '당일 반납',
 }))
 
 const initialItemTypes: RentalItemType[] = Object.entries(RENTAL_CATALOG).flatMap(([category, names]) =>
@@ -106,14 +106,14 @@ export function RentalsProvider({ children }: { children: ReactNode }) {
       itemTypes,
       records,
       addItem: (input) => {
-        setItems((prev) => [...prev, { ...input, id: makeId('item') }])
+        setItems((prev) => [...prev, { ...input, returnPolicy: input.itemKind === '소모품' ? null : input.returnPolicy ?? '7일 후 반납', id: makeId('item') }])
       },
       updateItem: (id, input) => {
-        setItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...input } : item)))
+        setItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...input, returnPolicy: input.itemKind === '소모품' ? null : input.returnPolicy ?? '7일 후 반납' } : item)))
       },
       updateReturnPolicies: (ids, policy) => {
         const targetIds = new Set(ids)
-        setItems((prev) => prev.map((item) => (targetIds.has(item.id) ? { ...item, returnPolicy: policy } : item)))
+        setItems((prev) => prev.map((item) => (targetIds.has(item.id) && item.itemKind === '대여품' ? { ...item, returnPolicy: policy } : item)))
       },
       deleteItem: (id) => {
         setItems((prev) => prev.filter((item) => item.id !== id))

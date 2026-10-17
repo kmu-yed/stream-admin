@@ -10,10 +10,10 @@ import TableCheckboxFilter from '../../../components/common/TableCheckboxFilter'
 import { RENTAL_RETURN_POLICIES, type RentalItem, type RentalReturnPolicy } from '../types'
 
 const policyTone: Record<RentalReturnPolicy, BadgeTone> = {
-  '당일 반납': 'negative',
+  '당일 반납': 'info',
   '익일 반납': 'cautionary',
-  '3일 후 반납': 'info',
-  '7일 후 반납': 'positive',
+  '3일 후 반납': 'positive',
+  '7일 후 반납': 'negative',
 }
 
 function RentalItemsPanel() {
@@ -32,13 +32,18 @@ function RentalItemsPanel() {
   const filteredItems = items.filter((item) =>
     (categoryFilters.includes('all') || categoryFilters.includes(item.category)) &&
     (itemKindFilters.includes('all') || itemKindFilters.includes(item.itemKind)) &&
-    (policyFilters.includes('all') || policyFilters.includes(item.returnPolicy)),
+    (policyFilters.includes('all') || policyFilters.includes(item.returnPolicy ?? 'none')),
   )
 
   const updatePolicy = (ids: string[], policy: RentalReturnPolicy) => {
-    updateReturnPolicies(ids, policy)
+    const rentableIds = ids.filter((id) => items.some((item) => item.id === id && item.itemKind === '대여품'))
+    if (!rentableIds.length) {
+      toast({ content: '소모품은 반납 정책을 설정할 수 없어요.', variant: 'negative' })
+      return
+    }
+    updateReturnPolicies(rentableIds, policy)
     setSelectedIds([])
-    toast({ content: `${ids.length}개 물품의 반납 정책을 ${policy}(으)로 변경했어요.`, variant: 'positive' })
+    toast({ content: `${rentableIds.length}개 물품의 반납 정책을 ${policy}(으)로 변경했어요.`, variant: 'positive' })
   }
 
   const columns: DataTableColumn<RentalItem>[] = [
@@ -85,9 +90,9 @@ function RentalItemsPanel() {
     },
     {
       key: 'returnPolicy',
-      header: <TableCheckboxFilter label="반납 정책" options={RENTAL_RETURN_POLICIES} value={policyFilters} onChange={setPolicyFilters} ariaLabel="반납 정책 필터" />,
+      header: <TableCheckboxFilter label="반납 정책" options={[...RENTAL_RETURN_POLICIES.map((policy) => ({ value: policy, label: policy })), { value: 'none', label: '해당 없음' }]} value={policyFilters} onChange={setPolicyFilters} ariaLabel="반납 정책 필터" />,
       width: 150,
-      render: (row) => <Menu open={openPolicyId === row.id} onOpenChange={(open) => setOpenPolicyId(open ? row.id : null)}><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={row.returnPolicy} tone={policyTone[row.returnPolicy]} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-start" offset={8}><MenuList>{RENTAL_RETURN_POLICIES.map((policy) => <MenuItem key={policy} value={policy} onClick={() => { updatePolicy([row.id], policy); setOpenPolicyId(null) }}><StatusBadge label={policy} tone={policyTone[policy]} /></MenuItem>)}</MenuList></MenuContent></Menu>,
+      render: (row) => row.itemKind === '소모품' || !row.returnPolicy ? <Typography variant="body2" color="semantic.label.alternative">-</Typography> : <Menu open={openPolicyId === row.id} onOpenChange={(open) => setOpenPolicyId(open ? row.id : null)}><MenuTrigger><span className="app-hoverable" style={{ display: 'inline-flex', cursor: 'pointer', borderRadius: 8 }}><StatusBadge label={row.returnPolicy} tone={policyTone[row.returnPolicy]} trailingContent={<IconChevronDownSmall width={18} height={18} />} /></span></MenuTrigger><MenuContent position="bottom-start" offset={8}><MenuList>{RENTAL_RETURN_POLICIES.map((policy) => <MenuItem key={policy} value={policy} onClick={() => { updatePolicy([row.id], policy); setOpenPolicyId(null) }}><StatusBadge label={policy} tone={policyTone[policy]} /></MenuItem>)}</MenuList></MenuContent></Menu>,
     },
     {
       key: 'actions',
@@ -126,7 +131,7 @@ function RentalItemsPanel() {
 
       <FlexBox style={{ position: 'relative', width: '100%', minWidth: 0 }}>
         {selectedIds.length > 0 && <FlexBox alignItems="center" style={{ position: 'absolute', zIndex: 2, bottom: 'calc(100% + 12px)', height: 48, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 12, background: 'var(--semantic-background-elevated-normal)', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,.12)' }}><Typography variant="body2" weight="bold" style={{ padding: '0 16px', color: 'var(--semantic-primary-normal)' }}>{selectedIds.length}개 선택됨</Typography><Menu><MenuTrigger><Button variant="outlined" color="assistive" style={{ height: 48, border: 0, borderLeft: '1px solid var(--semantic-line-normal-normal)', borderRadius: 0 }}>반납 정책 변경</Button></MenuTrigger><MenuContent position="bottom-start" offset={8}><MenuList>{RENTAL_RETURN_POLICIES.map((policy) => <MenuItem key={policy} value={policy} onClick={() => updatePolicy(selectedIds, policy)}>{policy}</MenuItem>)}</MenuList></MenuContent></Menu></FlexBox>}
-        <DataTable columns={columns} rows={filteredItems} rowKey={(row) => row.id} emptyMessage="등록된 물품이 없어요." style={{ width: '100%', minWidth: 0 }} />
+        <DataTable columns={columns} rows={filteredItems} rowKey={(row) => row.id} emptyMessage={items.length === 0 ? '등록된 물품이 없어요.' : '조건에 맞는 물품이 없어요.'} emptyDescription={items.length > 0 ? '필터를 변경해 보세요.' : undefined} style={{ width: '100%', minWidth: 0 }} />
       </FlexBox>
 
       <ConfirmModal

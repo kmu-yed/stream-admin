@@ -14,6 +14,7 @@ import {
 import PageHeader from "../../components/common/PageHeader";
 import FormItem from "../../components/common/FormItem";
 import InfoNotice from "../../components/common/InfoNotice";
+import NotFoundState from "../../components/common/NotFoundState";
 import { useLockers } from "./store";
 import { formatSemesterLabel } from "./types";
 
@@ -94,6 +95,8 @@ function LockerSemesterFormPage() {
     }
     goBackToSchedule();
   };
+
+  if (isEdit && !existing) return <NotFoundState entity="신청 일정" onBack={goBackToSchedule} />;
 
   return (
     <>

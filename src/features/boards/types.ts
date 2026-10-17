@@ -6,13 +6,14 @@ export type Notice = {
   title: string
   content: string
   images: string[]
+  thumbnailUrl?: string
   pinned: boolean
   createdAt: string
 }
 
 export type NoticeInput = Omit<Notice, 'id' | 'createdAt'>
 
-export type FeedbackQuestionStatus = '답변대기' | '답변작성중' | '개별답변완료' | '공개답변완료'
+export type FeedbackQuestionStatus = '답변대기' | '답변작성중' | '공개답변완료'
 export type FeedbackRoundStatus = '오픈예정' | '질문접수중' | '답변작성중' | '회차종료'
 
 export type FeedbackQuestion = {
@@ -26,6 +27,13 @@ export type FeedbackQuestion = {
 export type FeedbackAnswer = {
   questionId: string
   answerText: string
+}
+
+export type FeedbackAnswerDraft = {
+  id: string
+  roundId: string
+  savedAt?: string
+  answers: FeedbackAnswer[]
 }
 
 export type FeedbackRound = {

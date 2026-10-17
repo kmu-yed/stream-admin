@@ -33,7 +33,7 @@ export type RentalItem = {
   category: RentalCategory
   itemKind: RentalItemKind
   totalQuantity: number
-  returnPolicy: RentalReturnPolicy
+  returnPolicy: RentalReturnPolicy | null
 }
 
 export type RentalItemKind = '대여품' | '소모품'

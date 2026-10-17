@@ -6,6 +6,7 @@ import DataTable, { type DataTableColumn } from '../../../components/common/Data
 import StatusBadge, { type BadgeTone } from '../../../components/common/StatusBadge'
 import ConfirmModal from '../../../components/common/ConfirmModal'
 import RowMoreMenu from '../../../components/common/RowMoreMenu'
+import TableCheckboxFilter from '../../../components/common/TableCheckboxFilter'
 import { useLockers } from '../store'
 import {
   formatSemesterLabel,
@@ -34,12 +35,13 @@ function LockerSchedulePanel() {
   const navigate = useNavigate()
   const { semesters, deleteSemester } = useLockers()
   const [deleteTarget, setDeleteTarget] = useState<LockerSemester | null>(null)
+  const [statusFilters, setStatusFilters] = useState<string[]>(['all'])
 
   const currentSemester = useMemo(() => pickCurrentSemester(semesters), [semesters])
 
   const sortedSemesters = useMemo(
-    () => [...semesters].sort((a, b) => b.applyStartDate.localeCompare(a.applyStartDate)),
-    [semesters],
+    () => [...semesters].filter((semester) => statusFilters.includes('all') || statusFilters.includes(getSemesterStatus(semester))).sort((a, b) => b.applyStartDate.localeCompare(a.applyStartDate)),
+    [semesters, statusFilters],
   )
 
   const columns: DataTableColumn<LockerSemester>[] = [
@@ -48,7 +50,7 @@ function LockerSchedulePanel() {
     { key: 'use', header: '사용 가능 기간', render: (row) => `${row.useStartDate} ~ ${row.useEndDate}` },
     {
       key: 'status',
-      header: '상태',
+      header: <TableCheckboxFilter label="상태" ariaLabel="신청 일정 상태 필터" options={['예정', '진행중', '종료']} value={statusFilters} onChange={setStatusFilters} />,
       width: 100,
       render: (row) => {
         const status = getSemesterStatus(row)
@@ -107,7 +109,7 @@ function LockerSchedulePanel() {
             </>
           ) : (
             <Typography variant="body2" color="semantic.label.alternative">
-              등록된 신청 일정이 없어요. 새 학기를 등록해주세요.
+              현재 진행 중이거나 예정된 신청 일정이 없어요.
             </Typography>
           )}
         </FlexBox>
@@ -125,7 +127,8 @@ function LockerSchedulePanel() {
           columns={columns}
           rows={sortedSemesters}
           rowKey={(row) => row.id}
-          emptyMessage="등록된 학기가 없어요."
+          emptyMessage={semesters.length === 0 ? '등록된 학기가 없어요.' : '조건에 맞는 신청 일정이 없어요.'}
+          emptyDescription={semesters.length > 0 ? '상태 필터를 변경해 보세요.' : undefined}
         />
       </FlexBox>
 

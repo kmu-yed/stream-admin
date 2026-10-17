@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
   Button,
   Modal,
@@ -12,7 +13,7 @@ type ConfirmModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
-  description?: string
+  description?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
   tone?: 'primary' | 'negative'

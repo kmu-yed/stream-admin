@@ -1,14 +1,16 @@
-import { Fragment, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useState, type CSSProperties, type ReactNode } from 'react'
 import {
-  Pagination,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeadCell,
   TableRow,
-  Typography,
 } from '@wanteddev/wds'
+import TablePagination, { type TablePaginationProps } from './TablePagination'
+import EmptyState from './EmptyState'
+
+export const DEFAULT_TABLE_PAGE_SIZE = 10
 
 export type DataTableColumn<T> = {
   key: string
@@ -18,24 +20,20 @@ export type DataTableColumn<T> = {
   render: (row: T) => ReactNode
 }
 
-type DataTablePagination = {
-  page: number
-  totalPages: number
-  onChange: (page?: number) => void
-}
-
 type DataTableProps<T> = {
   columns: DataTableColumn<T>[]
   rows: T[]
   rowKey: (row: T) => string
   emptyMessage?: string
-  pagination?: DataTablePagination
+  emptyDescription?: string
+  pagination?: TablePaginationProps
   onRowClick?: (row: T) => void
   style?: CSSProperties
   className?: string
   rowNumberPosition?: 'first' | 'after-first-column'
   showRowNumber?: boolean
   minWidth?: number | string
+  pageSize?: number
 }
 
 function DataTable<T>({
@@ -43,6 +41,7 @@ function DataTable<T>({
   rows,
   rowKey,
   emptyMessage = '데이터가 없어요.',
+  emptyDescription,
   pagination,
   onRowClick,
   style,
@@ -50,26 +49,22 @@ function DataTable<T>({
   rowNumberPosition = 'first',
   showRowNumber = true,
   minWidth,
+  pageSize = DEFAULT_TABLE_PAGE_SIZE,
 }: DataTableProps<T>) {
   // 선택 체크박스가 있는 표는 항상 선택 열 다음에 NO가 오도록 고정한다.
   const numberAfterFirstColumn = columns[0]?.key === 'select' || rowNumberPosition === 'after-first-column'
+  const [page, setPage] = useState(1)
+  const totalPages = Math.ceil(rows.length / pageSize)
+  const currentPage = Math.min(page, Math.max(totalPages, 1))
+  const visibleRows = pagination ? rows : rows.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const effectivePagination = pagination ?? { page: currentPage, totalPages, onChange: (nextPage?: number) => setPage(nextPage ?? 1) }
+  const rowOffset = (effectivePagination.page - 1) * pageSize
   return (
     <div
       className={`data-table-scroll${className ? ` ${className}` : ''}`}
       style={{ ...style, '--app-data-table-min-width': typeof minWidth === 'number' ? `${minWidth}px` : minWidth } as CSSProperties}
     >
-      <Table
-        className="data-table"
-        pagination={
-          pagination && pagination.totalPages > 1 ? (
-            <Pagination
-              page={pagination.page}
-              totalPages={pagination.totalPages}
-              onChange={pagination.onChange}
-            />
-          ) : undefined
-        }
-      >
+      <Table className="data-table">
         <TableHead>
           <TableRow>
             {showRowNumber && !numberAfterFirstColumn && <TableHeadCell align="center" style={{ width: 56, paddingLeft: 8, paddingRight: 8 }}>NO</TableHeadCell>}
@@ -82,26 +77,32 @@ function DataTable<T>({
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.length === 0 ? (
+          {visibleRows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length + (showRowNumber ? 1 : 0)} align="center" style={{ padding: '48px 0' }}>
-                <Typography variant="body2" color="semantic.label.alternative">
-                  {emptyMessage}
-                </Typography>
+              <TableCell colSpan={columns.length + (showRowNumber ? 1 : 0)} align="center" style={{ padding: 0 }}>
+                <EmptyState message={emptyMessage} description={emptyDescription} variant="table" />
               </TableCell>
             </TableRow>
           ) : (
-            rows.map((row, index) => (
+            visibleRows.map((row, index) => (
               <TableRow
                 key={rowKey(row)}
+                interaction={Boolean(onRowClick)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
+                onKeyDown={onRowClick ? (event) => {
+                  if (event.target !== event.currentTarget) return
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onRowClick(row)
+                  }
+                } : undefined}
                 style={onRowClick ? { cursor: 'pointer' } : undefined}
               >
-                {showRowNumber && !numberAfterFirstColumn && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{index + 1}</TableCell>}
+                {showRowNumber && !numberAfterFirstColumn && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{rowOffset + index + 1}</TableCell>}
                 {columns.map((column) => (
                   <Fragment key={column.key}>
                     <TableCell align={column.align ?? 'left'}>{column.render(row)}</TableCell>
-                    {showRowNumber && numberAfterFirstColumn && column === columns[0] && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{index + 1}</TableCell>}
+                    {showRowNumber && numberAfterFirstColumn && column === columns[0] && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{rowOffset + index + 1}</TableCell>}
                   </Fragment>
                 ))}
               </TableRow>
@@ -109,6 +110,7 @@ function DataTable<T>({
           )}
         </TableBody>
       </Table>
+      <TablePagination {...effectivePagination} />
     </div>
   )
 }

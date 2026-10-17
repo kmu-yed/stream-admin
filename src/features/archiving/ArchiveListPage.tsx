@@ -7,7 +7,7 @@ import SearchField from '../../components/common/SearchField'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import RowMoreMenu from '../../components/common/RowMoreMenu'
 import { useArchiving } from './store'
-import type { ArchivePost } from './types'
+import { formatArchivePeriod, type ArchivePost } from './types'
 import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
 import StatusBadgeDropdown from '../../components/common/StatusBadgeDropdown'
 
@@ -39,7 +39,7 @@ function ArchiveListPage() {
             {row.title}
           </Typography>
           <Typography variant="caption1" color="semantic.label.alternative">
-            {row.date} · {row.location} · {row.department}
+            {formatArchivePeriod(row)} · {row.location} · {row.department}
           </Typography>
         </FlexBox>
       ),
@@ -65,7 +65,7 @@ function ArchiveListPage() {
 
       <FlexBox style={{ position: 'relative', width: '100%' }}>
         {selectedIds.length > 0 && <FlexBox alignItems="center" style={{ position: 'absolute', zIndex: 2, bottom: 'calc(100% + 12px)', height: 48, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 12, background: 'var(--semantic-background-elevated-normal)', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,.12)' }}><Typography variant="body2" weight="bold" style={{ padding: '0 16px', color: 'var(--semantic-primary-normal)' }}>{selectedIds.length}개 선택됨</Typography><Menu><MenuTrigger><button type="button" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: '100%', padding: '0 16px', border: 0, borderLeft: '1px solid var(--semantic-line-normal-normal)', background: 'transparent', color: 'var(--semantic-label-normal)', font: 'inherit', fontWeight: 600, cursor: 'pointer' }}>슬랑제 페이지 여부</button></MenuTrigger><MenuContent position="bottom-start" offset={8}><MenuList><MenuItem value="visible" onClick={() => { selectedIds.forEach((postId) => updateSlangjeInclusion(postId, true)); toast({ content: '선택한 게시물을 슬랑제 페이지에 노출했어요.', variant: 'positive' }); setSelectedIds([]) }}>노출</MenuItem><MenuItem value="hidden" onClick={() => { selectedIds.forEach((postId) => updateSlangjeInclusion(postId, false)); toast({ content: '선택한 게시물을 슬랑제 페이지에서 숨겼어요.', variant: 'positive' }); setSelectedIds([]) }}>비노출</MenuItem></MenuList></MenuContent></Menu></FlexBox>}
-        <DataTable columns={columns} rows={sorted} rowKey={(row) => row.id} rowNumberPosition="after-first-column" onRowClick={(row) => navigate(`/archiving/${row.id}`)} emptyMessage="등록된 게시물이 없어요." style={{ width: '100%' }} />
+        <DataTable columns={columns} rows={sorted} rowKey={(row) => row.id} rowNumberPosition="after-first-column" onRowClick={(row) => navigate(`/archiving/${row.id}`)} emptyMessage={posts.length === 0 ? '등록된 게시물이 없어요.' : '조건에 맞는 게시물이 없어요.'} emptyDescription={posts.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined} style={{ width: '100%' }} />
       </FlexBox>
 
       <ConfirmModal

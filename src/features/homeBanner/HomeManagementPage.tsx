@@ -7,19 +7,28 @@ import { useLockers } from '../lockers/store'
 import { getSemesterStatus } from '../lockers/types'
 import HomeBannerListPage from './HomeBannerListPage'
 import StatusBadgeDropdown from '../../components/common/StatusBadgeDropdown'
+import { DEFAULT_TABLE_PAGE_SIZE } from '../../components/common/DataTable'
+import TablePagination from '../../components/common/TablePagination'
+import EmptyState from '../../components/common/EmptyState'
+import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
+import { getEventStatus } from '../events/types'
 
 type HomeItem = { id: string; title: string; description: string; visible: boolean }
 
 function HomeSectionSettings() {
   const { events } = useEvents()
   const { semesters } = useLockers()
-  const today = new Date().toISOString().slice(0, 10)
   const [items, setItems] = useState<HomeItem[]>(() => [
-    ...events.filter((event) => event.isPublic && event.openDate <= today && event.deadline >= today).map((event) => ({ id: `event-${event.id}`, title: event.title, description: `${event.openDate} ~ ${event.deadline} · 진행 중인 행사`, visible: true })),
+    ...events.filter((event) => event.isPublic && getEventStatus(event) === '모집중').map((event) => ({ id: `event-${event.id}`, title: event.title, description: `${event.openDate} ~ ${event.deadline} · 진행 중인 행사`, visible: true })),
     ...semesters.filter((semester) => getSemesterStatus(semester) === '진행중').map((semester) => ({ id: `locker-${semester.id}`, title: `${semester.year}-${semester.term}학기 사물함 신청`, description: `${semester.applyStartDate} ~ ${semester.applyEndDate} · 신청 기간`, visible: true })),
   ])
   const [draggingId, setDraggingId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [visibilityFilters, setVisibilityFilters] = useState<string[]>(['all'])
+  const filteredItems = items.filter((item) => visibilityFilters.includes('all') || visibilityFilters.includes(item.visible ? 'visible' : 'hidden'))
+  const totalPages = Math.ceil(filteredItems.length / DEFAULT_TABLE_PAGE_SIZE)
+  const currentPage = Math.min(page, Math.max(totalPages, 1))
   const reorder = (draggedId: string, targetId: string) => setItems((prev) => {
     const from = prev.findIndex((item) => item.id === draggedId)
     const to = prev.findIndex((item) => item.id === targetId)
@@ -38,11 +47,11 @@ function HomeSectionSettings() {
   }
   return <FlexBox flexDirection="column" style={{ gap: 16 }}>
     <Typography variant="body2" color="semantic.label.alternative">현재 진행 중인 행사와 사물함 신청 기간만 홈 화면 섹션 후보로 표시됩니다. 노출 여부와 순서를 설정하세요.</Typography>
-    {items.length === 0 ? <FlexBox alignItems="center" justifyContent="center" style={{ minHeight: 180, border: '1px dashed var(--semantic-line-normal-normal)', borderRadius: 16 }}><Typography variant="body2" color="semantic.label.alternative">현재 노출할 행사 또는 사물함 신청 기간이 없어요.</Typography></FlexBox> : <Table className="data-table"><TableHead><TableRow><TableHeadCell style={{ width: 40 }} /><TableHeadCell style={{ width: 60 }}>순서</TableHeadCell><TableHeadCell>제목</TableHeadCell><TableHeadCell style={{ width: 220 }}>신청 기간</TableHeadCell><TableHeadCell style={{ width: 100 }}>상태</TableHeadCell></TableRow></TableHead><TableBody>
-      {items.map((item, index) => <TableRow key={item.id} onDragOver={(event) => { event.preventDefault(); setDragOverId(item.id) }} onDragLeave={() => setDragOverId((current) => current === item.id ? null : current)} onDrop={(event) => handleDrop(event, item.id)} style={{ background: dragOverId === item.id && draggingId !== item.id ? 'var(--semantic-fill-normal)' : undefined }}>
-        <TableCell><FlexBox draggable onDragStart={(event) => { event.dataTransfer.setData('text/plain', item.id); event.dataTransfer.effectAllowed = 'move'; setDraggingId(item.id) }} onDragEnd={() => { setDraggingId(null); setDragOverId(null) }} alignItems="center" justifyContent="center" style={{ cursor: 'grab', width: 24, height: 24 }}><IconMenu width={16} height={16} style={{ color: 'var(--semantic-label-alternative)' }} /></FlexBox></TableCell><TableCell><Typography variant="body2">{index + 1}</Typography></TableCell><TableCell><Typography variant="body1" weight="medium">{item.title}</Typography></TableCell><TableCell><Typography variant="body2" color="semantic.label.alternative">{item.description.split(' · ')[0]}</Typography></TableCell><TableCell><StatusBadgeDropdown value={item.visible ? 'visible' : 'hidden'} options={[{ value: 'visible', label: '노출', tone: 'positive' }, { value: 'hidden', label: '미노출', tone: 'neutral' }]} onChange={(value) => setItems((previous) => previous.map((current) => current.id === item.id ? { ...current, visible: value === 'visible' } : current))} /></TableCell>
+    {items.length === 0 ? <EmptyState message="현재 노출할 행사 또는 사물함 신청 기간이 없어요." description="진행 중인 모집이 생기면 여기에 표시돼요." /> : <div style={{ width: '100%', minWidth: 0 }}><Table className="data-table"><TableHead><TableRow><TableHeadCell style={{ width: 40 }} /><TableHeadCell style={{ width: 60 }}>순서</TableHeadCell><TableHeadCell>제목</TableHeadCell><TableHeadCell style={{ width: 220 }}>신청 기간</TableHeadCell><TableHeadCell style={{ width: 100 }}><TableCheckboxFilter label="상태" ariaLabel="홈 행사 노출 상태 필터" options={[{ value: 'visible', label: '노출' }, { value: 'hidden', label: '미노출' }]} value={visibilityFilters} onChange={setVisibilityFilters} /></TableHeadCell></TableRow></TableHead><TableBody>
+      {filteredItems.length === 0 ? <TableRow><TableCell colSpan={5} align="center" style={{ padding: 0 }}><EmptyState message="조건에 맞는 항목이 없어요." description="상태 필터를 변경해 보세요." variant="table" /></TableCell></TableRow> : filteredItems.slice((currentPage - 1) * DEFAULT_TABLE_PAGE_SIZE, currentPage * DEFAULT_TABLE_PAGE_SIZE).map((item) => <TableRow key={item.id} onDragOver={(event) => { event.preventDefault(); setDragOverId(item.id) }} onDragLeave={() => setDragOverId((current) => current === item.id ? null : current)} onDrop={(event) => handleDrop(event, item.id)} style={{ background: dragOverId === item.id && draggingId !== item.id ? 'var(--semantic-fill-normal)' : undefined }}>
+        <TableCell><FlexBox draggable onDragStart={(event) => { event.dataTransfer.setData('text/plain', item.id); event.dataTransfer.effectAllowed = 'move'; setDraggingId(item.id) }} onDragEnd={() => { setDraggingId(null); setDragOverId(null) }} alignItems="center" justifyContent="center" style={{ cursor: 'grab', width: 24, height: 24 }}><IconMenu width={16} height={16} style={{ color: 'var(--semantic-label-alternative)' }} /></FlexBox></TableCell><TableCell><Typography variant="body2">{items.findIndex((candidate) => candidate.id === item.id) + 1}</Typography></TableCell><TableCell><Typography variant="body1" weight="medium">{item.title}</Typography></TableCell><TableCell><Typography variant="body2" color="semantic.label.alternative">{item.description.split(' · ')[0]}</Typography></TableCell><TableCell><StatusBadgeDropdown value={item.visible ? 'visible' : 'hidden'} options={[{ value: 'visible', label: '노출', tone: 'positive' }, { value: 'hidden', label: '미노출', tone: 'neutral' }]} onChange={(value) => setItems((previous) => previous.map((current) => current.id === item.id ? { ...current, visible: value === 'visible' } : current))} /></TableCell>
       </TableRow>)}
-    </TableBody></Table>}
+    </TableBody></Table><TablePagination page={currentPage} totalPages={totalPages} onChange={(nextPage) => setPage(nextPage ?? 1)} /></div>}
   </FlexBox>
 }
 

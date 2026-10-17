@@ -23,6 +23,7 @@ import PageHeader from "../../components/common/PageHeader";
 import FormItem from "../../components/common/FormItem";
 import FormSection from "../../components/common/FormSection";
 import ImageUploadField from "../../components/common/ImageUploadField";
+import NotFoundState from "../../components/common/NotFoundState";
 import { useHomeBanner } from "./store";
 import { useBoards } from "../boards/store";
 import { type BannerInput, type LandingType } from "./types";
@@ -143,6 +144,8 @@ function HomeBannerFormPage() {
     }
     goToList();
   };
+
+  if (isEdit && !existing) return <NotFoundState entity="배너" onBack={goToList} />;
 
   return (
     <>

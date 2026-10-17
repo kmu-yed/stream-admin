@@ -3,6 +3,7 @@ import { Button, FlexBox, Tooltip, TooltipContent, TooltipTrigger, Typography, u
 import StatusBadge from '../../../components/common/StatusBadge'
 import ImageUploadField from '../../../components/common/ImageUploadField'
 import ConfirmModal from '../../../components/common/ConfirmModal'
+import EmptyState from '../../../components/common/EmptyState'
 import { useLockers } from '../store'
 import { LOCKER_ZONES, getLockerDisplayStatus, type Locker, type LockerDisplayStatus, type LockerZone } from '../types'
 
@@ -167,7 +168,7 @@ function LockerLayoutPanel() {
           )}
         </FlexBox>
 
-        <div style={{ overflowX: 'auto', paddingBottom: 4 }}>
+        {zoneLockers.length === 0 ? <EmptyState message="이 구역에 등록된 사물함이 없어요." variant="compact" /> : <div style={{ overflowX: 'auto', paddingBottom: 4 }}>
           <FlexBox alignItems="flex-start" style={{ width: 'max-content', minWidth: '100%', gap: 18 }}>
             {layouts[selectedZone].map((group, groupIndex) => (
               <div key={`${selectedZone}-${groupIndex}`} style={{ display: 'grid', gridTemplateColumns: `repeat(${group.columns}, 36px)`, gap: 6 }}>
@@ -178,10 +179,12 @@ function LockerLayoutPanel() {
               </div>
             ))}
           </FlexBox>
-        </div>
+        </div>}
         <FlexBox flexDirection="column" style={{ gap: 10, marginTop: 20, paddingTop: 28, borderTop: '1px solid var(--semantic-line-normal-normal)' }}>
           <FlexBox justifyContent="space-between" alignItems="flex-start" style={{ gap: 16 }}><FlexBox flexDirection="column" style={{ gap: 2 }}><Typography variant="body1" weight="bold">{selectedZone} 구역 실제 사진</Typography><Typography variant="caption1" color="semantic.label.alternative">수정 모드에서 새 사진을 업로드하거나 삭제할 수 있어요.</Typography></FlexBox>{photoEditing ? <FlexBox style={{ gap: 8 }}><Button variant="outlined" color="assistive" onClick={() => { setPhotoEditing(false); setPhotoDraft([]) }}>취소</Button><Button variant="solid" color="primary" onClick={savePhotos}>저장</Button></FlexBox> : <Button variant="outlined" color="primary" onClick={startPhotoEditing}>수정</Button>}</FlexBox>
-          <ImageUploadField value={photoEditing ? photoDraft : (photosByZone[selectedZone] ?? [])} onChange={setPhotoDraft} onRemoveRequest={(index) => setPhotoDeleteIndex(index)} editable={photoEditing} multiple maxCount={4} previewSize={144} />
+          {!photoEditing && (photosByZone[selectedZone] ?? []).length === 0
+            ? <EmptyState message="등록된 구역 사진이 없어요." description="수정을 눌러 사진을 추가할 수 있어요." style={{ minHeight: 144 }} />
+            : <ImageUploadField value={photoEditing ? photoDraft : (photosByZone[selectedZone] ?? [])} onChange={setPhotoDraft} onRemoveRequest={(index) => setPhotoDeleteIndex(index)} editable={photoEditing} multiple maxCount={4} previewSize={144} />}
         </FlexBox>
       </FlexBox>
       <ConfirmModal open={photoDeleteIndex !== null} onOpenChange={(open) => !open && setPhotoDeleteIndex(null)} title="사진을 삭제할까요?" description="삭제한 사진은 저장을 눌러야 최종 반영돼요." confirmLabel="삭제" tone="negative" onConfirm={() => { if (photoDeleteIndex !== null) { setPhotoDraft((photos) => photos.filter((_, index) => index !== photoDeleteIndex)); setPhotoDeleteIndex(null) } }} />
