@@ -216,6 +216,14 @@ body {
 
 .data-table-scroll .data-table table {
   min-width: var(--app-data-table-min-width, 100%);
+  table-layout: fixed;
+}
+
+/* 아카이빙 목록은 남는 가로 영역까지 테이블 배경과 행을 채운다. */
+.data-table-scroll.archiving-table,
+.data-table-scroll.archiving-table .data-table,
+.data-table-scroll.archiving-table .data-table table {
+  width: 100% !important;
   table-layout: auto;
 }
 

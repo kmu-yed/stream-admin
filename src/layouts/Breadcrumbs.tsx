@@ -14,6 +14,7 @@ const TAB_ROOT_PATHS = new Set([
   '/notices',
   '/archiving',
   '/admins',
+  '/work',
   '/display',
   '/student-council',
   '/lockers',

@@ -162,10 +162,10 @@ function App() {
                     <Route path="/archiving/*" element={<ArchivingRoutes />} />
                     <Route path="/rentals/*" element={<RentalsRoutes />} />
                     <Route path="/student-council" element={<StudentCouncilPage />} />
-                    <Route path="/admins" element={<WorkManagementPage />} />
+                    <Route path="/admins" element={<WorkManagementPage mode="members" />} />
                     <Route path="/display" element={<DisplayManagementPage />} />
                     <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/work" element={<WorkManagementPage />} />
+                    <Route path="/work" element={<WorkManagementPage mode="schedule" />} />
                     <Route path="/chatbot/*" element={<ChatbotRoutes />} />
                     <Route
                       path="/policies"

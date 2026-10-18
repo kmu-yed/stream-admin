@@ -9,10 +9,11 @@ function addDays(days: number) {
 
 const initialMembers: StudentMember[] = [
   { id: 'stu_1', name: '김학생', studentId: '20231234', department: '소프트웨어학부', paidAt: addDays(-20), status: '납부완료', streamMembershipStatus: '가입' },
-  { id: 'stu_2', name: '이대학', studentId: '20220512', department: '인공지능학부', status: '납부확인중', proofImageUrl: '/payment-proofs/sample-payment-proof.svg', streamMembershipStatus: '가입 전' },
-  { id: 'stu_3', name: '박새내', studentId: '20241001', department: '소프트웨어학부', status: '납부 전', streamMembershipStatus: '가입' },
-  { id: 'stu_4', name: '최학번', studentId: '20211122', department: '인공지능학부', status: '확인필요', managerMessage: '입금자 정보를 확인하지 못했어요. 문제가 있을 경우 학생회에 문의해 주세요.', streamMembershipStatus: '가입 전' },
+  { id: 'stu_2', name: '이대학', studentId: '20220512', department: '인공지능학부', status: '납부확인중', proofImageUrl: '/payment-proofs/sample-payment-proof.svg', streamMembershipStatus: '미가입' },
+  { id: 'stu_3', name: '박새내', studentId: '20241001', department: '소프트웨어학부', status: '납부확인중', proofImageUrl: '/payment-proofs/sample-payment-proof.svg', streamMembershipStatus: '가입' },
+  { id: 'stu_4', name: '최학번', studentId: '20211122', department: '인공지능학부', status: '확인필요', managerMessage: '입금자 정보를 확인하지 못했어요. 문제가 있을 경우 학생회에 문의해 주세요.', streamMembershipStatus: '미가입' },
   { id: 'stu_5', name: '정학생', studentId: '20230789', department: '소프트웨어학부', paidAt: addDays(-10), status: '납부완료', streamMembershipStatus: '가입' },
+  { id: 'stu_6', name: '한새봄', studentId: '', admissionYear: '2021', department: '인공지능학부', paidAt: addDays(-7), status: '납부완료', streamMembershipStatus: '미가입' },
 ]
 
 const initialAccounts: StudentCouncilFeeAccount[] = [

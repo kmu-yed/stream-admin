@@ -59,7 +59,6 @@ function toAccountForm(account: StudentCouncilFeeAccount): AccountForm {
 }
 
 const paymentStatuses: PaymentStatus[] = [
-  "납부 전",
   "납부확인중",
   "납부완료",
   "확인필요",
@@ -68,7 +67,6 @@ const defaultMessage =
   "입금자 정보를 확인하지 못했어요. 문제가 있을 경우 학생회에 문의해 주세요.";
 
 const statusTone: Record<PaymentStatus, BadgeTone> = {
-  "납부 전": "neutral",
   납부확인중: "cautionary",
   납부완료: "positive",
   확인필요: "negative",
@@ -98,7 +96,7 @@ function toCsv(rows: StudentMember[]) {
   return [header.join(","), ...lines].join("\n");
 }
 
-function PaymentMemberList() {
+function PaymentRequestList() {
   const { members, updatePaymentStatus } = useStudentCouncil();
   const toast = useToast();
   const [filters, setFilters] = useState<Filter[]>(["all"]);
@@ -110,7 +108,8 @@ function PaymentMemberList() {
   );
   const [proofTarget, setProofTarget] = useState<StudentMember | null>(null);
   const [message, setMessage] = useState(defaultMessage);
-  const filtered = members.filter((member) => {
+  const paymentRequests = members.filter((member) => member.status !== "납부완료");
+  const filtered = paymentRequests.filter((member) => {
     if (!filters.includes("all") && !filters.includes(member.status))
       return false;
     if (!departmentFilters.includes("all") && !departmentFilters.includes(member.department))
@@ -312,8 +311,8 @@ function PaymentMemberList() {
         columns={columns}
         rows={filtered}
         rowKey={(row) => row.id}
-        emptyMessage={members.length === 0 ? '등록된 납부자 명단이 없어요.' : '조건에 맞는 납부자가 없어요.'}
-        emptyDescription={members.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined}
+        emptyMessage={paymentRequests.length === 0 ? '납부 확인 요청이 없어요.' : '조건에 맞는 납부 확인 요청이 없어요.'}
+        emptyDescription={paymentRequests.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined}
         className="student-payment-table"
       />
       <ImagePreviewModal
@@ -382,6 +381,40 @@ function PaymentMemberList() {
       </Modal>
     </>
   );
+}
+
+function PaidMemberList() {
+  const { members } = useStudentCouncil();
+  const [search, setSearch] = useState("");
+  const [streamMembershipFilters, setStreamMembershipFilters] = useState<string[]>(["all"]);
+  const paidMembers = members.filter((member) => member.status === "납부완료");
+  const keyword = search.trim();
+  const filtered = paidMembers.filter((member) =>
+    (!keyword || member.name.includes(keyword) || member.studentId.includes(keyword))
+    && (streamMembershipFilters.includes("all") || streamMembershipFilters.includes(member.streamMembershipStatus)),
+  );
+  const columns: DataTableColumn<StudentMember>[] = [
+    { key: "name", header: "이름", width: 160, render: (row) => row.name },
+    { key: "studentId", header: "학번", width: 180, render: (row) => row.studentId || `${row.admissionYear ?? "-"}XXXX` },
+    {
+      key: "streamMembershipStatus",
+      header: <TableCheckboxFilter label="stream 가입 여부" ariaLabel="stream 가입 여부 필터" options={["가입", "미가입"]} value={streamMembershipFilters} onChange={setStreamMembershipFilters} />,
+      render: (row) => <StatusBadge label={row.streamMembershipStatus} tone={row.streamMembershipStatus === "가입" ? "positive" : "neutral"} />,
+    },
+  ];
+
+  return <>
+    <FlexBox className="app-page-toolbar" justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
+      <SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" />
+    </FlexBox>
+    <DataTable
+      columns={columns}
+      rows={filtered}
+      rowKey={(row) => row.id}
+      emptyMessage={paidMembers.length === 0 ? "납부 완료자가 없어요." : "조건에 맞는 납부 완료자가 없어요."}
+      emptyDescription={paidMembers.length > 0 ? "검색어를 변경해 보세요." : undefined}
+    />
+  </>;
 }
 
 function AccountManagement() {
@@ -521,11 +554,15 @@ function StudentCouncilPage() {
       />
       <Tab value={tab} onValueChange={setTab}>
         <TabList size="medium" style={{ marginBottom: 20 }}>
-          <TabListItem value="members">학생회비 납부자 목록</TabListItem>
+          <TabListItem value="members">납부 확인 요청 관리</TabListItem>
+          <TabListItem value="paid-members">학생회비 납부자 목록</TabListItem>
           <TabListItem value="accounts">학생회비 납부계좌 관리</TabListItem>
         </TabList>
         <TabPanel value="members">
-          <PaymentMemberList />
+          <PaymentRequestList />
+        </TabPanel>
+        <TabPanel value="paid-members">
+          <PaidMemberList />
         </TabPanel>
         <TabPanel value="accounts">
           <AccountManagement />

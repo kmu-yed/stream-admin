@@ -11,14 +11,23 @@ type TableCheckboxFilterProps = {
 }
 
 function TableCheckboxFilter({ label, ariaLabel, allLabel = '전체', options, value, onChange }: TableCheckboxFilterProps) {
+  const optionValues = options.map((option) => typeof option === 'string' ? option : option.value)
+  const menuValue = value.includes('all') ? ['all', ...optionValues] : value
+
   const handleChange = (nextValue?: string | string[]) => {
     if (!Array.isArray(nextValue)) return
-    if (nextValue.length === 0) return onChange(['all'])
-    if (nextValue.includes('all')) return onChange(value.includes('all') ? nextValue.filter((item) => item !== 'all') : ['all'])
-    onChange(nextValue)
+    const selectedOptions = nextValue.filter((item) => item !== 'all')
+
+    // ‘전체’가 선택되면 모든 개별 체크박스도 선택된 상태로 표시한다.
+    if (nextValue.includes('all') && !value.includes('all')) return onChange(['all'])
+    if (nextValue.includes('all')) return onChange(selectedOptions)
+    // 전체 선택 상태에서 ‘전체’를 다시 누르면 모든 선택을 해제한다.
+    if (value.includes('all') && selectedOptions.length === optionValues.length) return onChange([])
+    if (selectedOptions.length === optionValues.length) return onChange(['all'])
+    onChange(selectedOptions)
   }
 
-  return <Menu value={value} onValueChange={handleChange}>
+  return <Menu value={menuValue} onValueChange={handleChange}>
     <FlexBox alignItems="center" style={{ gap: 4 }}>
       <span>{label}</span>
       <MenuTrigger>

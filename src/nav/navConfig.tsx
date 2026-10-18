@@ -56,7 +56,8 @@ export const navGroups: NavGroup[] = [
   {
     label: "기타 관리",
     items: [
-      { label: "회원 및 근무 관리", path: "/admins", icon: IconPersons },
+      { label: "회원 및 관리자 관리", path: "/admins", icon: IconPersons },
+      { label: "근무 시간표 관리", path: "/work", icon: IconCalendar },
       { label: "디스플레이 관리", path: "/display", icon: IconDesktop },
       {
         label: "개인정보 처리방침 관리",

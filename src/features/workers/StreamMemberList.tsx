@@ -3,55 +3,40 @@ import { Checkbox, FlexBox, Tooltip, TooltipContent, TooltipTrigger, Typography,
 import ConfirmModal from '../../components/common/ConfirmModal'
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable'
 import SearchField from '../../components/common/SearchField'
-import StatusBadge, { type BadgeTone } from '../../components/common/StatusBadge'
 import TableCheckboxFilter from '../../components/common/TableCheckboxFilter'
 import { useAdminManagement } from '../adminManagement/store'
-import { useStudentCouncil } from '../studentCouncil/store'
-import type { PaymentStatus } from '../studentCouncil/types'
 
-type StreamMember = { id: string; name: string; studentId: string; department: '소프트웨어학부' | '인공지능학부' }
+type StreamMember = { id: string; name: string; studentId: string; email: string; department: '소프트웨어학부' | '인공지능학부' }
 
-// 회원 목록은 납부자 목록과 별개이며, 납부 상태만 학번으로 연결해 보여 준다.
 const streamMembers: StreamMember[] = [
-  { id: 'stream_1', name: '김학생', studentId: '20231234', department: '소프트웨어학부' },
-  { id: 'stream_2', name: '박새내', studentId: '20241001', department: '소프트웨어학부' },
-  { id: 'stream_3', name: '정학생', studentId: '20230789', department: '소프트웨어학부' },
-  { id: 'stream_4', name: '최가온', studentId: '20231102', department: '인공지능학부' },
-  { id: 'stream_5', name: '정하늘', studentId: '20231218', department: '인공지능학부' },
-  { id: 'stream_6', name: '윤서준', studentId: '20240115', department: '소프트웨어학부' },
-  { id: 'stream_7', name: '한유진', studentId: '20240207', department: '인공지능학부' },
-  { id: 'stream_8', name: '서민지', studentId: '20240322', department: '소프트웨어학부' },
-  { id: 'stream_9', name: '임도윤', studentId: '20240411', department: '인공지능학부' },
-  { id: 'stream_10', name: '강지후', studentId: '20240509', department: '소프트웨어학부' },
-  { id: 'stream_11', name: '오수빈', studentId: '20240614', department: '인공지능학부' },
-  { id: 'stream_12', name: '배현우', studentId: '20240703', department: '소프트웨어학부' },
-  { id: 'stream_13', name: '신채원', studentId: '20240826', department: '인공지능학부' },
-  { id: 'stream_14', name: '문지아', studentId: '20250601', department: '소프트웨어학부' },
+  { id: 'stream_1', name: '김학생', studentId: '20231234', email: 'student.kim@kookmin.ac.kr', department: '소프트웨어학부' },
+  { id: 'stream_2', name: '박새내', studentId: '20241001', email: 'saenae.park@kookmin.ac.kr', department: '소프트웨어학부' },
+  { id: 'stream_3', name: '정학생', studentId: '20230789', email: 'student.jung@kookmin.ac.kr', department: '소프트웨어학부' },
+  { id: 'stream_4', name: '최가온', studentId: '20231102', email: 'gaon.choi@kookmin.ac.kr', department: '인공지능학부' },
+  { id: 'stream_5', name: '정하늘', studentId: '20231218', email: 'haneul.jung@kookmin.ac.kr', department: '인공지능학부' },
+  { id: 'stream_6', name: '윤서준', studentId: '20240115', email: 'seojun.yoon@kookmin.ac.kr', department: '소프트웨어학부' },
+  { id: 'stream_7', name: '한유진', studentId: '20240207', email: 'yujin.han@kookmin.ac.kr', department: '인공지능학부' },
+  { id: 'stream_8', name: '서민지', studentId: '20240322', email: 'minji.seo@kookmin.ac.kr', department: '소프트웨어학부' },
+  { id: 'stream_9', name: '임도윤', studentId: '20240411', email: 'doyoon.lim@kookmin.ac.kr', department: '인공지능학부' },
+  { id: 'stream_10', name: '강지후', studentId: '20240509', email: 'jihoo.kang@kookmin.ac.kr', department: '소프트웨어학부' },
+  { id: 'stream_11', name: '오수빈', studentId: '20240614', email: 'subin.oh@kookmin.ac.kr', department: '인공지능학부' },
+  { id: 'stream_12', name: '배현우', studentId: '20240703', email: 'hyunwoo.bae@kookmin.ac.kr', department: '소프트웨어학부' },
+  { id: 'stream_13', name: '신채원', studentId: '20240826', email: 'chaewon.shin@kookmin.ac.kr', department: '인공지능학부' },
+  { id: 'stream_14', name: '문지아', studentId: '20250601', email: 'jia.moon@kookmin.ac.kr', department: '소프트웨어학부' },
 ]
-
-const paymentTone: Record<PaymentStatus, BadgeTone> = {
-  '납부 전': 'neutral',
-  납부확인중: 'cautionary',
-  납부완료: 'positive',
-  확인필요: 'negative',
-}
 
 export default function StreamMemberList({ onAdminsAdded }: { onAdminsAdded: () => void }) {
   const { admins, setAdmins } = useAdminManagement()
-  const { members: paymentMembers } = useStudentCouncil()
   const toast = useToast()
   const [search, setSearch] = useState('')
   const [departmentFilters, setDepartmentFilters] = useState<string[]>(['all'])
-  const [paymentFilters, setPaymentFilters] = useState<string[]>(['all'])
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [addOpen, setAddOpen] = useState(false)
 
   const keyword = search.trim()
-  const getPaymentStatus = (member: StreamMember) => paymentMembers.find((paymentMember) => paymentMember.studentId === member.studentId)?.status ?? 'none'
   const filtered = streamMembers.filter((member) =>
-    (!keyword || member.name.includes(keyword) || member.studentId.includes(keyword))
-    && (departmentFilters.includes('all') || departmentFilters.includes(member.department))
-    && (paymentFilters.includes('all') || paymentFilters.includes(getPaymentStatus(member))),
+    (!keyword || member.name.includes(keyword) || member.studentId.includes(keyword) || member.email.includes(keyword))
+    && (departmentFilters.includes('all') || departmentFilters.includes(member.department)),
   )
   const isListed = (member: StreamMember) => admins.some((admin) => admin.studentId === member.studentId)
   const eligibleFiltered = filtered.filter((member) => !isListed(member))
@@ -104,21 +89,14 @@ export default function StreamMemberList({ onAdminsAdded }: { onAdminsAdded: () 
         </Tooltip> : checkbox
       },
     },
-    { key: 'name', header: '이름', width: '26%', render: (member) => member.name },
+    { key: 'name', header: '이름', width: '18%', render: (member) => member.name },
     { key: 'department', header: <TableCheckboxFilter label="학과" ariaLabel="회원 학과 필터" options={[...new Set(streamMembers.map((member) => member.department))]} value={departmentFilters} onChange={setDepartmentFilters} />, width: '23%', render: (member) => member.department },
-    {
-      key: 'payment',
-      header: <TableCheckboxFilter label="학생회비 납부 상태" ariaLabel="회원 납부 상태 필터" options={[{ value: 'none', label: '납부 내역 없음' }, ...Object.keys(paymentTone)]} value={paymentFilters} onChange={setPaymentFilters} />,
-      render: (member) => {
-        const status = paymentMembers.find((paymentMember) => paymentMember.studentId === member.studentId)?.status
-        return <StatusBadge label={status ?? '납부 내역 없음'} tone={status ? paymentTone[status] : 'neutral'} />
-      },
-    },
+    { key: 'email', header: '이메일', render: (member) => member.email },
   ]
 
   return <>
     <FlexBox className="app-page-toolbar" justifyContent="flex-end" alignItems="center" style={{ marginBottom: 16, gap: 12 }}>
-      <SearchField value={search} onChange={setSearch} placeholder="이름 또는 학번 검색" />
+      <SearchField value={search} onChange={setSearch} placeholder="이름, 학번 또는 이메일 검색" />
     </FlexBox>
     <FlexBox style={{ position: 'relative', width: '100%' }}>
       {selectedMembers.length > 0 && <FlexBox alignItems="center" style={{ position: 'absolute', zIndex: 2, bottom: 'calc(100% + 12px)', height: 48, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 12, background: 'var(--semantic-background-elevated-normal)', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,.12)' }}>

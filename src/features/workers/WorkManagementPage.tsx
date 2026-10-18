@@ -141,10 +141,10 @@ function createDemoShifts(week: Date, adminIds: string[]): Shift[] {
   );
 }
 
-export default function WorkManagementPage() {
+export default function WorkManagementPage({ mode = "members" }: { mode?: "members" | "schedule" }) {
   const toast = useToast();
   const { admins } = useAdminManagement();
-  const [tab, setTab] = useState("members");
+  const [tab, setTab] = useState(mode === "schedule" ? "schedule" : "members");
   const [selectedWeek, setSelectedWeek] = useState(() => getMonday(new Date()));
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [shiftsByWeek, setShiftsByWeek] = useState<Record<string, Shift[]>>({});
@@ -281,21 +281,20 @@ export default function WorkManagementPage() {
   return (
     <>
       <PageHeader
-        title="회원 및 근무 관리"
-        description="stream 회원과 관리자 권한, 주차별 근무 시간표를 관리해요."
+        title={mode === "schedule" ? "근무 시간표 관리" : "회원 및 관리자 관리"}
+        description={mode === "schedule" ? "주차별 관리자 근무 시간표를 관리해요." : "stream 회원과 관리자 권한을 관리해요."}
       />
       <Tab value={tab} onValueChange={setTab}>
-        <TabList size="medium" style={{ marginBottom: 20 }}>
+        {mode === "members" && <TabList size="medium" style={{ marginBottom: 20 }}>
           <TabListItem value="members">stream 회원 목록</TabListItem>
           <TabListItem value="admins">관리자 관리</TabListItem>
-          <TabListItem value="schedule">근무 시간표 관리</TabListItem>
-        </TabList>
-        <TabPanel value="members">
+        </TabList>}
+        {mode === "members" && <TabPanel value="members">
           <StreamMemberList onAdminsAdded={() => setTab("admins")} />
-        </TabPanel>
-        <TabPanel value="admins">
+        </TabPanel>}
+        {mode === "members" && <TabPanel value="admins">
           <AdminManagementPage embedded />
-        </TabPanel>
+        </TabPanel>}
         <TabPanel value="schedule">
           <FlexBox
             className="app-page-toolbar work-week-toolbar"
@@ -380,7 +379,7 @@ export default function WorkManagementPage() {
               </Button>
             </FlexBox>
           </FlexBox>
-          {admins.length === 0 && <EmptyState message="등록된 관리자가 없어요." description="관리자 관리 탭에서 관리자를 먼저 등록해 주세요." variant="compact" />}
+          {admins.length === 0 && <EmptyState message="등록된 관리자가 없어요." description="회원 및 관리자 관리 메뉴에서 관리자를 먼저 등록해 주세요." variant="compact" />}
           {admins.length > 0 && shifts.length === 0 && <EmptyState message="선택한 주차에 등록된 근무 시간이 없어요." description={isPastWeek ? "다른 주차의 시간표를 확인해 보세요." : "근무 시간을 등록하거나 다른 주차를 확인해 보세요."} variant="compact" />}
           <div
             className="work-schedule-scroll"

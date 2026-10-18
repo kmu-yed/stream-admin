@@ -1,4 +1,4 @@
-import { Fragment, useState, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, isValidElement, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   Table,
   TableBody,
@@ -18,6 +18,14 @@ export type DataTableColumn<T> = {
   width?: string | number
   align?: 'left' | 'center' | 'right'
   render: (row: T) => ReactNode
+}
+
+function getNodeText(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(getNodeText).join('')
+  if (!isValidElement(node)) return ''
+  const props = node.props as { children?: ReactNode; label?: string; 'aria-label'?: string }
+  return props.label ?? props.children ? getNodeText(props.label ?? props.children) : props['aria-label'] ?? ''
 }
 
 type DataTableProps<T> = {
@@ -59,18 +67,38 @@ function DataTable<T>({
   const visibleRows = pagination ? rows : rows.slice((currentPage - 1) * pageSize, currentPage * pageSize)
   const effectivePagination = pagination ?? { page: currentPage, totalPages, onChange: (nextPage?: number) => setPage(nextPage ?? 1) }
   const rowOffset = (effectivePagination.page - 1) * pageSize
+  // 필터링 후에도 열 위치가 바뀌지 않도록, 화면에 한 번 나타난 가장 긴 내용을 기준으로 열 너비를 유지한다.
+  const widestColumnWidths = useRef<Record<string, number>>({})
+  const columnWidths = useMemo(() => columns.map((column) => {
+    if (column.width !== undefined) return column.width
+    const longestText = Math.max(
+      getNodeText(column.header).length,
+      ...rows.map((row) => getNodeText(column.render(row)).length),
+    )
+    const measuredWidth = Math.max(96, Math.min(360, longestText * 15 + 40))
+    widestColumnWidths.current[column.key] = Math.max(widestColumnWidths.current[column.key] ?? 0, measuredWidth)
+    return widestColumnWidths.current[column.key]
+  }), [columns, rows])
+  const calculatedMinWidth = (showRowNumber ? 56 : 0) + columnWidths.reduce<number>((total, width) => {
+    if (typeof width === 'number') return total + width
+    const pixelWidth = Number.parseFloat(width)
+    return total + (Number.isFinite(pixelWidth) && width.endsWith('px') ? pixelWidth : 120)
+  }, 0)
+  const tableMinWidth = typeof minWidth === 'number'
+    ? Math.max(minWidth, calculatedMinWidth)
+    : minWidth ?? calculatedMinWidth
   return (
     <div
       className={`data-table-scroll${className ? ` ${className}` : ''}`}
-      style={{ ...style, '--app-data-table-min-width': typeof minWidth === 'number' ? `${minWidth}px` : minWidth } as CSSProperties}
+      style={{ ...style, '--app-data-table-min-width': typeof tableMinWidth === 'number' ? `${tableMinWidth}px` : tableMinWidth } as CSSProperties}
     >
       <Table className="data-table">
         <TableHead>
           <TableRow>
             {showRowNumber && !numberAfterFirstColumn && <TableHeadCell align="center" style={{ width: 56, paddingLeft: 8, paddingRight: 8 }}>NO</TableHeadCell>}
-            {columns.map((column) => (
+            {columns.map((column, index) => (
               <Fragment key={column.key}>
-                <TableHeadCell align={column.align ?? 'left'} style={{ width: column.width }}>{column.header}</TableHeadCell>
+                <TableHeadCell align={column.align ?? 'left'} style={{ width: columnWidths[index] }}>{column.header}</TableHeadCell>
                 {showRowNumber && numberAfterFirstColumn && column === columns[0] && <TableHeadCell align="center" style={{ width: 56, paddingLeft: 8, paddingRight: 8 }}>NO</TableHeadCell>}
               </Fragment>
             ))}
@@ -99,9 +127,9 @@ function DataTable<T>({
                 style={onRowClick ? { cursor: 'pointer' } : undefined}
               >
                 {showRowNumber && !numberAfterFirstColumn && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{rowOffset + index + 1}</TableCell>}
-                {columns.map((column) => (
+                {columns.map((column, columnIndex) => (
                   <Fragment key={column.key}>
-                    <TableCell align={column.align ?? 'left'}>{column.render(row)}</TableCell>
+                    <TableCell align={column.align ?? 'left'} style={{ width: columnWidths[columnIndex] }}>{column.render(row)}</TableCell>
                     {showRowNumber && numberAfterFirstColumn && column === columns[0] && <TableCell align="center" style={{ paddingLeft: 8, paddingRight: 8 }}>{rowOffset + index + 1}</TableCell>}
                   </Fragment>
                 ))}

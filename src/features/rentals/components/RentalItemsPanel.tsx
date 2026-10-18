@@ -131,7 +131,7 @@ function RentalItemsPanel() {
 
       <FlexBox style={{ position: 'relative', width: '100%', minWidth: 0 }}>
         {selectedIds.length > 0 && <FlexBox alignItems="center" style={{ position: 'absolute', zIndex: 2, bottom: 'calc(100% + 12px)', height: 48, border: '1px solid var(--semantic-line-normal-normal)', borderRadius: 12, background: 'var(--semantic-background-elevated-normal)', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,.12)' }}><Typography variant="body2" weight="bold" style={{ padding: '0 16px', color: 'var(--semantic-primary-normal)' }}>{selectedIds.length}개 선택됨</Typography><Menu><MenuTrigger><Button variant="outlined" color="assistive" style={{ height: 48, border: 0, borderLeft: '1px solid var(--semantic-line-normal-normal)', borderRadius: 0 }}>반납 정책 변경</Button></MenuTrigger><MenuContent position="bottom-start" offset={8}><MenuList>{RENTAL_RETURN_POLICIES.map((policy) => <MenuItem key={policy} value={policy} onClick={() => updatePolicy(selectedIds, policy)}>{policy}</MenuItem>)}</MenuList></MenuContent></Menu></FlexBox>}
-        <DataTable columns={columns} rows={filteredItems} rowKey={(row) => row.id} emptyMessage={items.length === 0 ? '등록된 물품이 없어요.' : '조건에 맞는 물품이 없어요.'} emptyDescription={items.length > 0 ? '필터를 변경해 보세요.' : undefined} style={{ width: '100%', minWidth: 0 }} />
+        <DataTable columns={columns} rows={filteredItems} rowKey={(row) => row.id} emptyMessage={items.length === 0 ? '등록된 물품이 없어요.' : '조건에 맞는 물품이 없어요.'} emptyDescription={items.length > 0 ? '필터를 변경해 보세요.' : undefined} minWidth={1052} style={{ width: '100%', minWidth: 0 }} />
       </FlexBox>
 
       <ConfirmModal
