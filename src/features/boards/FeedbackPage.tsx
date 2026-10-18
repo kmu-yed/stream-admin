@@ -29,7 +29,7 @@ function RoundsPanel() {
     { key: 'period', header: '질문 접수 기간', render: (row) => `${row.openDate} ~ ${row.closeDate}` },
     { key: 'questions', header: '답변 수', width: 100, render: (row) => `${row.answers.length}건` },
     { key: 'status', header: <TableCheckboxFilter label="상태" ariaLabel="회차 상태 필터" options={['오픈예정', '질문접수중', '답변작성중', '회차종료']} value={statusFilters} onChange={setStatusFilters} />, width: 180, render: (row) => { const status = getFeedbackRoundStatus(row, answerDrafts); return <StatusBadge label={status} tone={roundTone[status]} /> } },
-    { key: 'view', header: '', width: 132, align: 'right', render: (row) => <Button variant="outlined" size="small" aria-label={`${row.roundNumber}차 답변 내역 보기`} onClick={() => openRoundAnswers(row)} style={{ color: 'var(--semantic-primary-normal)', borderColor: 'var(--semantic-line-normal-normal)', whiteSpace: 'nowrap' }}>회차 답변 보기</Button> },
+    { key: 'view', header: '', width: 148, align: 'right', render: (row) => <FlexBox justifyContent="flex-end" style={{ paddingRight: 16 }}><Button variant="outlined" size="small" aria-label={`${row.roundNumber}차 답변 내역 보기`} onClick={() => openRoundAnswers(row)} style={{ color: 'var(--semantic-primary-normal)', borderColor: 'var(--semantic-line-normal-normal)', whiteSpace: 'nowrap' }}>회차 답변 보기</Button></FlexBox> },
   ]
   return <>
     <FlexBox justifyContent="flex-end" style={{ marginBottom: 16 }}><Button variant="solid" color="primary" onClick={() => navigate('/feedback/rounds/new')}>+ 새 회차 등록</Button></FlexBox>

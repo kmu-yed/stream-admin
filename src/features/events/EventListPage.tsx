@@ -44,6 +44,7 @@ function EventListPage() {
     {
       key: 'title',
       header: '행사명',
+      width: '100%',
       render: (event) => (
         <FlexBox alignItems="center" style={{ gap: 12 }}>
           {event.thumbnailUrl && <img src={event.thumbnailUrl} alt="" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />}
@@ -77,6 +78,7 @@ function EventListPage() {
     {
       key: 'period',
       header: '신청 기간',
+      width: 280,
       render: (event) => `${formatEventDateTime(event.openDate, event.openTime)} ~ ${formatEventDateTime(event.deadline, event.deadlineTime)}`,
     },
     {

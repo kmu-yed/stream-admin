@@ -33,6 +33,7 @@ function ArchiveListPage() {
     {
       key: 'title',
       header: '제목',
+      width: '100%',
       render: (row) => (
         <FlexBox flexDirection="column" style={{ gap: 2 }}>
           <Typography variant="body1" weight="medium">

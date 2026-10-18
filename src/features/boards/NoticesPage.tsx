@@ -35,6 +35,7 @@ function NoticesPage() {
     {
       key: 'title',
       header: '제목',
+      width: '100%',
       render: (row) => (
         <FlexBox className="notice-title-cell" alignItems="center" style={{ gap: 6 }}>
           {row.pinned && (

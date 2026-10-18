@@ -224,6 +224,14 @@ body {
 .data-table-scroll.archiving-table .data-table,
 .data-table-scroll.archiving-table .data-table table {
   width: 100% !important;
+}
+
+.data-table-scroll.archiving-table {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.data-table-scroll.archiving-table .data-table table {
   table-layout: auto;
 }
 
