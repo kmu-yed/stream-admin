@@ -289,6 +289,9 @@ export default function WorkManagementPage({ mode = "members" }: { mode?: "membe
           <TabListItem value="members">stream 회원 목록</TabListItem>
           <TabListItem value="admins">관리자 관리</TabListItem>
         </TabList>}
+        {mode === "schedule" && <TabList style={{ display: "none" }}>
+          <TabListItem value="schedule">근무 시간표 관리</TabListItem>
+        </TabList>}
         {mode === "members" && <TabPanel value="members">
           <StreamMemberList onAdminsAdded={() => setTab("admins")} />
         </TabPanel>}
