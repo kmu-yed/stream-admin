@@ -181,7 +181,7 @@ function EventFormPage() {
         </FormSection></fieldset>
 
         <FormSection title="신청 기간">
-          <FlexBox className="app-date-range event-application-range" style={{ display: 'grid', gap: 12, alignItems: 'end', width: '100%' }}>
+          <FlexBox className="app-date-range app-labeled-date-range event-application-range" style={{ display: 'grid', gap: 12, width: '100%' }}>
             <FlexBox style={{ minWidth: 0 }}><EventFormItem label="신청 시작" required error={errors.openDate} style={{ width: '100%' }}><EventDateTimeField date={form.openDate} time={form.openTime} timeLabel="신청 시작 시각" onDateChange={(value) => setForm({ ...form, openDate: value })} onTimeChange={(value) => setForm({ ...form, openTime: value })} /></EventFormItem></FlexBox>
             <FlexBox className="app-date-range-separator" alignItems="center" justifyContent="center" style={{ height: 48 }}><Typography variant="body1" color="semantic.label.alternative">~</Typography></FlexBox>
             <FlexBox style={{ minWidth: 0 }}><EventFormItem label="신청 마감" required error={errors.deadline} style={{ width: '100%' }}><EventDateTimeField date={form.deadline} time={form.deadlineTime} timeLabel="신청 마감 시각" onDateChange={(value) => setForm({ ...form, deadline: value })} onTimeChange={(value) => setForm({ ...form, deadlineTime: value })} /></EventFormItem></FlexBox>

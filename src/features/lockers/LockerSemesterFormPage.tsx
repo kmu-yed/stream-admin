@@ -177,12 +177,11 @@ function LockerSemesterFormPage() {
             신청 기간
           </Typography>
           <FlexBox
-            className="locker-semester-date-range"
+            className="locker-semester-date-range app-labeled-date-range"
             style={{
               display: "grid",
               gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
               gap: 12,
-              alignItems: "end",
               width: "100%",
             }}
           >
@@ -248,12 +247,11 @@ function LockerSemesterFormPage() {
             사용 가능 기간
           </Typography>
           <FlexBox
-            className="locker-semester-date-range"
+            className="locker-semester-date-range app-labeled-date-range"
             style={{
               display: "grid",
               gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
               gap: 12,
-              alignItems: "end",
               width: "100%",
             }}
           >

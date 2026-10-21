@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react'
-import { Button, DatePicker, FlexBox, IconButton, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Tab, TabList, TabListItem, TabPanel, TextField, Typography, useToast } from '@wanteddev/wds'
-import { IconChevronLeft, IconChevronRight, IconTrash } from '@wanteddev/wds-icon'
+import { Button, DatePicker, FlexBox, IconButton, Menu, MenuContent, MenuItem, MenuList, MenuTrigger, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Tab, TabList, TabListItem, TabPanel, TextField, Typography, useToast } from '@wanteddev/wds'
+import { IconChevronLeft, IconChevronRight, IconMoreVertical, IconTrash } from '@wanteddev/wds-icon'
 import PageHeader from '../../components/common/PageHeader'
 import FormItem from '../../components/common/FormItem'
 import ImageUploadField from '../../components/common/ImageUploadField'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import EmptyState from '../../components/common/EmptyState'
+import StatusBadge from '../../components/common/StatusBadge'
 
 type CalendarEvent = { id: string; startDate: string; endDate: string; title: string }
-type Poster = { id: string; title: string; image: string }
+type Poster = { id: string; title: string; image: string; isActive: boolean }
 
 const weekDays = ['일', '월', '화', '수', '목', '금', '토']
 const isoDate = (year: number, month: number, day: number) => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -42,6 +43,8 @@ function DisplayManagementPage() {
   const [posterImage, setPosterImage] = useState<string[]>([])
   const [editingPoster, setEditingPoster] = useState<Poster | null>(null)
   const [deletePosterTarget, setDeletePosterTarget] = useState<Poster | null>(null)
+  const [posterStatusTarget, setPosterStatusTarget] = useState<Poster | null>(null)
+  const [openPosterMenuId, setOpenPosterMenuId] = useState<string | null>(null)
 
   const year = month.getFullYear()
   const monthIndex = month.getMonth()
@@ -75,7 +78,7 @@ function DisplayManagementPage() {
   }
   const savePoster = () => {
     if (!posterTitle.trim() || !posterImage[0]) return
-    setPosters((prev) => editingPoster ? prev.map((poster) => poster.id === editingPoster.id ? { ...poster, title: posterTitle.trim(), image: posterImage[0] } : poster) : [...prev, { id: `poster_${Date.now()}`, title: posterTitle.trim(), image: posterImage[0] }])
+    setPosters((prev) => editingPoster ? prev.map((poster) => poster.id === editingPoster.id ? { ...poster, title: posterTitle.trim(), image: posterImage[0] } : poster) : [{ id: `poster_${Date.now()}`, title: posterTitle.trim(), image: posterImage[0], isActive: true }, ...prev])
     setPosterModalOpen(false)
     setPosterTitle('')
     setPosterImage([])
@@ -125,12 +128,24 @@ function DisplayManagementPage() {
         </TabPanel>
         <TabPanel value="poster">
           <FlexBox className="display-poster-toolbar" justifyContent="space-between" alignItems="center" style={{ marginBottom: 28, gap: 12 }}>
-            <Typography variant="body1" color="semantic.label.alternative">총 {posters.length}개 / 활성화 {posters.length}개</Typography>
+            <Typography variant="body1" color="semantic.label.alternative">총 {posters.length}개 / 활성화 {posters.filter((poster) => poster.isActive).length}개</Typography>
             <Button variant="solid" color="primary" onClick={() => { setEditingPoster(null); setPosterTitle(''); setPosterImage([]); setPosterModalOpen(true) }}>+ 포스터 추가하기</Button>
           </FlexBox>
           {posters.length === 0 ? (
             <EmptyState message="등록된 포스터가 없어요." description="포스터를 추가하면 여기에 표시돼요." style={{ minHeight: 220 }} />
-          ) : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>{posters.map((poster) => <FlexBox key={poster.id} flexDirection="column" style={{ gap: 8 }}><img src={poster.image} alt={poster.title} style={{ width: '100%', aspectRatio: '3 / 4', objectFit: 'cover', borderRadius: 12 }} /><FlexBox justifyContent="space-between" alignItems="center"><Typography variant="body1" weight="medium">{poster.title}</Typography><FlexBox style={{ gap: 6 }}><Button size="small" variant="outlined" color="assistive" onClick={() => { setEditingPoster(poster); setPosterTitle(poster.title); setPosterImage([poster.image]); setPosterModalOpen(true) }}>수정</Button><Button size="small" variant="outlined" color="assistive" onClick={() => setDeletePosterTarget(poster)}>삭제</Button></FlexBox></FlexBox></FlexBox>)}</div>}
+          ) : <div className="display-poster-grid">{posters.map((poster) => <div key={poster.id} className={`display-poster-card${poster.isActive ? '' : ' display-poster-card--inactive'}`}>
+            <img src={poster.image} alt={poster.title} className="display-poster-card-image" />
+            <div className="display-poster-card-status"><StatusBadge label={poster.isActive ? '활성화' : '비활성화'} tone={poster.isActive ? 'positive' : 'neutral'} leadingContent={<span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: '50%', background: poster.isActive ? 'var(--semantic-status-positive)' : 'var(--semantic-label-alternative)', display: 'inline-block' }} />} style={poster.isActive ? { background: '#E6F8EC' } : undefined} /></div>
+            <Menu open={openPosterMenuId === poster.id} onOpenChange={(open) => setOpenPosterMenuId(open ? poster.id : null)}>
+              <MenuTrigger><IconButton className="display-poster-card-menu" variant="normal" size="small" aria-label={`${poster.title} 더보기`}><IconMoreVertical width={20} height={20} /></IconButton></MenuTrigger>
+              <MenuContent position="bottom-end" offset={6}><MenuList>
+                <MenuItem value="toggle" onClick={() => { setPosterStatusTarget(poster); setOpenPosterMenuId(null) }}>{poster.isActive ? '비활성화' : '활성화'}</MenuItem>
+                <MenuItem value="edit" onClick={() => { setEditingPoster(poster); setPosterTitle(poster.title); setPosterImage([poster.image]); setPosterModalOpen(true); setOpenPosterMenuId(null) }}>수정</MenuItem>
+                <MenuItem value="delete" style={{ color: 'var(--semantic-status-negative)' }} onClick={() => { setDeletePosterTarget(poster); setOpenPosterMenuId(null) }}>삭제</MenuItem>
+              </MenuList></MenuContent>
+            </Menu>
+            <div className="display-poster-card-title"><Typography variant="body1" weight="bold">{poster.title}</Typography></div>
+          </div>)}</div>}
         </TabPanel>
       </Tab>
       <Modal open={Boolean(selectedDate)} onOpenChange={(open) => !open && setSelectedDate(null)}>
@@ -151,6 +166,7 @@ function DisplayManagementPage() {
         </ModalContent></ModalContainer>
       </Modal>
       <ConfirmModal open={Boolean(deletePosterTarget)} onOpenChange={(open) => !open && setDeletePosterTarget(null)} title="포스터를 삭제할까요?" description={deletePosterTarget ? `"${deletePosterTarget.title}" 포스터를 삭제해요.` : undefined} confirmLabel="삭제" tone="negative" onConfirm={() => { if (!deletePosterTarget) return; setPosters((prev) => prev.filter((poster) => poster.id !== deletePosterTarget.id)); setDeletePosterTarget(null); toast({ content: '포스터를 삭제했어요.', variant: 'positive' }) }} />
+      <ConfirmModal open={Boolean(posterStatusTarget)} onOpenChange={(open) => !open && setPosterStatusTarget(null)} title={posterStatusTarget?.isActive ? '포스터를 비활성화할까요?' : '포스터를 활성화할까요?'} description={posterStatusTarget ? `"${posterStatusTarget.title}" 포스터를 ${posterStatusTarget.isActive ? '비활성화' : '활성화'}해요.` : undefined} confirmLabel={posterStatusTarget?.isActive ? '비활성화' : '활성화'} onConfirm={() => { if (!posterStatusTarget) return; const nextIsActive = !posterStatusTarget.isActive; setPosters((prev) => prev.map((poster) => poster.id === posterStatusTarget.id ? { ...poster, isActive: nextIsActive } : poster)); setPosterStatusTarget(null); toast({ content: `포스터를 ${nextIsActive ? '활성화' : '비활성화'}했어요.`, variant: 'positive' }) }} />
       <Modal open={posterModalOpen} onOpenChange={setPosterModalOpen}>
         <ModalContainer size="small"><ModalContent>
           <ModalContentItem><ModalHeading>행사 포스터 {editingPoster ? '수정' : '추가'}</ModalHeading></ModalContentItem>

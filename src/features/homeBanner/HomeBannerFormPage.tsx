@@ -330,7 +330,7 @@ function HomeBannerFormPage() {
         </FormSection>
 
         <FormSection title="노출 기간">
-          <FlexBox className="app-date-range" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)", gap: 12, alignItems: "end", width: "100%" }}>
+          <FlexBox className="app-date-range app-labeled-date-range" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)", gap: 12, width: "100%" }}>
             <FlexBox style={{ minWidth: 0 }}>
               <FormItem label="시작일" required error={errors.period} style={{ width: "100%" }}>
                 <DatePicker

@@ -93,6 +93,10 @@ body {
   font-size: 15px !important;
 }
 
+.stream-member-sort [data-role='select-values'] {
+  font-size: 15px !important;
+}
+
 .app-form-section {
   min-width: 0;
   gap: 20px;
@@ -104,6 +108,20 @@ body {
 .event-application-range {
   grid-template-columns: minmax(0, 328px) auto minmax(0, 328px);
   max-width: 696px;
+}
+
+/* Align inputs independently of validation messages below either field. */
+.app-labeled-date-range {
+  align-items: start;
+}
+
+.app-labeled-date-range label {
+  line-height: 24px;
+}
+
+.app-labeled-date-range > .app-date-range-separator,
+.app-labeled-date-range > .locker-semester-date-separator {
+  margin-top: 32px;
 }
 
 @media (min-width: 768px) and (max-width: 1100px) {
@@ -185,6 +203,94 @@ body {
 .display-calendar-more {
   padding-left: 4px;
   text-align: left;
+}
+
+.display-poster-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.display-poster-card {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border: 1px solid var(--semantic-line-normal-normal);
+  border-radius: 14px;
+  background: var(--semantic-fill-normal);
+  box-shadow: 0 1px 2px rgba(20, 35, 60, 0.05);
+}
+
+.display-poster-card-image {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 160ms ease, transform 160ms ease;
+}
+
+.display-poster-card--inactive .display-poster-card-image {
+  filter: grayscale(0.25);
+}
+
+.display-poster-card--inactive::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.display-poster-card-status,
+.display-poster-card-menu {
+  position: absolute !important;
+  z-index: 2;
+}
+
+.display-poster-card-status {
+  top: 12px;
+  left: 12px;
+}
+
+.display-poster-card-menu {
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #4b5563 !important;
+  box-shadow: none;
+  transition: opacity 160ms ease, box-shadow 160ms ease;
+}
+
+.display-poster-card:hover .display-poster-card-menu,
+.display-poster-card:focus-within .display-poster-card-menu {
+  opacity: 1;
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(20, 35, 60, 0.22);
+}
+
+.display-poster-card-title {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 40px 14px 14px;
+  color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.74), transparent);
+}
+
+.display-poster-card-title p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: inherit !important;
+  line-height: 1.4;
 }
 
 .data-table tbody td,
@@ -337,6 +443,27 @@ body {
 }
 
 @media (max-width: 767px) {
+  .display-poster-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .display-poster-card-status {
+    top: 8px;
+    left: 8px;
+  }
+
+  .display-poster-card-menu {
+    top: 6px;
+    right: 6px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .display-poster-card-title {
+    padding: 32px 10px 10px;
+  }
+
   .page-header {
     margin-bottom: 20px !important;
   }
@@ -980,7 +1107,7 @@ body {
   .work-schedule-grid {
     width: 100%;
     min-width: 0 !important;
-    grid-template-columns: 42px repeat(5, minmax(0, 1fr)) !important;
+    grid-template-columns: 76px repeat(5, minmax(0, 1fr)) !important;
   }
 
   .work-schedule-day {
@@ -990,8 +1117,9 @@ body {
 
   .work-schedule-time {
     padding: 8px 2px !important;
-    font-size: 10px !important;
+    font-size: 9px !important;
     text-align: center;
+    white-space: nowrap;
   }
 
   .work-schedule-cell {

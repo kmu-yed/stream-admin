@@ -293,7 +293,7 @@ export default function WorkManagementPage({ mode = "members" }: { mode?: "membe
           <TabListItem value="schedule">근무 시간표 관리</TabListItem>
         </TabList>}
         {mode === "members" && <TabPanel value="members">
-          <StreamMemberList onAdminsAdded={() => setTab("admins")} />
+          <StreamMemberList />
         </TabPanel>}
         {mode === "members" && <TabPanel value="admins">
           <AdminManagementPage embedded />
@@ -396,8 +396,8 @@ export default function WorkManagementPage({ mode = "members" }: { mode?: "membe
               className="work-schedule-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "72px repeat(5, minmax(156px, 1fr))",
-                minWidth: 860,
+                gridTemplateColumns: "116px repeat(5, minmax(156px, 1fr))",
+                minWidth: 904,
               }}
             >
               <div
@@ -443,13 +443,14 @@ export default function WorkManagementPage({ mode = "members" }: { mode?: "membe
                     justifyContent: "center",
                     fontSize: 13,
                     color: "var(--semantic-label-alternative)",
+                    whiteSpace: "nowrap",
                     borderBottom:
                       "1px solid var(--semantic-line-normal-normal)",
                     background:
                       hour === 12 ? "var(--semantic-fill-normal)" : undefined,
                   }}
                 >
-                  {String(hour).padStart(2, "0")}:00
+                  {String(hour).padStart(2, "0")}:00 - {String(hour + 1).padStart(2, "0")}:00
                 </div>,
                 ...(hour === 12
                   ? [
