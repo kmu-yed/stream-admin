@@ -394,23 +394,37 @@ body {
   }
 }
 
+@media (min-width: 768px) {
+  .application-question-content {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 8px !important;
+  }
+
+  .application-question-heading {
+    display: contents !important;
+  }
+
+  .application-question-input {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .application-question-delete {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+  }
+}
+
 @media (max-width: 767px) {
   .app-search-field input,
   .app-search-field input::placeholder {
     font-size: 16px !important;
   }
 
-  .app-form-section:has(.application-form-builder) {
-    padding: 12px;
-  }
-
   .application-question-card {
-    padding: 8px 0 !important;
     min-width: 0;
-  }
-
-  .application-question-content {
-    padding: 0 !important;
   }
 
   .application-question-type > * {
@@ -424,7 +438,6 @@ body {
   }
 
   .application-question-options {
-    padding: 8px 0 8px 12px !important;
     min-width: 0;
   }
 }

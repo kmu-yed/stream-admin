@@ -97,9 +97,9 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
               {index + 1}
             </Typography>
             <FlexBox className="application-question-content" flexDirection="column" style={{ flex: 1, minWidth: 0, gap: 6, padding: 12, background: 'var(--semantic-background-normal-normal)' }}>
-              <FlexBox alignItems="center" justifyContent="space-between" style={{ gap: 8 }}>
+              <FlexBox className="application-question-heading" alignItems="center" justifyContent="space-between" style={{ gap: 8 }}>
                 <Typography variant="label2" color="semantic.label.alternative">질문{field.required && <span style={{ color: 'var(--semantic-status-negative)' }}> *</span>}</Typography>
-                <IconButton variant="normal" size="small" aria-label={`질문 ${index + 1} 삭제`} onClick={() => removeField(field.id)}>
+                <IconButton className="application-question-delete" variant="normal" size="small" aria-label={`질문 ${index + 1} 삭제`} onClick={() => removeField(field.id)}>
                   <IconTrash width={16} height={16} />
                 </IconButton>
               </FlexBox>
