@@ -356,7 +356,14 @@ body {
 }
 
 .data-table-scroll.event-applicants-table .data-table table {
-  table-layout: auto;
+  table-layout: fixed;
+}
+
+/* Colgroup owns stable widths; cells share consistent spacing. */
+.event-applicants-table .data-table th,
+.event-applicants-table .data-table td {
+  width: auto !important;
+  padding-inline: 10px !important;
 }
 
 .event-applicants-table .data-table th:last-child,
@@ -368,8 +375,8 @@ body {
   .event-applicants-table .data-table th:first-child,
   .event-applicants-table .data-table td:first-child:not([colspan]) {
     min-width: 56px;
-    width: 56px;
-    padding-inline: 8px;
+    width: 56px !important;
+    padding-inline: 8px !important;
     text-align: center;
   }
 }
@@ -593,8 +600,39 @@ body {
     min-width: 0;
   }
 
+  .event-date-time-field {
+    display: grid !important;
+    max-width: none !important;
+    grid-template-columns: minmax(136px, 1.25fr) minmax(0, 1fr);
+  }
+
   .event-date-time-field > * {
     flex: 0 0 auto !important;
+  }
+
+  .event-date-time-field [data-role='text-field-wrapper'] {
+    padding-inline: 8px !important;
+    gap: 4px !important;
+  }
+
+  .event-date-time-field input,
+  .event-date-time-field input::placeholder {
+    font-size: 13px !important;
+    min-width: 0;
+    padding-inline: 0;
+  }
+
+  .event-date-time-field svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .event-date-time-field [data-role='date-picker-calendar-icon'],
+  .event-date-time-field [data-role='date-picker-calendar-icon'] button {
+    width: 24px;
+    min-width: 24px;
+    padding: 0;
+    margin: 0;
   }
 
   .app-info-row {

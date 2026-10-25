@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { pageLabels } from '../../nav/pageLabels'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, FlexBox, IconButton, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, Tab, TabList, TabListItem, TabPanel, Typography } from '@wanteddev/wds'
 import { IconChevronLeft, IconChevronRight } from '@wanteddev/wds-icon'
@@ -77,4 +78,4 @@ function QuestionsPanel() {
   </>
 }
 
-export default function FeedbackPage() { const [params, setParams] = useSearchParams(); const tab = params.get('tab') ?? 'questions'; return <><PageHeader title="열린피드백 관리" description="회차를 열고 질문을 접수한 뒤 답변을 작성·공개하는 흐름을 관리해요." /><Summary /><Tab value={tab} onValueChange={(value) => setParams({ tab: value })}><TabList size="medium" style={{ marginBottom: 20 }}><TabListItem value="questions">현재 회차 질문</TabListItem><TabListItem value="rounds">회차 관리</TabListItem></TabList><TabPanel value="questions"><QuestionsPanel /></TabPanel><TabPanel value="rounds"><RoundsPanel /></TabPanel></Tab></> }
+export default function FeedbackPage() { const [params, setParams] = useSearchParams(); const tab = params.get('tab') ?? 'questions'; return <><PageHeader title="열린피드백 관리" description="회차를 열고 질문을 접수한 뒤 답변을 작성·공개하는 흐름을 관리해요." /><Summary /><Tab value={tab} onValueChange={(value) => setParams({ tab: value })}><TabList size="medium" style={{ marginBottom: 20 }}><TabListItem value="questions">{pageLabels.feedbackQuestions}</TabListItem><TabListItem value="rounds">회차 관리</TabListItem></TabList><TabPanel value="questions"><QuestionsPanel /></TabPanel><TabPanel value="rounds"><RoundsPanel /></TabPanel></Tab></> }

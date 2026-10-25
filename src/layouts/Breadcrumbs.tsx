@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { FlexBox, TextButton, Typography } from '@wanteddev/wds'
 import { IconChevronRightSmall } from '@wanteddev/wds-icon'
 import { navItems } from '../nav/navConfig'
+import { pageLabels } from '../nav/pageLabels'
 
 type BreadcrumbItem = {
   label: string
@@ -42,8 +43,8 @@ function getPageBreadcrumbs(pathname: string): BreadcrumbItem[] {
   else if (/^\/notices\/[^/]+\/edit$/.test(pathname)) items.push({ label: '공지 수정', path: pathname })
   else if (/^\/notices\/[^/]+$/.test(pathname)) items.push({ label: '공지 상세', path: pathname })
   else if (/^\/feedback\/rounds\/new$/.test(pathname)) items.push({ label: '회차 관리', path: '/feedback?tab=rounds' }, { label: '새 회차 등록', path: pathname })
-  else if (/^\/feedback\/answers\/new$/.test(pathname)) items.push({ label: '질문 관리', path: '/feedback?tab=questions' }, { label: '피드백 답변 등록', path: pathname })
-  else if (/^\/feedback\/rounds\/[^/]+\/edit$/.test(pathname)) items.push({ label: '질문 관리', path: '/feedback?tab=questions' }, { label: '피드백 답변 수정', path: pathname })
+  else if (/^\/feedback\/answers\/new$/.test(pathname)) items.push({ label: pageLabels.feedbackQuestions, path: '/feedback?tab=questions' }, { label: '피드백 답변 등록', path: pathname })
+  else if (/^\/feedback\/rounds\/[^/]+\/edit$/.test(pathname)) items.push({ label: pageLabels.feedbackQuestions, path: '/feedback?tab=questions' }, { label: '피드백 답변 수정', path: pathname })
   else if (/^\/home-banner\/new$/.test(pathname)) items.push({ label: '새 배너 등록', path: pathname })
   else if (/^\/home-banner\/[^/]+\/edit$/.test(pathname)) items.push({ label: '배너 수정', path: pathname })
   else if (/^\/home-banner\/[^/]+$/.test(pathname)) items.push({ label: '배너 상세', path: pathname })
@@ -53,7 +54,7 @@ function getPageBreadcrumbs(pathname: string): BreadcrumbItem[] {
   else if (/^\/rentals\/items\/new$/.test(pathname)) items.push({ label: '물품 관리', path: '/rentals?tab=items' }, { label: '물품 등록', path: pathname })
   else if (/^\/rentals\/items\/[^/]+\/edit$/.test(pathname)) items.push({ label: '물품 관리', path: '/rentals?tab=items' }, { label: '물품 수정', path: pathname })
   else if (/^\/rentals\/records\/new$/.test(pathname)) items.push({ label: '대여/반납 현황', path: '/rentals?tab=records' }, { label: '대여 추가하기', path: pathname })
-  else if (/^\/chatbot\/faq\/new$/.test(pathname)) items.push({ label: '새 FAQ 등록', path: pathname })
+  else if (/^\/chatbot\/faq\/new$/.test(pathname)) items.push({ label: pageLabels.faqCreate, path: pathname })
   else if (/^\/chatbot\/faq\/[^/]+\/edit$/.test(pathname)) items.push({ label: 'FAQ 수정', path: pathname })
 
   return items

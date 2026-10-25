@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Button,
   FlexBox,
   Option,
   Select,
@@ -12,6 +11,8 @@ import {
   useToast,
 } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
+import useFormDraft from '../../components/common/useFormDraft'
+import FormActions from '../../components/common/FormActions'
 import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
 import ImageUploadField from '../../components/common/ImageUploadField'
@@ -50,6 +51,7 @@ function NoticeFormPage() {
       : emptyForm,
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const { markSaved, draftControls, navigationGuard } = useFormDraft(`notice:${id ?? 'new'}`, form, setForm)
   const [createdId, setCreatedId] = useState<string | null>(null)
   const navigatingAwayRef = useRef(false)
 
@@ -69,6 +71,7 @@ function NoticeFormPage() {
     if (!form.content.trim()) nextErrors.content = '본문을 입력해주세요.'
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
+    markSaved()
 
     if (isEdit && id) {
       updateNotice(id, form)
@@ -85,6 +88,8 @@ function NoticeFormPage() {
   return (
     <>
       <PageHeader title={isEdit ? '공지 수정' : '새 공지 등록'} description="게시판에 노출될 공지를 작성해요." />
+      {navigationGuard}
+      {draftControls}
 
       <FormSection style={{ maxWidth: 640 }}>
         <FlexBox className="app-form-inline" style={{ gap: 16 }}>
@@ -140,14 +145,7 @@ function NoticeFormPage() {
           <Typography variant="body2">상단 고정(핀) 처리</Typography>
         </FlexBox>
 
-        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
-          <Button variant="solid" color="primary" onClick={handleSubmit}>
-            {isEdit ? '수정 완료' : '등록하기'}
-          </Button>
-          <Button variant="outlined" color="assistive" onClick={goToList}>
-            취소
-          </Button>
-        </FlexBox>
+        <FormActions onCancel={goToList} onSubmit={handleSubmit} submitLabel={isEdit ? '수정 완료' : '등록하기'} />
       </FormSection>
 
       <ConfirmModal

@@ -12,6 +12,7 @@ import {
   type DateType,
 } from "@wanteddev/wds";
 import PageHeader from "../../components/common/PageHeader";
+import useFormDraft from '../../components/common/useFormDraft'
 import FormItem from "../../components/common/FormItem";
 import InfoNotice from "../../components/common/InfoNotice";
 import NotFoundState from "../../components/common/NotFoundState";
@@ -61,6 +62,7 @@ function LockerSemesterFormPage() {
   const isEnded = Boolean(existing && today > existing.applyEndDate);
 
   const goBackToSchedule = () => navigate("/lockers?tab=schedule");
+  const { markSaved, draftControls, navigationGuard } = useFormDraft(`locker-semester:${id ?? 'new'}`, form, setForm);
 
   const handleSubmit = () => {
     if (isEnded) return;
@@ -93,6 +95,7 @@ function LockerSemesterFormPage() {
         variant: "positive",
       });
     }
+    markSaved();
     goBackToSchedule();
   };
 
@@ -103,6 +106,8 @@ function LockerSemesterFormPage() {
       <PageHeader
         title={isEdit ? "신청 일정 수정" : "새 학기 신청 일정 등록"}
       />
+      {navigationGuard}
+      {!isEnded && draftControls}
       {isApplying && <InfoNotice>신청이 진행 중이라 학기와 신청 시작일은 수정할 수 없어요. 신청 마감일은 연장만 가능하며, 사용 가능 기간은 수정할 수 있어요.</InfoNotice>}
       {isEnded && <InfoNotice>신청이 종료된 일정은 읽기 전용이에요.</InfoNotice>}
 

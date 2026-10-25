@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, FlexBox, Option, Select, TextField, useToast } from '@wanteddev/wds'
+import { FlexBox, Option, Select, TextField, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
+import useFormDraft from '../../components/common/useFormDraft'
+import FormActions from '../../components/common/FormActions'
 import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
 import ImageUploadField from '../../components/common/ImageUploadField'
@@ -50,14 +52,18 @@ function RentalItemFormPage() {
       addItem(form)
       toast({ content: '물품이 등록되었어요.', variant: 'positive' })
     }
+    markSaved()
     goToList()
   }
 
+  const { markSaved, draftControls, navigationGuard } = useFormDraft(`rental-item:${id ?? 'new'}`, form, setForm)
   if (isEdit && !existing) return <NotFoundState entity="물품" onBack={goToList} />
 
   return (
     <>
       <PageHeader title={isEdit ? '물품 수정' : '물품 등록'} description="등록한 물품 종류를 선택하고 수량을 입력해요." />
+      {navigationGuard}
+      {draftControls}
 
       <FormSection style={{ maxWidth: 480 }}>
         <FormItem label="아이콘" error={errors.icon}>
@@ -99,14 +105,7 @@ function RentalItemFormPage() {
           </Select>
         </FormItem>}
 
-        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
-          <Button variant="solid" color="primary" onClick={handleSubmit}>
-            {isEdit ? '수정 완료' : '등록하기'}
-          </Button>
-          <Button variant="outlined" color="assistive" onClick={goToList}>
-            취소
-          </Button>
-        </FlexBox>
+        <FormActions onCancel={goToList} onSubmit={handleSubmit} submitLabel={isEdit ? '수정 완료' : '등록하기'} />
       </FormSection>
     </>
   )

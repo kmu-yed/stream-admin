@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, FlexBox, TextArea, useToast } from '@wanteddev/wds'
+import { FlexBox, TextArea, useToast } from '@wanteddev/wds'
+import { pageLabels } from '../../nav/pageLabels'
 import PageHeader from '../../components/common/PageHeader'
+import useFormDraft from '../../components/common/useFormDraft'
+import FormActions from '../../components/common/FormActions'
 import FormItem from '../../components/common/FormItem'
 import NotFoundState from '../../components/common/NotFoundState'
 import { useChatbot } from './store'
@@ -21,6 +24,7 @@ function FaqFormPage() {
     existing ? { question: existing.question, answer: existing.answer } : emptyForm,
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const { markSaved, draftControls, navigationGuard } = useFormDraft(`faq:${id ?? 'new'}`, form, setForm)
 
   const goToList = () => navigate('/chatbot?tab=faq')
 
@@ -37,6 +41,7 @@ function FaqFormPage() {
       addFaq(form)
       toast({ content: 'FAQ가 등록되었어요.', variant: 'positive' })
     }
+    markSaved()
     goToList()
   }
 
@@ -44,7 +49,9 @@ function FaqFormPage() {
 
   return (
     <>
-      <PageHeader title={isEdit ? 'FAQ 수정' : 'FAQ 추가'} description="챗봇에 노출할 질문을 등록해요." />
+      <PageHeader title={isEdit ? 'FAQ 수정' : pageLabels.faqCreate} description="챗봇에 노출할 질문을 등록해요." />
+      {navigationGuard}
+      {draftControls}
 
       <FlexBox flexDirection="column" style={{ gap: 32, maxWidth: 640 }}>
         <FormItem label="질문" required error={errors.question}>
@@ -58,14 +65,7 @@ function FaqFormPage() {
           />
         </FormItem>
 
-        <FlexBox justifyContent="flex-end" style={{ gap: 8 }}>
-          <Button variant="solid" color="primary" onClick={handleSubmit}>
-            {isEdit ? '수정 완료' : '등록하기'}
-          </Button>
-          <Button variant="outlined" color="assistive" onClick={goToList}>
-            취소
-          </Button>
-        </FlexBox>
+        <FormActions onCancel={goToList} onSubmit={handleSubmit} submitLabel={isEdit ? '수정 완료' : '등록하기'} />
       </FlexBox>
     </>
   )

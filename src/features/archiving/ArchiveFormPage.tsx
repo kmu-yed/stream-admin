@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Checkbox, DatePicker, FlexBox, Option, Select, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
+import { Checkbox, DatePicker, FlexBox, Option, Select, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
+import useFormDraft from '../../components/common/useFormDraft'
+import FormActions from '../../components/common/FormActions'
 import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
 import ImageUploadField from '../../components/common/ImageUploadField'
@@ -88,9 +90,11 @@ function ArchiveFormPage() {
       addPost(form)
       toast({ content: '게시물이 등록되었어요.', variant: 'positive' })
     }
+    markSaved()
     goToList()
   }
 
+  const { markSaved, draftControls, navigationGuard } = useFormDraft(`archive:${id ?? 'new'}`, form, (draft) => { setForm(draft); setHasPeriod(Boolean(draft.endDate)) })
   if (isEdit && !existing) return <NotFoundState entity="게시물" onBack={goToList} />
 
   return (
@@ -100,6 +104,8 @@ function ArchiveFormPage() {
         description="학생회 활동 기록을 아카이빙해요."
       />
 
+      {navigationGuard}
+      {draftControls}
       <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 760 }}>
         <FormSection title="기본 정보">
           <FormInfoRow label="제목" error={errors.title}>
@@ -177,14 +183,7 @@ function ArchiveFormPage() {
         </FormItem>
         </FormSection>
 
-        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
-          <Button variant="solid" color="primary" onClick={handleSubmit}>
-            {isEdit ? '수정 완료' : '등록하기'}
-          </Button>
-          <Button variant="outlined" color="assistive" onClick={goToList}>
-            취소
-          </Button>
-        </FlexBox>
+        <FormActions onCancel={goToList} onSubmit={handleSubmit} submitLabel={isEdit ? '수정 완료' : '등록하기'} />
       </FlexBox>
     </>
   )

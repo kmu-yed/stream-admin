@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, DatePicker, FlexBox, Typography, useToast, type DateType } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
+import useFormDraft from '../../components/common/useFormDraft'
 import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
 import { useBoards } from './store'
@@ -19,6 +20,7 @@ export default function FeedbackRoundCreatePage() {
   const [openDate, setOpenDate] = useState('')
   const [closeDate, setCloseDate] = useState('')
   const [error, setError] = useState('')
+  const { markSaved, draftControls, navigationGuard } = useFormDraft('feedback-round:new', { openDate, closeDate }, (draft) => { setOpenDate(draft.openDate); setCloseDate(draft.closeDate) })
   const nextRound = feedbackRounds.reduce((maximum, round) => Math.max(maximum, round.roundNumber), 0) + 1
 
   const submit = () => {
@@ -32,12 +34,15 @@ export default function FeedbackRoundCreatePage() {
     }
     createFeedbackRound({ openDate, closeDate })
     toast({ content: `${nextRound}차 질문 접수 회차를 등록했어요.`, variant: 'positive' })
+    markSaved()
     navigate('/feedback?tab=rounds')
   }
 
   return (
     <>
       <PageHeader title="새 회차 등록" />
+      {navigationGuard}
+      {draftControls}
       <FlexBox flexDirection="column" style={{ maxWidth: 720, gap: 20 }}>
         <FormSection title="질문 접수 설정" description={`${nextRound}차 열린 피드백으로 등록돼요.`}>
           <FormItem label="질문 접수 기간" required error={error}>

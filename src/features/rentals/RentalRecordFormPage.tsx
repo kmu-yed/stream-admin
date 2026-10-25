@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, DatePicker, FlexBox, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../../components/common/PageHeader'
+import useFormDraft from '../../components/common/useFormDraft'
 import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
 import { useStudentCouncil } from '../studentCouncil/store'
@@ -44,6 +45,7 @@ function RentalRecordFormPage() {
   const [rentalDate, setRentalDate] = useState(toDateValue(new Date()))
   const [rentalTime, setRentalTime] = useState('09:00')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const { markSaved, draftControls, navigationGuard } = useFormDraft('rental-record:new', { borrowerValue, itemValue, workerValue, rentalDate, rentalTime }, (draft) => { setBorrowerValue(draft.borrowerValue); setItemValue(draft.itemValue); setWorkerValue(draft.workerValue); setRentalDate(draft.rentalDate); setRentalTime(draft.rentalTime) })
 
   const borrowerOptions = members.map((member) => ({ value: `${member.name} · ${member.studentId}`, title: member.name, description: `${member.studentId} · ${member.department}` }))
   const itemOptions = items.map((item) => ({ value: `${item.name} · ${item.category}`, title: item.name, description: item.category }))
@@ -67,12 +69,15 @@ function RentalRecordFormPage() {
     const dueDate = `${toDateValue(due)} ${due.toTimeString().slice(0, 5)}`
     addRentalRecord({ itemId: item.id, itemName: item.name, borrowerName: borrower.name, borrowerStudentId: borrower.studentId, borrowedAt, dueDate, workerName: worker.name, status: '대여중' })
     toast({ content: '대여 내역을 추가했어요.', variant: 'positive' })
+    markSaved()
     navigate('/rentals?tab=records')
   }
 
   return (
     <>
       <PageHeader title="대여 추가하기" description="대여자와 물품, 대여 정보를 등록해요." />
+      {navigationGuard}
+      {draftControls}
       <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 720 }}>
         <FormSection title="대여 정보">
           <FormItem label="대여자" error={errors.borrower}>

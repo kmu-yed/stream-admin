@@ -1,4 +1,6 @@
 import { useState } from "react";
+import useFormDraft from '../../components/common/useFormDraft'
+import FormActions from '../../components/common/FormActions'
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   Button,
@@ -115,6 +117,7 @@ function HomeBannerFormPage() {
   );
 
   const goToList = () => navigate("/home-banner");
+  const { markSaved, draftControls, navigationGuard } = useFormDraft(`banner:${id ?? fromNoticeId ?? 'new'}`, form, (draft) => { setForm(draft); setImageSource(bannerImagePresets.some((preset) => preset.src === draft.imageUrl) ? 'preset' : 'upload') });
 
   const handleSubmit = () => {
     const nextErrors: Record<string, string> = {};
@@ -142,6 +145,7 @@ function HomeBannerFormPage() {
       addBanner(form);
       toast({ content: "배너가 등록되었어요.", variant: "positive" });
     }
+    markSaved();
     goToList();
   };
 
@@ -158,6 +162,8 @@ function HomeBannerFormPage() {
         }
       />
 
+      {navigationGuard}
+      {draftControls}
       <FlexBox flexDirection="column" style={{ gap: 20, maxWidth: 640 }}>
         <FormSection>
           <FormItem label="배너 제목" required error={errors.title}>
@@ -433,14 +439,7 @@ function HomeBannerFormPage() {
           )}
         </FormSection>
 
-        <FlexBox className="app-form-actions" justifyContent="flex-end" style={{ gap: 8 }}>
-          <Button variant="solid" color="primary" onClick={handleSubmit}>
-            {isEdit ? "수정 완료" : "등록하기"}
-          </Button>
-          <Button variant="outlined" color="assistive" onClick={goToList}>
-            취소
-          </Button>
-        </FlexBox>
+        <FormActions onCancel={goToList} onSubmit={handleSubmit} submitLabel={isEdit ? '수정 완료' : '등록하기'} />
       </FlexBox>
       <Modal open={imagePreviewOpen} onOpenChange={setImagePreviewOpen}>
         <ModalContainer size="xlarge">

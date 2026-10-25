@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Checkbox, FlexBox, Modal, ModalContainer, ModalContent, ModalContentItem, ModalHeading, TextArea, Typography, useToast } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
+import useFormDraft from '../../components/common/useFormDraft'
 import BoldMarkupText from '../../components/common/BoldMarkupText'
 import EmptyState from '../../components/common/EmptyState'
 import NotFoundState from '../../components/common/NotFoundState'
@@ -37,6 +38,7 @@ function FeedbackRoundFormPage() {
     return initial
   })
   const [error, setError] = useState<string>()
+  const { markSaved, navigationGuard } = useFormDraft(`feedback-answer:${id ?? 'new'}`, answers, setAnswers)
   const [draftPickerOpen, setDraftPickerOpen] = useState(() => !isEdit && roundDrafts.length > 0)
 
   const goToList = () => navigate('/feedback?tab=questions')
@@ -86,6 +88,7 @@ function FeedbackRoundFormPage() {
       publishFeedbackRoundAnswers(targetRound.id, payload)
       toast({ content: '피드백 답변이 등록되었어요.', variant: 'positive' })
     }
+    markSaved()
     navigate('/feedback?tab=rounds')
   }
 
@@ -105,6 +108,7 @@ function FeedbackRoundFormPage() {
         description="사용자 질문 목록에서 답변할 질문을 선택하고 답변을 작성하세요. **텍스트**로 감싸면 굵게 표시돼요."
       />
 
+      {navigationGuard}
       {error && (
         <Typography variant="label2" color="semantic.status.negative" style={{ marginBottom: 12 }}>
           {error}

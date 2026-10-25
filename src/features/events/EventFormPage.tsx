@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button, Checkbox, DatePicker, FlexBox, TextArea, TextField, Typography, useToast, type DateType } from '@wanteddev/wds'
 import PageHeader from '../../components/common/PageHeader'
+import useFormDraft from '../../components/common/useFormDraft'
 import FormItem from '../../components/common/FormItem'
 import FormSection from '../../components/common/FormSection'
 import InfoNotice from '../../components/common/InfoNotice'
@@ -50,7 +51,7 @@ function EventDatePicker({ value, onChange }: { value: string; onChange: (value:
 function EventDateTimeField({ date, time, timeLabel, onDateChange, onTimeChange }: { date: string; time: string; timeLabel: string; onDateChange: (value: string) => void; onTimeChange: (value: string) => void }) {
   return <FlexBox className="app-form-inline event-date-time-field" style={{ gap: 8, width: '100%', maxWidth: 328, minWidth: 0 }}>
     <FlexBox style={{ flex: '0 1 200px', minWidth: 0 }}><EventDatePicker value={date} onChange={onDateChange} /></FlexBox>
-    <FlexBox style={{ width: 120, flexShrink: 0 }}><TextField type="time" aria-label={timeLabel} value={time} onChange={(event) => onTimeChange(event.target.value)} /></FlexBox>
+    <FlexBox style={{ width: 120, flexShrink: 0 }}><TextField width="100%" style={{ minWidth: 0 }} type="time" aria-label={timeLabel} value={time} onChange={(event) => onTimeChange(event.target.value)} /></FlexBox>
   </FlexBox>
 }
 
@@ -89,6 +90,7 @@ function EventFormPage() {
       : emptyForm,
   )
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const { markSaved, draftControls, navigationGuard } = useFormDraft(`event:${id ?? 'new'}`, form, setForm)
 
   const title = isEdit ? '행사 수정' : '새 행사 등록'
 
@@ -133,6 +135,7 @@ function EventFormPage() {
       createEvent(form)
       toast({ content: '행사가 등록되었어요.', variant: 'positive' })
     }
+    markSaved()
     navigate('/events')
   }
 
@@ -149,6 +152,8 @@ function EventFormPage() {
   return (
     <>
       <PageHeader title={title} description="행사 정보와 신청 폼을 설정해요." />
+      {navigationGuard}
+      {draftControls}
 
       {!isEdit && <InfoNotice>등록하면 비공개로 저장돼요. 내용을 확인한 뒤 행사 목록에서 공개로 전환해 주세요.</InfoNotice>}
       {hasApplicants && <InfoNotice>신청자가 있어 신청 기간과 정원만 수정할 수 있어요. 그 외 행사 정보와 신청 폼은 변경할 수 없어요.</InfoNotice>}

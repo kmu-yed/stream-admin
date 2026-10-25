@@ -42,6 +42,8 @@ type DataTableProps<T> = {
   showRowNumber?: boolean
   minWidth?: number | string
   pageSize?: number
+  stableLayout?: boolean
+  resetPageKey?: string
 }
 
 function DataTable<T>({
@@ -58,10 +60,18 @@ function DataTable<T>({
   showRowNumber = true,
   minWidth,
   pageSize = DEFAULT_TABLE_PAGE_SIZE,
+  stableLayout = false,
+  resetPageKey,
 }: DataTableProps<T>) {
   // 선택 체크박스가 있는 표는 항상 선택 열 다음에 NO가 오도록 고정한다.
   const numberAfterFirstColumn = columns[0]?.key === 'select' || rowNumberPosition === 'after-first-column'
   const [page, setPage] = useState(1)
+  const rowSignature = JSON.stringify([resetPageKey, rows.map(rowKey)])
+  const [previousRows, setPreviousRows] = useState(rowSignature)
+  if (rowSignature !== previousRows) {
+    setPreviousRows(rowSignature)
+    if (page !== 1) setPage(1)
+  }
   const totalPages = Math.ceil(rows.length / pageSize)
   const currentPage = Math.min(page, Math.max(totalPages, 1))
   const visibleRows = pagination ? rows : rows.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -92,7 +102,14 @@ function DataTable<T>({
       className={`data-table-scroll${className ? ` ${className}` : ''}`}
       style={{ ...style, '--app-data-table-min-width': typeof tableMinWidth === 'number' ? `${tableMinWidth}px` : tableMinWidth } as CSSProperties}
     >
-      <Table className="data-table">
+      <Table className={`data-table${stableLayout ? ' data-table-stable' : ''}`}>
+        {stableLayout && <colgroup>
+          {showRowNumber && !numberAfterFirstColumn && <col style={{ width: `${56 / calculatedMinWidth * 100}%` }} />}
+          {columns.map((column, index) => {
+            const width = typeof columnWidths[index] === 'number' ? columnWidths[index] : Number.parseFloat(String(columnWidths[index])) || 120
+            return <Fragment key={column.key}><col style={{ width: `${width / calculatedMinWidth * 100}%` }} />{showRowNumber && numberAfterFirstColumn && index === 0 && <col style={{ width: `${56 / calculatedMinWidth * 100}%` }} />}</Fragment>
+          })}
+        </colgroup>}
         <TableHead>
           <TableRow>
             {showRowNumber && !numberAfterFirstColumn && <TableHeadCell align="center" style={{ width: 56, paddingLeft: 8, paddingRight: 8 }}>NO</TableHeadCell>}

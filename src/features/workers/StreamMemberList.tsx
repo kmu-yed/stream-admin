@@ -209,6 +209,7 @@ export default function StreamMemberList() {
       </FlexBox>
       <FlexBox style={{ width: "100%" }}>
         <DataTable
+          resetPageKey={JSON.stringify([search, departmentFilters, sortOption])}
           columns={columns}
           rows={filtered}
           rowKey={(member) => member.id}
