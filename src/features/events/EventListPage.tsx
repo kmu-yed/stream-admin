@@ -44,15 +44,15 @@ function EventListPage() {
     {
       key: 'title',
       header: '행사명',
-      width: '100%',
+      width: 240,
       render: (event) => (
-        <FlexBox alignItems="center" style={{ gap: 12 }}>
+        <FlexBox alignItems="center" style={{ gap: 12, minWidth: 0 }}>
           {event.thumbnailUrl && <img src={event.thumbnailUrl} alt="" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />}
-          <FlexBox flexDirection="column" style={{ gap: 2 }}>
-          <Typography variant="body1" weight="medium">
+          <FlexBox flexDirection="column" style={{ gap: 2, flex: 1, minWidth: 0 }}>
+          <Typography className="event-list-title" variant="body1" weight="medium">
             {event.title}
           </Typography>
-          <Typography variant="caption1" color="semantic.label.alternative">
+          <Typography className="event-list-summary" variant="caption1" color="semantic.label.alternative">
             신청자 {getApplicants(event.id).filter((a) => a.status === '신청완료').length}명
             {event.capacity ? ` / 정원 ${event.capacity}명` : ' / 인원 제한 없음'}
           </Typography>
@@ -124,6 +124,7 @@ function EventListPage() {
       </FlexBox>
 
       <DataTable
+        stableLayout
         columns={columns}
         rows={filtered}
         rowKey={(event) => event.id}

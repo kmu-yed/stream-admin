@@ -455,6 +455,14 @@ body {
   min-width: 0;
 }
 
+/* Event titles and attendance details must wrap inside their own column. */
+.data-table td .event-list-title,
+.data-table td .event-list-summary {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
 .data-table-scroll.student-payment-table .data-table table {
   min-width: 1320px;
 }
