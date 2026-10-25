@@ -144,7 +144,7 @@ function createDemoShifts(week: Date, adminIds: string[]): Shift[] {
 export default function WorkManagementPage({ mode = "members" }: { mode?: "members" | "schedule" }) {
   const toast = useToast();
   const { admins } = useAdminManagement();
-  const [tab, setTab] = useState(mode === "schedule" ? "schedule" : "members");
+  const [tab, setTab] = useState("members");
   const [selectedWeek, setSelectedWeek] = useState(() => getMonday(new Date()));
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [shiftsByWeek, setShiftsByWeek] = useState<Record<string, Shift[]>>({});
@@ -284,7 +284,7 @@ export default function WorkManagementPage({ mode = "members" }: { mode?: "membe
         title={mode === "schedule" ? "근무 시간표 관리" : "회원 및 관리자 관리"}
         description={mode === "schedule" ? "주차별 관리자 근무 시간표를 관리해요." : "stream 회원과 관리자 권한을 관리해요."}
       />
-      <Tab value={tab} onValueChange={setTab}>
+      <Tab key={mode} value={mode === "schedule" ? "schedule" : tab} onValueChange={mode === "members" ? setTab : undefined}>
         {mode === "members" && <TabList size="medium" style={{ marginBottom: 20 }}>
           <TabListItem value="members">stream 회원 목록</TabListItem>
           <TabListItem value="admins">관리자 관리</TabListItem>

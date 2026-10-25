@@ -76,11 +76,11 @@ function EventApplicantsPage() {
     { key: 'name', header: '이름', width: 120, render: (row) => row.name },
     { key: 'studentId', header: '학번', width: 140, render: (row) => row.studentId },
     { key: 'phone', header: '전화번호', width: 150, render: (row) => row.phone },
-    { key: 'appliedAt', header: '신청일시', width: 140, render: (row) => row.appliedAt },
-    ...Object.keys(fieldLabels).map<DataTableColumn<Applicant>>((fieldId) => ({
+    { key: 'appliedAt', header: '신청일시', width: Object.keys(fieldLabels).length ? 140 : '100%', render: (row) => row.appliedAt },
+    ...Object.keys(fieldLabels).map<DataTableColumn<Applicant>>((fieldId, index, fields) => ({
       key: fieldId,
       header: <span title={fieldLabels[fieldId]} style={{ display: 'block', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fieldLabels[fieldId]}</span>,
-      width: 200,
+      width: index === fields.length - 1 ? '100%' : 200,
       render: (row) => <span style={{ display: 'block', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.answers[fieldId] || '-'}</span>,
     })),
     {
@@ -92,7 +92,7 @@ function EventApplicantsPage() {
     {
       key: 'actions',
       header: '',
-      width: 100,
+      width: 128,
       align: 'right',
       render: (row) =>
         row.status === '신청완료' ? (
@@ -124,13 +124,14 @@ function EventApplicantsPage() {
       </FlexBox>
 
       <DataTable
+        className="event-applicants-table"
         columns={columns}
         rows={filtered}
         rowKey={(row) => row.id}
         onRowClick={setSelectedApplicant}
         emptyMessage={applicants.length === 0 ? '신청자가 없어요.' : '조건에 맞는 신청자가 없어요.'}
         emptyDescription={applicants.length > 0 ? '검색어나 필터를 변경해 보세요.' : undefined}
-        minWidth={720 + Object.keys(fieldLabels).length * 200}
+        minWidth={834 + Object.keys(fieldLabels).length * 200}
       />
 
       <Modal open={Boolean(selectedApplicant)} onOpenChange={(open) => !open && setSelectedApplicant(null)}>
