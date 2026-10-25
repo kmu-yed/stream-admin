@@ -8,7 +8,7 @@ import {
   Switch,
   TextButton,
   TextField,
-  TextFieldContent,
+  TextArea,
   Typography,
 } from '@wanteddev/wds'
 import type { ApplicationFieldType, ApplicationFormField } from '../types'
@@ -66,10 +66,11 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
   }
 
   return (
-    <FlexBox flexDirection="column" style={{ gap: 16 }}>
+    <FlexBox className="application-form-builder" flexDirection="column" style={{ gap: 16 }}>
       {value.map((field, index) => (
         <FlexBox
           key={field.id}
+          className="application-question-card"
           flexDirection="column"
           style={{
             gap: 12,
@@ -77,7 +78,7 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
             background: 'var(--semantic-background-normal-normal)',
           }}
         >
-          <FlexBox style={{ paddingLeft: 28 }}>
+          <FlexBox className="application-question-type" style={{ paddingLeft: 28 }}>
             <Select
               value={field.type}
               onChange={(v) => updateField(field.id, { type: v as ApplicationFieldType })}
@@ -95,25 +96,29 @@ function ApplicationFormBuilder({ value, onChange }: ApplicationFormBuilderProps
             <Typography variant="label2" color="semantic.label.alternative" style={{ width: 20, flexShrink: 0, paddingBottom: 12 }}>
               {index + 1}
             </Typography>
-            <FlexBox flexDirection="column" style={{ flex: 1, gap: 6, padding: 12, background: 'var(--semantic-background-normal-normal)' }}>
-              <Typography variant="label2" color="semantic.label.alternative">질문</Typography>
-              <FlexBox alignItems="center" style={{ gap: 8 }}>
-                <TextField
-                  placeholder="질문을 입력하세요"
-                  value={field.label}
-                  onChange={(e) => updateField(field.id, { label: e.target.value })}
-                  leadingContent={field.required ? <TextFieldContent variant="text" color="semantic.status.negative">*</TextFieldContent> : undefined}
-                  style={{ flex: 1 }}
-                />
+            <FlexBox className="application-question-content" flexDirection="column" style={{ flex: 1, minWidth: 0, gap: 6, padding: 12, background: 'var(--semantic-background-normal-normal)' }}>
+              <FlexBox alignItems="center" justifyContent="space-between" style={{ gap: 8 }}>
+                <Typography variant="label2" color="semantic.label.alternative">질문{field.required && <span style={{ color: 'var(--semantic-status-negative)' }}> *</span>}</Typography>
                 <IconButton variant="normal" size="small" aria-label={`질문 ${index + 1} 삭제`} onClick={() => removeField(field.id)}>
                   <IconTrash width={16} height={16} />
                 </IconButton>
               </FlexBox>
+                <TextArea
+                  className="application-question-input"
+                  aria-label={`질문 ${index + 1}`}
+                  aria-required={field.required}
+                  minRows={2}
+                  maxRows={6}
+                  width="100%"
+                  placeholder="질문을 입력하세요"
+                  value={field.label}
+                  onChange={(e) => updateField(field.id, { label: e.target.value })}
+                />
             </FlexBox>
           </FlexBox>
 
           {(field.type === 'radio' || field.type === 'checkbox') && (
-            <FlexBox flexDirection="column" style={{ gap: 8, padding: '12px 12px 12px 40px', borderLeft: '3px solid var(--semantic-line-normal-normal)' }}>
+            <FlexBox className="application-question-options" flexDirection="column" style={{ gap: 8, padding: '12px 12px 12px 40px', borderLeft: '3px solid var(--semantic-line-normal-normal)' }}>
               <Typography variant="label2" color="semantic.label.alternative">선택지</Typography>
               {field.options.map((option, optionIndex) => (
                 <FlexBox key={optionIndex} alignItems="center" style={{ gap: 8 }}>

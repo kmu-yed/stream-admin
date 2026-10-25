@@ -73,11 +73,6 @@ function TopBar({
           style={{ gap: 5 }}
         >
           <img
-            src="/brand/favicon.png"
-            alt="stream"
-            style={{ width: 21, height: 21, objectFit: "contain" }}
-          />
-          <img
             src="/brand/stream-watermark.svg"
             alt="stream"
             style={{ width: 75, height: 16.2, objectFit: "contain" }}

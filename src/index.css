@@ -29,7 +29,7 @@ body {
   transition: background-color 160ms ease;
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (min-width: 768px) {
   .work-schedule-cell--editable:hover {
     background-color: rgba(0, 102, 255, 0.08);
   }
@@ -385,6 +385,50 @@ body {
   height: 56px;
 }
 
+/* WDS row overlays can retain emulated hover after a touch. Keep row actions,
+   focus indicators and checkbox selection, but omit the hover/pressed tint. */
+@media (max-width: 767px), (hover: none) {
+  .data-table tr::after {
+    display: none !important;
+    opacity: 0 !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-search-field input,
+  .app-search-field input::placeholder {
+    font-size: 16px !important;
+  }
+
+  .app-form-section:has(.application-form-builder) {
+    padding: 12px;
+  }
+
+  .application-question-card {
+    padding: 8px 0 !important;
+    min-width: 0;
+  }
+
+  .application-question-content {
+    padding: 0 !important;
+  }
+
+  .application-question-type > * {
+    width: 100% !important;
+    min-width: 0;
+  }
+
+  .application-question-input textarea {
+    font-size: 16px !important;
+    line-height: 24px !important;
+  }
+
+  .application-question-options {
+    padding: 8px 0 8px 12px !important;
+    min-width: 0;
+  }
+}
+
 .data-table th,
 .data-table td,
 .data-table th *,
@@ -568,7 +612,7 @@ body {
 
   .app-page-toolbar .app-search-field input,
   .app-page-toolbar .app-search-field input::placeholder {
-    font-size: 13px !important;
+    font-size: 16px !important;
   }
 
   .app-page-toolbar .app-search-has-value:not(.app-search-open) .app-search-trigger {
